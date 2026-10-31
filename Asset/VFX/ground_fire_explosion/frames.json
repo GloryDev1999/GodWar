@@ -1,0 +1,13 @@
+{
+  "name": "vfx_fire_explosion_pixel",
+  "source": "skill_vfx_source.mp4 (Pinterest, 1258x646, 30fps)",
+  "frames": 91,
+  "fps": 30,
+  "frame_w": 128,
+  "frame_h": 66,
+  "cols": 13,
+  "rows": 7,
+  "trim_source_frames": "12-102",
+  "method": "static-floor background subtraction, soft alpha, NEAREST downscale to 128x66",
+  "blending": "normal with transparency; Additive also works for glow"
+}

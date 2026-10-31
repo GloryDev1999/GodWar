@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Mô phỏng Chuỗi Tấn Công Vargost · Utility AI & Đo Pixel Trực Quan</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --primary: #f0883e;
+      --primary-hover: #ff9b53;
+      --accent-blue: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-red: #f85149;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    header {
+      padding: 12px 16px;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+    }
+    h1 {
+      margin: 0 0 4px 0;
+      font-size: 20px;
+      color: var(--primary);
+    }
+    header p {
+      margin: 2px 0;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    main {
+      max-width: 1480px;
+      margin: auto;
+      padding: 8px 14px 24px;
+    }
+
+    /* Status HUD Bar */
+    .status-hud {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      margin: 6px 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    .badge {
+      padding: 4px 9px;
+      border-radius: 5px;
+      background: #21262d;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .badge.active {
+      background: #bd561d;
+      border-color: var(--primary);
+      color: #fff;
+      font-weight: 600;
+    }
+    .badge.flying {
+      background: #1f6feb;
+      border-color: var(--accent-blue);
+      color: #fff;
+      font-weight: 600;
+    }
+    .badge.ground {
+      background: #238636;
+      border-color: var(--accent-green);
+      color: #fff;
+      font-weight: 600;
+    }
+    .badge.warning {
+      background: #9e6a03;
+      border-color: #d29922;
+      color: #fff;
+    }
+
+    /* Main Stage Layout */
+    .stage-container {
+      display: grid;
+      grid-template-columns: 1fr 310px;
+      gap: 12px;
+      margin: 8px 0;
+      align-items: start;
+    }
+    @media (max-width: 1080px) {
+      .stage-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .viewport-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    }
+    canvas#stage {
+      width: 100%;
+      height: 100%;
+      display: block;
+      image-rendering: pixelated;
+      cursor: crosshair;
+    }
+
+    /* Inspector Side Panel */
+    .inspector-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: left;
+      font-size: 13px;
+    }
+    .inspector-panel h2 {
+      margin: 0 0 8px 0;
+      font-size: 15px;
+      color: var(--accent-blue);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+    }
+    .inspector-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 6px 0;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    .inspector-row span.label {
+      color: var(--text-muted);
+    }
+    .inspector-row span.val {
+      color: var(--text);
+      font-weight: bold;
+    }
+    .color-preview-box {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border-radius: 3px;
+      border: 1px solid #ffffff;
+      vertical-align: middle;
+      margin-left: 6px;
+    }
+
+    /* Loupe / Magnifier */
+    .loupe-container {
+      margin: 10px 0;
+      background: #000;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px;
+      text-align: center;
+    }
+    .loupe-canvas {
+      display: block;
+      margin: 0 auto;
+      image-rendering: pixelated;
+      border: 1px solid #484f58;
+    }
+    .loupe-tip {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      text-align: center;
+    }
+
+    /* Timeline & Scrubber Bar */
+    .timeline-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin: 8px 0;
+    }
+    .timeline-bar input[type="range"] {
+      flex: 1;
+      min-width: 240px;
+      cursor: pointer;
+    }
+    .timeline-btns {
+      display: flex;
+      gap: 6px;
+    }
+
+    /* Controls Panel */
+    .panel-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin: 8px 0;
+    }
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease-in-out;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    button:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+    button:active {
+      transform: translateY(1px);
+    }
+    button.secondary {
+      background: #21262d;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    button.secondary:hover {
+      background: #30363d;
+      border-color: #8b949e;
+    }
+    button.btn-move {
+      background: #1f6feb;
+      color: #fff;
+    }
+    button.btn-move:hover {
+      background: #388bfd;
+    }
+    button.btn-land {
+      background: #238636;
+      color: #fff;
+    }
+    button.btn-land:hover {
+      background: #2ea043;
+    }
+    button.small {
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+
+    label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text);
+    }
+    select, input[type="range"], input[type="number"] {
+      padding: 5px 8px;
+      background: #0d1117;
+      color: #fff;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .keyframe-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+      margin-top: 4px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #238636;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 9999;
+    }
+    .toast.show {
+      opacity: 1;
+    }
+
+    .links {
+      margin-top: 14px;
+    }
+    .links a {
+      color: var(--accent-blue);
+      text-decoration: none;
+      margin: 0 12px;
+      font-size: 13px;
+    }
+    .links a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>GodWar · Bộ Công Cụ Tinh Chỉnh & Đo Pixel Vargost Combat</h1>
+    <p>Utility AI [150–550px] · Bay Tới/Bay Lùi/Hạ Cánh/Cất Cánh @ 900px/s · Vòng Lửa Xoay 8 Frame · Kính Lúp Pixel 10× & Tọa Độ Tay Phóng Chuẩn</p>
+  </header>
+
+  <main>
+    <!-- Status Badges -->
+    <div class="status-hud">
+      <span class="badge" id="hud-locomotion">Di chuyển: LƠ LỬNG TRÊN KHÔNG</span>
+      <span class="badge" id="hud-ai">AI: Tuần tra trên không</span>
+      <span class="badge" id="hud-range">Cự ly: 350px</span>
+      <span class="badge" id="hud-state">Trạng thái: Đang nạp...</span>
+      <span class="badge" id="hud-frame">Frame: 0/82</span>
+      <span class="badge" id="hud-projectile">Đạn: Sẵn sàng</span>
+      <span class="badge" id="hud-coords">Con trỏ: (0, 0)</span>
+    </div>
+
+    <!-- Stage & Pixel Inspector Layout -->
+    <div class="stage-container">
+      <div class="viewport-wrapper">
+        <canvas id="stage" width="1920" height="1080"></canvas>
+      </div>
+
+      <!-- Real-Time Pixel Inspector Side Panel -->
+      <div class="inspector-panel">
+        <h2>
+          <span>🔍 Kính Lúp & Đo Pixel</span>
+          <label style="font-size: 11px; font-weight: normal;">
+            <input type="checkbox" id="chk-inspector" checked> Bật
+          </label>
+        </h2>
+
+        <!-- Magnifier Loupe Canvas (15x15 texels @ 10x) -->
+        <div class="loupe-container">
+          <canvas id="loupe-canvas" width="150" height="150" class="loupe-canvas"></canvas>
+          <div class="loupe-tip">Kính lúp phóng to 10× lưới pixel tại con trỏ</div>
+        </div>
+
+        <div class="inspector-row">
+          <span class="label">Canvas (X, Y):</span>
+          <span class="val" id="insp-canvas-xy">-- , --</span>
+        </div>
+        <div class="inspector-row">
+          <span class="label">So với Neo Vargost (dx, dy):</span>
+          <span class="val" id="insp-anchor-dxy" style="color: #f0883e;">dx: -- , dy: --</span>
+        </div>
+        <div class="inspector-row">
+          <span class="label">Màu Pixel (RGBA):</span>
+          <span class="val" id="insp-rgba">--</span>
+        </div>
+        <div class="inspector-row">
+          <span class="label">Mã Hex / Màu:</span>
+          <span class="val">
+            <span id="insp-hex">#000000</span>
+            <span class="color-preview-box" id="insp-color-box"></span>
+          </span>
+        </div>
+
+        <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border);">
+          <div style="font-weight: bold; margin-bottom: 6px; font-size: 12px; color: var(--primary);">🎯 TỌA ĐỘ PHÓNG ĐẠN HIỆN HÀNH:</div>
+          <div class="inspector-row">
+            <span class="label">Điểm phóng đạn (dx, dy):</span>
+            <span class="val" id="insp-current-spawn" style="color: #58a6ff;">dx: +20, dy: -52</span>
+          </div>
+          <button class="secondary small" id="btn-pick-spawn" style="width: 100%; margin-top: 4px;">
+            📌 Click vào đây rồi click trên Vargost để gán điểm phóng
+          </button>
+          <button class="secondary small" id="btn-copy-coords" style="width: 100%; margin-top: 6px;">
+            📋 Sao chép tọa độ (dx, dy)
+          </button>
+        </div>
+
+        <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-muted); line-height: 1.5;">
+          💡 <b>Ghi chú:</b> Khung Vargost 200×200 px có điểm neo chân tại <code>(105, 162)</code>. Khi nhân vật đẩy tay ở Frame 66, bàn tay vươn ra tại <code>dx = +20, dy = -52</code>.
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline Scrubber & Frame Stepper -->
+    <div class="timeline-bar">
+      <div class="timeline-btns">
+        <button class="secondary small" id="btn-frame-first" title="Về Frame 0">⏮</button>
+        <button class="secondary small" id="btn-frame-prev" title="Lùi 1 Frame">◀</button>
+        <button class="small" id="btn-play-pause">⏸ Tạm dừng</button>
+        <button class="secondary small" id="btn-frame-next" title="Tiến 1 Frame">▶</button>
+        <button class="secondary small" id="btn-frame-last" title="Tới Frame 82">⏭</button>
+      </div>
+
+      <label style="font-family: monospace;">
+        Frame: <b id="lbl-frame-num" style="color: var(--primary); min-width: 28px; display: inline-block;">0</b> / 82
+      </label>
+      <input type="range" id="rng-frame" min="0" max="82" value="0">
+
+      <div class="keyframe-tags">
+        <button class="secondary small" id="kf-idle">0: Idle</button>
+        <button class="secondary small" id="kf-windup">45: Tụ vòng</button>
+        <button class="secondary small" id="kf-charged">64: Vòng trên đầu</button>
+        <button class="secondary small" id="kf-release" style="border-color: var(--primary); color: var(--primary);">66: Đẩy tay phóng</button>
+        <button class="secondary small" id="kf-recovery">67: Thu tay sạch</button>
+      </div>
+    </div>
+
+    <!-- Movement & Locomotion Toolbar -->
+    <div class="panel-controls">
+      <div class="controls-row">
+        <span style="font-weight: bold; font-size: 13px; color: #58a6ff;">🚀 ĐIỀU KHIỂN HOẠT ẢNH DI CHUYỂN:</span>
+        <button class="btn-move" id="btn-fly-forward">⏩ Bay Tới (+120px, Nghiêng +12°)</button>
+        <button class="btn-move" id="btn-fly-backward">⏪ Bay Lùi (-120px, Nghiêng -10°)</button>
+        <button class="btn-land" id="btn-land">🛬 Hạ Cánh (Đáp Nền Đá Y=194)</button>
+        <button class="secondary" id="btn-takeoff">🛫 Cất Cánh (Bay Lên Bầu Trời)</button>
+      </div>
+
+      <div class="controls-row" style="margin-top: 4px;">
+        <span style="font-weight: bold; font-size: 13px; color: var(--primary);">⚔️ CHIẾN ĐẤU & UTILITY AI:</span>
+        <button id="btn-cast">🔥 RA LỆNH TUNG CHIÊU (CAST SKILL)</button>
+        <label>
+          <input type="checkbox" id="chk-auto"> Tự động chiến đấu (Utility AI)
+        </label>
+        <label>
+          Cự ly mục tiêu:
+          <input type="range" id="rng-distance" min="50" max="750" value="350">
+          <span id="lbl-distance" style="font-family: monospace; font-weight: bold;">350px</span>
+        </label>
+        <button class="secondary small" id="btn-test-near">Thử Quá Gần (80px)</button>
+        <button class="secondary small" id="btn-test-far">Thử Quá Xa (680px)</button>
+      </div>
+
+      <!-- Fine-Tuning Sliders -->
+      <div class="controls-row" style="margin-top: 4px; font-size: 12px; background: #0d1117; padding: 8px 12px; border-radius: 6px;">
+        <label>
+          Tốc độ bay:
+          <input type="range" id="rng-fly-speed" min="400" max="1400" value="900" step="50">
+          <span id="lbl-fly-speed" style="font-family: monospace;">900px/s</span>
+        </label>
+        <label>
+          Góc nghiêng bay:
+          <input type="range" id="rng-tilt" min="0" max="25" value="12" step="1">
+          <span id="lbl-tilt" style="font-family: monospace;">12°</span>
+        </label>
+        <label>
+          Điểm phóng đạn dx:
+          <input type="number" id="num-spawn-dx" value="20" style="width: 50px;">
+        </label>
+        <label>
+          dy:
+          <input type="number" id="num-spawn-dy" value="-52" style="width: 50px;">
+        </label>
+        <label>
+          Tốc độ phát:
+          <select id="sel-rate">
+            <option value="1">1×</option>
+            <option value="0.5">0.5× (Chậm)</option>
+            <option value="0.25">0.25× (Rất chậm)</option>
+          </select>
+        </label>
+        <button class="secondary small" id="btn-reset">Đặt lại mặc định</button>
+      </div>
+    </div>
+
+    <!-- Explanation -->
+    <p style="max-width: 1000px; margin: 8px auto; font-size: 12px; line-height: 1.6; color: var(--text-muted); text-align: left;">
+      <b>Cải tiến hoàn thiện:</b><br>
+      1. <b>Hết vết cắt hình vuông ở Frame 68–71:</b> Loại bỏ kỹ thuật cắt tọa độ x=134 cũ, chuyển sang tách màu thông minh (giữ nguyên 100% pixel thân, áo choàng, tay và trượng, chỉ xóa vòng lửa đã phóng đi). Tapering tự nhiên tại mép chỉ 2–4 pixel.<br>
+      2. <b>Khớp vị trí phóng từ bàn tay:</b> Khi Vargost đẩy tay ở Frame 66, đạn vòng lửa xuất phát chuẩn xác từ lòng bàn tay tại <code>dx = +20, dy = -52</code> (đã cộng dồn dao động lơ lửng và góc nghiêng), triệt tiêu hoàn toàn hiện tượng vòng lửa cũ ở chân và vòng mới xuất hiện giữa thân.<br>
+      3. <b>Công cụ Kính Lúp & Đo Pixel:</b> Rê chuột trên canvas để xem tọa độ Canvas, tọa độ relative từ chân nhân vật (dx, dy), mã màu HEX/RGBA và kính lúp phóng to 10× có lưới ô pixel.<br>
+      4. <b>Bộ hoạt ảnh di chuyển hoàn chỉnh:</b> Bay tới (nghiêng thân +12°, vệt mờ quán tính 900px/s), Bay lùi (nghiêng -10°), Hạ cánh đáp nền đá Y=194 (squash va chạm + vòng bụi), Cất cánh (co người và bật lên trời).
+    </p>
+
+    <div class="links">
+      <a href="/amore-scene.html">◀ Scene Thử Tỷ Lệ Amore</a>
+      <a href="/">Trình xem Asset Tổng quan</a>
+    </div>
+  </main>
+
+  <div class="toast" id="toast-msg">Đã sao chép!</div>
+
+  <script type="module" src="/vargost-skill-test.js"></script>
+</body>
+</html>

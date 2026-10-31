@@ -35,6 +35,9 @@ Leverage remote GPU (A100 / L4 / T4) for AI asset generation and heavy compute:
 ### 4. VS Code One-Click Tasks
 Press **`Ctrl + Shift + B`** (or `Cmd + Shift + B` on macOS) to trigger the primary build action, or open **Terminal > Run Task...** to select from all available automation scripts.
 
+### 5. Song mã Codex CLI & Antigravity (AGY) CLI
+Hệ thống hỗ trợ làm việc song song 100% giữa Codex CLI và AGY CLI, chia sẻ chung bộ nhớ `state.json`, quy tắc `AGENTS.md` và kỹ năng `.agents/skills`. Xem chi tiết tại [docs/dual-agent-guide.md](docs/dual-agent-guide.md).
+
 ### Kiểm thử GIF và frame nhân vật
 
 Ngày 30/10/2026: azza, bearen, black, momo, snowpie và namero đã được gỡ khỏi danh sách hiện hành và tài nguyên riêng. Nguồn chung `3 char` vẫn chứa các frame của namero để bảo toàn solist và kukaomni; ghi chép cũ bên dưới mang tính lịch sử.

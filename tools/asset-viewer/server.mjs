@@ -74,7 +74,7 @@ export function createAssetServer() {
       catch { res.writeHead(400).end('Invalid URL'); return; }
       let file;
       if (decoded === '/') file = path.join(uiRoot, 'index.html');
-      else if (['/app.js', '/style.css', '/render-frame.mjs', '/timing.mjs', '/height-profile.mjs', '/amore-scene.html', '/amore-scene.js'].includes(decoded)) file = path.join(uiRoot, decoded.slice(1));
+      else if (['/app.js', '/style.css', '/render-frame.mjs', '/timing.mjs', '/height-profile.mjs', '/amore-scene.html', '/amore-scene.js', '/vargost-skill-test.html', '/vargost-skill-test.js'].includes(decoded)) file = path.join(uiRoot, decoded.slice(1));
       else if (decoded === '/Asset/Scenes/amore_scale_test/map.png') file = path.join(root, 'Asset/Scenes/amore_scale_test/map.png');
       else if (decoded.startsWith('/Asset/Character/measured_atlas_pilots/')) {
         file = path.resolve(assetRoot, decoded.slice('/Asset/Character/'.length));

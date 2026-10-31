@@ -18,8 +18,11 @@
 
 ## Mục tiêu sản phẩm
 
-- GodWar hướng tới game mobile theo lượt: một nhân vật được thả vào map; tất cả nhân vật chủ động tìm lấy các vật phẩm quan trọng trong map và chiến đấu. Sử dụng map/scene đã có trong hệ thống khi phù hợp.
-- Đây là định hướng sản phẩm do người dùng xác nhận, không phải khẳng định gameplay đã được triển khai. Chi tiết luật lượt, điều khiển, AI, vật phẩm và điều kiện thắng chưa được xác định; không tự coi các giả định là quyết định đã duyệt.
+- GodWar hướng tới game mobile đối kháng tự động (Auto-battler / Utility AI 3v3 trên mobile): Hai đội (mỗi đội 3 nhân vật = 6 nhân vật) được thả vào map ngang 1920×1080 (phát triển từ scene Thử tỷ lệ Amore/Vargost).
+- Cơ chế điều khiển: Nhân vật tự động vận hành hoàn toàn bằng **Utility AI** (mỗi model/class có tư duy và trọng số quyết định riêng: di chuyển, bay, chọn mục tiêu, kích hoạt skill đúng thời điểm, Tanker che chắn cho đồng đội, Healer ưu tiên hồi máu đồng đội nguy cấp).
+- Mục tiêu trận đấu & Điều kiện thắng: Ở giữa map có 1 vật phẩm / cứ điểm tranh chấp. Đội nào có nhân vật đứng trong vùng chiếm giữ vật phẩm liên tục trong **15 giây** (không bị tấn công ngắt quãng hoặc rời vùng) thì chiến thắng. Cả hai đội liên tục giao tranh và tranh đoạt vị trí này.
+- Lộ trình kỹ thuật: Bắt đầu chuẩn hóa model đầu tiên với **Vargost**, phân rã và ghép toàn bộ hoạt ảnh thành chuỗi hành động hoàn chỉnh (State Machine: Idle, Move/Fly, Windup, Release Projectile, Recovery, Impact VFX), làm nền tảng nạp vào bộ não Utility AI.
+- Đây là định hướng sản phẩm chính thức do người dùng xác nhận ngày 2026-10-31. Các agent khi tiếp nhận dự án phải bám sát mục tiêu này để xây dựng kiến trúc mã nguồn và asset đồng bộ.
 
 ## Bộ nhớ dự án và bàn giao phiên
 

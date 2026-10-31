@@ -71,9 +71,15 @@ fi
 # 6. Cài đặt thư viện Python Colab & đồ họa
 pip install --quiet google-colab-cli Pillow numpy opencv-python-headless
 
+# 7. Đồng bộ môi trường song mã (Codex CLI & Antigravity AGY CLI)
+mkdir -p "$HOME/.codex"
+ln -sfn "$WORKSPACE_DIR/.agents/skills" "$HOME/.codex/skills"
+ln -sfn "$WORKSPACE_DIR/AGENTS.md" "$HOME/.codex/instructions.md"
+
 echo ""
 echo "=========================================================="
 echo "  🎉 PIPELINE ANDROID & GODOT 4 ĐÃ SẴN SÀNG 100%!"
+echo "  • Song mã Codex CLI & AGY CLI: Đã liên kết skills & instructions"
 echo "  • Lệnh build APK: ./scripts/build_android_apk.sh"
 echo "  • Lệnh nạp Wi-Fi: ./scripts/adb_install_phone.sh <IP:PORT>"
 echo "=========================================================="
