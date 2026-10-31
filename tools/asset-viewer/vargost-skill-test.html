@@ -425,17 +425,6 @@
       <span class="badge" id="hud-coords">Con trỏ: (0, 0)</span>
     </div>
 
-    <!-- Rage Bar (Tích Nộ cho Blazing Halo) -->
-    <div class="rage-hud-container">
-      <span class="rage-label">⚡ THANH NỘ KHÍ (RAGE):</span>
-      <div class="rage-bar-outer">
-        <div class="rage-bar-fill" id="rage-bar-fill" style="width: 0%;"></div>
-      </div>
-      <span class="rage-text" id="rage-text">0% / 100% (Đánh thường để tích nộ)</span>
-      <button class="secondary small" id="btn-fill-rage" title="Nạp nhanh 100% nộ tức thì để kiểm thử Blazing Halo">⚡ Nạp 100% Nộ</button>
-      <button class="secondary small" id="btn-reset-rage" title="Xóa sạch nộ về 0%">🔄 Xóa Nộ</button>
-    </div>
-
     <!-- Stage & Pixel Inspector Layout -->
     <div class="stage-container">
       <div class="viewport-wrapper">
@@ -504,43 +493,42 @@
         <button class="secondary small" id="btn-frame-prev" title="Lùi 1 Frame">◀</button>
         <button class="small" id="btn-play-pause">⏸ Tạm dừng</button>
         <button class="secondary small" id="btn-frame-next" title="Tiến 1 Frame">▶</button>
-        <button class="secondary small" id="btn-frame-last" title="Tới Frame 94">⏭</button>
+        <button class="secondary small" id="btn-frame-last" title="Tới Frame 82">⏭</button>
       </div>
 
       <label style="font-family: monospace;">
-        Frame: <b id="lbl-frame-num" style="color: var(--primary); min-width: 28px; display: inline-block;">0</b> / 94
+        Frame: <b id="lbl-frame-num" style="color: var(--primary); min-width: 28px; display: inline-block;">0</b> / 82
       </label>
-      <input type="range" id="rng-frame" min="0" max="94" value="0">
+      <input type="range" id="rng-frame" min="0" max="82" value="0">
 
       <div class="keyframe-tags">
-        <button class="secondary small" id="kf-idle">0: Idle (2 Vòng)</button>
-        <button class="secondary small" id="kf-windup">44: Blazing Halo Vận Công</button>
-        <button class="secondary small" id="kf-charged">63: Gom 1 Vòng Lớn</button>
-        <button class="secondary small" id="kf-release" style="border-color: #bd561d; color: #ff9b53;">68: Ném Vòng Lớn</button>
-        <button class="secondary small" id="kf-reignite" style="border-color: #58a6ff; color: #58a6ff;">74: Tụ Lại 2 Vòng Lửa (Frame 74-77)</button>
-        <button class="secondary small" id="kf-ba1-fold" style="border-color: #3fb950; color: #3fb950;">83: Đòn 1 (Tay Trái Ném - Mirrored 62..73)</button>
-        <button class="secondary small" id="kf-ba1-throw" style="border-color: #3fb950; color: #3fb950;">85: Đòn 1 (Phóng Đạn Tay Trái)</button>
-        <button class="secondary small" id="kf-ba2-fold" style="border-color: #d29922; color: #d29922;">89: Đòn 2 (Tay Phải Ném - Chuẩn 62..73)</button>
-        <button class="secondary small" id="kf-ba2-throw" style="border-color: #d29922; color: #d29922;">91: Đòn 2 (Phóng Đạn Tay Phải)</button>
+        <button class="secondary small" id="kf-idle">0: Combat Idle (0..21)</button>
+        <button class="secondary small" id="kf-windup">44: Vận công</button>
+        <button class="secondary small" id="kf-charged">63: Gom vòng lớn</button>
+        <button class="secondary small" id="kf-swing">66: Vung tay ném</button>
+        <button class="secondary small" id="kf-thrust" style="border-color: #f0883e; color: #f0883e;">67: Xuất lực (Vòng lửa 64-68)</button>
+        <button class="secondary small" id="kf-release" style="border-color: #bd561d; color: #ff9b53;">68: Phóng đại cầu lửa (1100px/s)</button>
+        <button class="secondary small" id="kf-reignite" style="border-color: #58a6ff; color: #58a6ff;">74: Tụ lại 2 vòng lửa (74-77)</button>
       </div>
     </div>
 
     <!-- Movement & Locomotion Toolbar -->
     <div class="panel-controls">
       <div class="controls-row">
-        <span style="font-weight: bold; font-size: 13px; color: #58a6ff;">🚀 ĐIỀU KHIỂN HOẠT ẢNH DI CHUYỂN:</span>
-        <button class="btn-move" id="btn-fly-forward">⏩ Bay Tới (+120px, Nghiêng +12°)</button>
-        <button class="btn-move" id="btn-fly-backward">⏪ Bay Lùi (-120px, Nghiêng -10°)</button>
+        <span style="font-weight: bold; font-size: 13px; color: #58a6ff;">🚀 DI CHUYỂN 4 HƯỚNG TRỰC GIAO (GIỚI HẠN 400PX/S):</span>
+        <button class="btn-move" id="btn-fly-forward">⏩ Bay Tới (+120px, Nghiêng +25° + Bóng Mờ)</button>
+        <button class="btn-move" id="btn-fly-backward">⏪ Bay Lùi (-120px, Nghiêng -25° + Bóng Mờ)</button>
         <button class="btn-land" id="btn-land">🛬 Hạ Cánh (Đáp Nền Đá Y=194)</button>
-        <button class="secondary" id="btn-takeoff">🛫 Cất Cánh (Bay Lên Bầu Trời)</button>
+        <button class="secondary" id="btn-takeoff">🛫 Cất Cánh (Bay Lên Bầu Trời Y=65)</button>
+        <button class="secondary small" id="btn-speed-slow" title="Chế độ bay chậm tuần tra 100px/s">🐢 Bay Chậm (100px/s)</button>
+        <button class="secondary small" id="btn-speed-fast" title="Chế độ tăng tốc cơ động 400px/s">⚡ Tăng Tốc (400px/s)</button>
       </div>
 
       <div class="controls-row" style="margin-top: 4px;">
-        <span style="font-weight: bold; font-size: 13px; color: var(--primary);">⚔️ CHIẾN ĐẤU & UTILITY AI (2 KỸ NĂNG):</span>
-        <button id="btn-basic-attack" style="background: #238636; border: 1px solid #3fb950;">⚔️ ĐÁNH THƯỜNG (COMBO 2 ĐÒN +50% NỘ)</button>
-        <button id="btn-blazing-halo" style="background: #bd561d; border: 1px solid #ff9b53;">🔥 BLAZING HALO (TỐI THƯỢNG - CẦN 100% NỘ)</button>
-        <label>
-          <input type="checkbox" id="chk-auto"> Tự động chiến đấu (Utility AI)
+        <span style="font-weight: bold; font-size: 13px; color: var(--primary);">⚔️ CHIẾN ĐẤU & UTILITY AI (TỰ ĐỘNG DI CHUYỂN & TẤN CÔNG):</span>
+        <button id="btn-blazing-halo" style="background: #bd561d; border: 1px solid #ff9b53; font-weight: bold;">🔥 BLAZING HALO (1100 px/s)</button>
+        <label style="background: #161b22; padding: 4px 8px; border-radius: 4px; border: 1px solid #30363d; cursor: pointer;">
+          <input type="checkbox" id="chk-auto" checked> <b>Utility AI Tự Động Di Chuyển & Tấn Công</b>
         </label>
         <label>
           Cự ly mục tiêu:
@@ -555,13 +543,13 @@
       <div class="controls-row" style="margin-top: 4px; font-size: 12px; background: #0d1117; padding: 8px 12px; border-radius: 6px;">
         <label>
           Tốc độ bay:
-          <input type="range" id="rng-fly-speed" min="400" max="1400" value="900" step="50">
-          <span id="lbl-fly-speed" style="font-family: monospace;">900px/s</span>
+          <input type="range" id="rng-fly-speed" min="100" max="400" value="400" step="50">
+          <span id="lbl-fly-speed" style="font-family: monospace;">400px/s</span>
         </label>
         <label>
-          Góc nghiêng bay:
-          <input type="range" id="rng-tilt" min="0" max="25" value="12" step="1">
-          <span id="lbl-tilt" style="font-family: monospace;">12°</span>
+          Góc nghiêng bay tới:
+          <input type="range" id="rng-tilt" min="10" max="35" value="25" step="1">
+          <span id="lbl-tilt" style="font-family: monospace;">25°</span>
         </label>
         <label>
           Điểm phóng đạn dx:
@@ -569,7 +557,7 @@
         </label>
         <label>
           dy:
-          <input type="number" id="num-spawn-dy" value="-52" style="width: 50px;">
+          <input type="number" id="num-spawn-dy" value="-20" style="width: 50px;">
         </label>
         <label>
           Tốc độ phát:

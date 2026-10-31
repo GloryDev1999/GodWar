@@ -6,14 +6,16 @@
   "ai_combat_rules": {
     "attack_range_min_px": 150,
     "attack_range_max_px": 550,
-    "fly_speed_px_per_sec": 900,
-    "projectile_speed_px_per_sec": 900,
+    "fly_speed_px_per_sec": 400,
+    "projectile_speed_px_per_sec": 1100,
     "behavior": "hover_high_cast_downwards",
     "locomotion": {
-      "fly_forward_tilt_deg": 12,
-      "fly_backward_tilt_deg": -10,
+      "fly_forward_tilt_deg": 25,
+      "fly_backward_tilt_deg": -25,
       "ground_y_px": 194.0,
-      "sky_y_px": 65.0
+      "sky_y_px": 65.0,
+      "fly_slow_speed_px_per_sec": 100,
+      "fly_fast_speed_px_per_sec": 400
     }
   },
   "target_height_px": 75,
@@ -27,79 +29,14 @@
   "explosion_atlas": "Asset/Character/characters/vargost_combat/vfx_fire_explosion_sheet.png",
   "actions": {
     "idle": {
-      "description": "Thế đứng thở lơ lửng với 2 vòng lửa xoay ở 2 tay, chu kỳ 22 frame",
+      "description": "Th\u1ebf \u0111\u1ee9ng th\u1edf l\u01a1 l\u1eedng v\u1edbi 2 v\u00f2ng l\u1eeda xoay \u1edf 2 tay, chu k\u1ef3 22 frame",
       "start_frame": 0,
       "end_frame": 21,
       "duration_per_frame_ms": 60,
       "loop": true
     },
-    "basic_attack": {
-      "description": "Đòn đánh thường Twin Fire Strike: combo 2 đòn ném vòng lửa nhỏ tích nộ; đòn 1 từ tay trái, đòn 2 từ tay phải, hồi phục 2 vòng lửa ở cuối combo",
-      "rage_gain_per_hit": 25,
-      "total_rage_gain": 50,
-      "attack_1": {
-        "description": "Đòn 1: Tay trái ném theo mẫu chuẩn (mirrored từ frame 62..73), phóng vòng lửa nhỏ 1, mất vòng lửa tay trái, tay phải giữ thế tĩnh có vòng lửa",
-        "windup": {
-          "start_frame": 83,
-          "end_frame": 84,
-          "duration_per_frame_ms": 60
-        },
-        "release": {
-          "frame": 85,
-          "offset_from_anchor_px": [
-            -15,
-            -48
-          ],
-          "projectile_speed_px_per_sec": 1100,
-          "projectile_size": [
-            56,
-            56
-          ],
-          "rotation_frames": 8,
-          "frame_duration_ms": 35
-        },
-        "recovery": {
-          "start_frame": 86,
-          "end_frame": 88,
-          "duration_per_frame_ms": 60
-        }
-      },
-      "attack_2": {
-        "description": "Đòn 2: Tay phải ném theo mẫu chuẩn (frame 62..73 với vai/tay frame 67 tái tạo mượt mà), phóng vòng lửa nhỏ 2, mất vòng lửa tay phải (cả 2 tay đều rỗng), tay trái giữ thế tĩnh rỗng",
-        "windup": {
-          "start_frame": 89,
-          "end_frame": 90,
-          "duration_per_frame_ms": 60
-        },
-        "release": {
-          "frame": 91,
-          "offset_from_anchor_px": [
-            24,
-            -48
-          ],
-          "projectile_speed_px_per_sec": 1100,
-          "projectile_size": [
-            56,
-            56
-          ],
-          "rotation_frames": 8,
-          "frame_duration_ms": 35
-        },
-        "recovery": {
-          "start_frame": 92,
-          "end_frame": 94,
-          "duration_per_frame_ms": 60
-        }
-      },
-      "reignite": {
-        "description": "Tụ lại 2 vòng lửa ở 2 bàn tay rỗng từ frame 74 đến 77",
-        "start_frame": 74,
-        "end_frame": 77,
-        "duration_per_frame_ms": 60
-      }
-    },
     "blazing_halo": {
-      "description": "Chiêu Tối Thượng Blazing Halo: gom 2 vòng nhỏ thành 1 vòng lớn ở frame 63, phóng ở frame 68, nổ diện rộng, tiêu hao 100% nộ",
+      "description": "Chi\u00eau T\u1ed1i Th\u01b0\u1ee3ng Blazing Halo: gom 2 v\u00f2ng nh\u1ecf th\u00e0nh 1 v\u00f2ng l\u1edbn \u1edf frame 63, vung n\u00e9m qua 64..67 (v\u00f2ng l\u1eeda di chuy\u1ec3n li\u1ec1n m\u1ea1ch), ph\u00f3ng \u1edf frame 68 @ 1100px/s, n\u1ed5 di\u1ec7n r\u1ed9ng, t\u1ee5 l\u1ea1i v\u00f2ng l\u1eeda \u1edf frame 74..77",
       "required_rage": 100,
       "windup": {
         "start_frame": 44,
@@ -111,9 +48,9 @@
         "frame": 68,
         "offset_from_anchor_px": [
           20,
-          -52
+          -20
         ],
-        "projectile_speed_px_per_sec": 900,
+        "projectile_speed_px_per_sec": 1100,
         "projectile_size": [
           80,
           80
@@ -128,7 +65,7 @@
       }
     },
     "skill_cast": {
-      "description": "Alias cho Blazing Halo phục vụ tương thích ngược",
+      "description": "Alias cho Blazing Halo ph\u1ee5c v\u1ee5 t\u01b0\u01a1ng th\u00edch ng\u01b0\u1ee3c",
       "windup": {
         "start_frame": 44,
         "end_frame": 67,
@@ -138,9 +75,9 @@
         "frame": 68,
         "offset_from_anchor_px": [
           20,
-          -52
+          -20
         ],
-        "projectile_speed_px_per_sec": 900,
+        "projectile_speed_px_per_sec": 1100,
         "projectile_size": [
           80,
           80
@@ -155,7 +92,7 @@
       }
     },
     "explosion": {
-      "description": "VFX nổ lửa mặt đất pixel",
+      "description": "VFX n\u1ed5 l\u1eeda m\u1eb7t \u0111\u1ea5t pixel",
       "total_frames": 91,
       "frame_width": 128,
       "frame_height": 66,
@@ -990,126 +927,6 @@
       "region": [
         400,
         1600,
-        200,
-        200
-      ],
-      "duration_ms": 60
-    },
-    {
-      "index": 83,
-      "region": [
-        600,
-        1600,
-        200,
-        200
-      ],
-      "duration_ms": 60
-    },
-    {
-      "index": 84,
-      "region": [
-        800,
-        1600,
-        200,
-        200
-      ],
-      "duration_ms": 60
-    },
-    {
-      "index": 85,
-      "region": [
-        1000,
-        1600,
-        200,
-        200
-      ],
-      "duration_ms": 60
-    },
-    {
-      "index": 86,
-      "region": [
-        1200,
-        1600,
-        200,
-        200
-      ],
-      "duration_ms": 60
-    },
-    {
-      "index": 87,
-      "region": [
-        1400,
-        1600,
-        200,
-        200
-      ],
-      "duration_ms": 60
-    },
-    {
-      "index": 88,
-      "region": [
-        1600,
-        1600,
-        200,
-        200
-      ],
-      "duration_ms": 60
-    },
-    {
-      "index": 89,
-      "region": [
-        1800,
-        1600,
-        200,
-        200
-      ],
-      "duration_ms": 60
-    },
-    {
-      "index": 90,
-      "region": [
-        0,
-        1800,
-        200,
-        200
-      ],
-      "duration_ms": 60
-    },
-    {
-      "index": 91,
-      "region": [
-        200,
-        1800,
-        200,
-        200
-      ],
-      "duration_ms": 60
-    },
-    {
-      "index": 92,
-      "region": [
-        400,
-        1800,
-        200,
-        200
-      ],
-      "duration_ms": 60
-    },
-    {
-      "index": 93,
-      "region": [
-        600,
-        1800,
-        200,
-        200
-      ],
-      "duration_ms": 60
-    },
-    {
-      "index": 94,
-      "region": [
-        800,
-        1800,
         200,
         200
       ],

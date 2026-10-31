@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-10-31T08:35:00Z",
+  "updated_at_utc": "2026-10-31T09:12:00Z",
   "purpose": "Bộ nhớ bàn giao ngắn gọn cho agent; đối chiếu với mã, tài liệu và git status khi bắt đầu phiên.",
   "product_goal": {
-    "source": "Yêu cầu của người dùng ngày 2026-10-31 (cập nhật lúc 07:25 UTC)",
-    "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mỗi model/class được đào tạo tư duy chiến đấu riêng biệt (Utility AI: di chuyển, bay, chọn mục tiêu, kích hoạt skill theo thời gian tối ưu, Tanker che chắn skill hiểm, Healer hồi máu đồng đội nguy cấp). 2 đội tranh giành 1 vật phẩm ở giữa map bằng cách đứng chiếm giữ liên tục trong 15s để chiến thắng. Vargost là nhân vật đầu tiên hoàn thiện đầy đủ 2 kỹ năng: Đánh thường Twin Fire Strike (combo 2 đòn tích nộ + tụ lửa lại) và Chiêu Tối Thượng Blazing Halo (vận công gom vòng lớn từ frame 44..63, phóng ở frame 68, nổ diện rộng khi đầy 100% nộ).",
+    "source": "Yêu cầu của người dùng ngày 2026-10-31 (cập nhật lúc 09:02 UTC)",
+    "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mỗi model/class được đào tạo tư duy chiến đấu riêng biệt (Utility AI: di chuyển, bay, chọn mục tiêu, kích hoạt skill theo thời gian tối ưu, Tanker che chắn skill hiểm, Healer hồi máu đồng đội nguy cấp). 2 đội tranh giành 1 vật phẩm ở giữa map bằng cách đứng chiếm giữ liên tục trong 15s để chiến thắng. Vargost là nhân vật đầu tiên hoàn thiện chuỗi hoạt ảnh 83 frame thống nhất mượt mà với Chiêu Tối Thượng Blazing Halo (vận công gom vòng lớn từ frame 44..63, xuất lực qua 64..67 có vòng lửa chuẩn hướng, phóng đại cầu lửa ở frame 68 @ 1100px/s, nổ diện rộng, hồi chiêu và tụ lại vòng lửa 74..77) cùng hệ thống di chuyển 4 hướng trực giao (400px/s cơ động, 100px/s tuần tra, nghiêng 25° + bóng mờ cho cả tiến và lùi, dừng đứng thẳng 0°) và bộ não Utility AI tự động cơ động chiến đấu.",
     "open_questions": [
-      "Người dùng đánh giá trải nghiệm thực tế bộ 2 skill của Vargost trên localhost:4173/vargost-skill-test.html",
+      "Người dùng đánh giá trải nghiệm thực tế chuỗi Blazing Halo mượt mà và Utility AI tự động di chuyển trên localhost:4173/vargost-skill-test.html",
       "Chọn 5 nhân vật tiếp theo để đủ 6 nhân vật cho 2 team sau khi Vargost đạt chuẩn",
       "Tọa độ và bán kính chính xác của vùng chứa vật phẩm 15s ở giữa map ngang",
       "Các chỉ số cơ bản cho Vargost và các nhân vật (HP, tầm đánh, cooldown skill, DPS)"
@@ -38,7 +38,7 @@
       "source": "AGENTS.md"
     },
     {
-      "fact": "Vargost có 95 frame hoàn chỉnh gồm Idle (0..21), Blazing Halo (44..82), Basic Attack Đòn 1 Tay Trái (83..88), Basic Attack Đòn 2 Tay Phải (89..94) và Re-ignite (74..77).",
+      "fact": "Vargost có chuỗi hoạt ảnh 83 frame hợp nhất chuẩn xác gồm Idle (0..21) và Blazing Halo (44..82) với Frame 67 có vòng lửa chuẩn hướng 64-68, tốc độ đạn 1100px/s, giới hạn bay 400px/s (chế độ chậm 100px/s), nghiêng 25° kèm bóng mờ cho cả tiến và lùi, dừng đứng thẳng 0°, di chuyển 4 hướng trực giao và Utility AI tự động chiến đấu.",
       "source": "Asset/Character/characters/vargost_combat/vargost_actions.json"
     },
     {
@@ -57,32 +57,32 @@
     "Asset/Scenes/amore_scale_test/README.md"
   ],
   "current_task": {
-    "title": "Chuẩn Hóa Hoạt Ảnh Đánh Thường Vargost Theo Mẫu Ném Frame 62-73, Tái Tạo Vai/Tay Frame 67, Đổi Đòn 1 Tay Trái -> Đòn 2 Tay Phải -> Tụ Lửa",
+    "title": "Hợp Nhất Chuỗi Hoạt Ảnh Blazing Halo 83 Frame, Sửa Vòng Lửa Frame 67, Tăng Tốc Đạn 1100px/s, Chuẩn Hóa Bay 4 Hướng Trực Giao 400px/s & 100px/s, Sửa Nghiêng 25° & Bóng Mờ Tiến/Lùi, Nâng Cấp Utility AI Tự Động Di Chuyển",
     "status": "completed",
     "changes": [
-      "1. Tái tạo cánh tay & vai Frame 67: Bù 746 pixel bị khuyết giải phẫu do xóa vòng Blazing Halo cũ bằng cách nội suy từ Frame 66 và 68, giúp chuyển động vung tay mượt mà không bị thủng hình.",
-      "2. Đòn 1 (Frame 83..88): Tay trái ném theo mẫu ném chuẩn (mirrored từ chuỗi Frame 62..73), tay phải giữ nguyên tư thế tĩnh Idle có vòng lửa; phóng đạn nhỏ 1 ở Frame 85 (dx=-15, dy=-48); thu tay về tư thế tĩnh rỗng (mất vòng lửa tay trái).",
-      "3. Đòn 2 (Frame 89..94): Tay phải ném theo mẫu chuẩn chuỗi Frame 62..73 (với Frame 67 đã được vá hoàn chỉnh), tay trái giữ nguyên tư thế tĩnh rỗng; phóng đạn nhỏ 2 ở Frame 91 (dx=+24, dy=-48); thu tay về tư thế tĩnh rỗng ở Frame 94 (cả 2 tay đều rỗng vòng lửa).",
-      "4. Tụ Lại Vòng Lửa (Frame 74..77): Nối liền từ tư thế 2 tay rỗng vào chuỗi gọi lại 2 vòng lửa bùng lên và định hình lại như cũ, sau đó loop về Frame 0 (Idle).",
-      "5. Đóng gói lại atlas 95 frame (2000x2000 px), ghi đè trực tiếp lên body_frames, vargost_body_atlas.png và atlas_000.png theo hiến pháp AGENTS.md, cập nhật SHA-256 trong candidate.json, approved-animations-20261031-v9.json, vargost_actions.json.",
-      "6. Cập nhật vargost-skill-test.js & vargost-skill-test.html: Chuẩn hóa scrubber preview, bookmark và logic bắn đạn theo đúng thứ tự: Đòn 1 Tay Trái -> Đòn 2 Tay Phải -> Tụ Lại 2 Vòng Lửa."
+      "1. Bỏ hoạt ảnh đánh thường theo yêu cầu; tinh chỉnh Frame 67 bổ sung vòng lửa chuẩn hướng từ 64-68 từ fine_candidates, kết nối toàn bộ hoạt ảnh thành chuỗi 83 frame mềm mại, không bị khựng hình hay mất vòng lửa ở frame 67.",
+      "2. Đóng gói lại atlas 83 frame (2000x1800 px) ghi đè trực tiếp lên vargost_body_atlas.png, atlas_000.png, cập nhật candidate.json, approved-animations-20261031-v9.json, vargost_actions.json.",
+      "3. Tăng tốc độ bay đại cầu lửa Blazing Halo từ 900px/s lên 1100px/s, căn chỉnh điểm phóng đạn chuẩn ở [20, -20] tiếp nối ngay sau Frame 67.",
+      "4. Chuẩn hóa độ nghiêng khi bay: Bay tới chốt 25°, bay lùi -25°, bổ sung bóng mờ (motion ghosts) cho cả bay tới và bay lùi; sửa dứt điểm lỗi bay lùi bị kẹt nghiêng, đảm bảo khi dừng hoặc kết thúc di chuyển nhân vật luôn mượt mà trở về tư thế đứng thẳng (0°).",
+      "5. Giới hạn tốc độ bay 4 hướng trực giao (tiến, lùi, cất cánh, hạ cánh) ở 400px/s, bổ sung chế độ bay chậm tuần tra 100px/s; không bay chéo xiên lung tung (2h, 10h, 8h, 4h).",
+      "6. Nâng cấp bộ não Utility AI: Tự động tuần tra chậm (100px/s), tự đánh giá cự ly mục tiêu để tăng tốc áp sát hoặc lùi giữ cự ly (400px/s), dừng lại đứng thẳng và thi triển Blazing Halo (1100px/s), tự động cất cánh/đáp đất linh hoạt."
     ],
     "verification": [
-      "Godot 4.3 Headless CLI: PASS Vargost combat chain: 95 frames (idle 0..21, basic attack 83..94, blazing halo 44..82), dual skill combo, rage bar, 8-frame projectile @ 900-1100px/s, range [150, 550], explosion 91 frames.",
+      "Godot 4.3 Headless CLI: PASS Vargost combat chain: 83 frames (idle 0..21, blazing halo 44..82), unified smooth asset chain, 8-frame projectile @ 1100px/s, range [150, 550], tilt 25 deg, max speed 400px/s, explosion 91 frames.",
       "npm test: 7/7 bài kiểm thử pass.",
       "python3 -m unittest discover tests: 2/2 bài kiểm thử pass.",
       "curl -s -I http://localhost:4173/vargost-skill-test.html trả về HTTP 200 OK."
     ],
     "remaining": [],
     "limitations": [
-      "Vargost đã hoàn thiện toàn diện 2 bộ kỹ năng và cơ chế nộ trên localhost; sẵn sàng để người dùng kiểm tra trực quan trên trình duyệt."
+      "Vargost đã hoàn thiện chuỗi Blazing Halo mượt mà và bộ não Utility AI tự động di chuyển & chiến đấu trên localhost; sẵn sàng để người dùng kiểm tra trực quan trên trình duyệt."
     ],
     "next_steps": [
-      "Người dùng mở http://localhost:4173/vargost-skill-test.html để kiểm tra hoạt ảnh ném mượt mà mới của Vargost.",
+      "Người dùng mở http://localhost:4173/vargost-skill-test.html để kiểm tra hoạt ảnh Blazing Halo mới và Utility AI tự động cơ động.",
       "Sau khi người dùng ưng ý chốt Vargost, chọn tiếp 5 nhân vật tiếp theo để hoàn thiện 2 team 3v3."
     ]
   },
-  "working_tree_note": "Atlas và manifest đã nâng cấp lên 95 frame hoàn thiện, server cổng 4173 đang chạy nền ổn định.",
+  "working_tree_note": "Atlas và manifest đã nâng cấp lên 83 frame hoàn thiện, server cổng 4173 đang chạy nền ổn định.",
   "history": [
     {
       "title": "Khởi Chạy Localhost Asset Viewer (Cổng 4173) Phục Vụ Kiểm Thử Hoạt Ảnh Vargost",
