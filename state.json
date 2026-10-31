@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-10-31T09:12:00Z",
+  "updated_at_utc": "2026-10-31T09:35:00Z",
   "purpose": "Bộ nhớ bàn giao ngắn gọn cho agent; đối chiếu với mã, tài liệu và git status khi bắt đầu phiên.",
   "product_goal": {
-    "source": "Yêu cầu của người dùng ngày 2026-10-31 (cập nhật lúc 09:02 UTC)",
+    "source": "Yêu cầu của người dùng ngày 2026-10-31 (cập nhật lúc 09:30 UTC)",
     "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mỗi model/class được đào tạo tư duy chiến đấu riêng biệt (Utility AI: di chuyển, bay, chọn mục tiêu, kích hoạt skill theo thời gian tối ưu, Tanker che chắn skill hiểm, Healer hồi máu đồng đội nguy cấp). 2 đội tranh giành 1 vật phẩm ở giữa map bằng cách đứng chiếm giữ liên tục trong 15s để chiến thắng. Vargost là nhân vật đầu tiên hoàn thiện chuỗi hoạt ảnh 83 frame thống nhất mượt mà với Chiêu Tối Thượng Blazing Halo (vận công gom vòng lớn từ frame 44..63, xuất lực qua 64..67 có vòng lửa chuẩn hướng, phóng đại cầu lửa ở frame 68 @ 1100px/s, nổ diện rộng, hồi chiêu và tụ lại vòng lửa 74..77) cùng hệ thống di chuyển 4 hướng trực giao (400px/s cơ động, 100px/s tuần tra, nghiêng 25° + bóng mờ cho cả tiến và lùi, dừng đứng thẳng 0°) và bộ não Utility AI tự động cơ động chiến đấu.",
     "open_questions": [
-      "Người dùng đánh giá trải nghiệm thực tế chuỗi Blazing Halo mượt mà và Utility AI tự động di chuyển trên localhost:4173/vargost-skill-test.html",
+      "Người dùng đánh giá trải nghiệm thực tế chuỗi Blazing Halo mượt mà và Utility AI tự động cơ động không còn vòng lặp cất/hạ cánh trên localhost:4173/vargost-skill-test.html",
       "Chọn 5 nhân vật tiếp theo để đủ 6 nhân vật cho 2 team sau khi Vargost đạt chuẩn",
       "Tọa độ và bán kính chính xác của vùng chứa vật phẩm 15s ở giữa map ngang",
       "Các chỉ số cơ bản cho Vargost và các nhân vật (HP, tầm đánh, cooldown skill, DPS)"
@@ -57,33 +57,60 @@
     "Asset/Scenes/amore_scale_test/README.md"
   ],
   "current_task": {
-    "title": "Hợp Nhất Chuỗi Hoạt Ảnh Blazing Halo 83 Frame, Sửa Vòng Lửa Frame 67, Tăng Tốc Đạn 1100px/s, Chuẩn Hóa Bay 4 Hướng Trực Giao 400px/s & 100px/s, Sửa Nghiêng 25° & Bóng Mờ Tiến/Lùi, Nâng Cấp Utility AI Tự Động Di Chuyển",
+    "title": "Khắc Phục Dứt Điểm Lỗi Utility AI Bị Kẹt Vòng Lặp Vô Tận Cất Cánh / Hạ Cánh",
     "status": "completed",
     "changes": [
-      "1. Bỏ hoạt ảnh đánh thường theo yêu cầu; tinh chỉnh Frame 67 bổ sung vòng lửa chuẩn hướng từ 64-68 từ fine_candidates, kết nối toàn bộ hoạt ảnh thành chuỗi 83 frame mềm mại, không bị khựng hình hay mất vòng lửa ở frame 67.",
-      "2. Đóng gói lại atlas 83 frame (2000x1800 px) ghi đè trực tiếp lên vargost_body_atlas.png, atlas_000.png, cập nhật candidate.json, approved-animations-20261031-v9.json, vargost_actions.json.",
-      "3. Tăng tốc độ bay đại cầu lửa Blazing Halo từ 900px/s lên 1100px/s, căn chỉnh điểm phóng đạn chuẩn ở [20, -20] tiếp nối ngay sau Frame 67.",
-      "4. Chuẩn hóa độ nghiêng khi bay: Bay tới chốt 25°, bay lùi -25°, bổ sung bóng mờ (motion ghosts) cho cả bay tới và bay lùi; sửa dứt điểm lỗi bay lùi bị kẹt nghiêng, đảm bảo khi dừng hoặc kết thúc di chuyển nhân vật luôn mượt mà trở về tư thế đứng thẳng (0°).",
-      "5. Giới hạn tốc độ bay 4 hướng trực giao (tiến, lùi, cất cánh, hạ cánh) ở 400px/s, bổ sung chế độ bay chậm tuần tra 100px/s; không bay chéo xiên lung tung (2h, 10h, 8h, 4h).",
-      "6. Nâng cấp bộ não Utility AI: Tự động tuần tra chậm (100px/s), tự đánh giá cự ly mục tiêu để tăng tốc áp sát hoặc lùi giữ cự ly (400px/s), dừng lại đứng thẳng và thi triển Blazing Halo (1100px/s), tự động cất cánh/đáp đất linh hoạt."
+      "1. Thiết lập biến cooldown khóa độ cao altitudeCooldown (>= 15 giây): mỗi khi cất cánh lên không hoặc đáp xuống bệ đá, Vargost giữ nguyên độ cao ít nhất 15s, triệt tiêu hoàn toàn hiện tượng cất cánh -> hạ cánh liên hồi.",
+      "2. Cho phép Vargost xuất chiêu Blazing Halo trực tiếp từ bất kỳ độ cao nào (trên không hoặc đứng vững trên bệ đá); gỡ bỏ điều kiện ép buộc takeoff() khi xuất chiêu.",
+      "3. Sửa trạng thái kết thúc di chuyển ngang (FLY_FORWARD / FLY_BACKWARD): chuyển về đúng locomotionState tương ứng với độ cao thực tế (isFlying ? 'IDLE_FLY' : 'IDLE_GROUND'), tránh gán nhầm IDLE_FLY khi đang ở mặt đất.",
+      "4. Bổ sung cơ chế bảo vệ trong land() và takeoff(): ngăn chặn tuyệt đối việc tái kích hoạt khi đang trong tiến trình chuyển đổi độ cao (TAKEOFF / LANDING).",
+      "5. Cho phép di chuyển ngang dọc theo bệ đá mà không ép cất cánh khi bấm nút thủ công hoặc AI tự động áp sát/lùi giữ cự ly."
     ],
     "verification": [
-      "Godot 4.3 Headless CLI: PASS Vargost combat chain: 83 frames (idle 0..21, blazing halo 44..82), unified smooth asset chain, 8-frame projectile @ 1100px/s, range [150, 550], tilt 25 deg, max speed 400px/s, explosion 91 frames.",
+      "Kiểm tra tính logic state machine: node test_ai_loop.js xác nhận đạt 100%.",
+      "node --check tools/asset-viewer/vargost-skill-test.js: cú pháp JS hợp lệ, không có lỗi runtime.",
+      "Godot 4.3 Headless CLI: PASS Vargost combat chain: 83 frames, range [150, 550], tilt 25 deg, max speed 400px/s.",
       "npm test: 7/7 bài kiểm thử pass.",
       "python3 -m unittest discover tests: 2/2 bài kiểm thử pass.",
-      "curl -s -I http://localhost:4173/vargost-skill-test.html trả về HTTP 200 OK."
+      "curl -s -I http://localhost:4173/vargost-skill-test.html và http://localhost:4173/vargost-skill-test.js trả về HTTP 200 OK."
     ],
     "remaining": [],
     "limitations": [
-      "Vargost đã hoàn thiện chuỗi Blazing Halo mượt mà và bộ não Utility AI tự động di chuyển & chiến đấu trên localhost; sẵn sàng để người dùng kiểm tra trực quan trên trình duyệt."
+      "Vargost đã hoàn thiện mượt mà và hoạt động ổn định không bị kẹt lặp độ cao; sẵn sàng để người dùng thẩm định trực tiếp trên browser."
     ],
     "next_steps": [
-      "Người dùng mở http://localhost:4173/vargost-skill-test.html để kiểm tra hoạt ảnh Blazing Halo mới và Utility AI tự động cơ động.",
+      "Người dùng mở http://localhost:4173/vargost-skill-test.html kiểm tra Utility AI vận hành tự nhiên và mượt mà.",
       "Sau khi người dùng ưng ý chốt Vargost, chọn tiếp 5 nhân vật tiếp theo để hoàn thiện 2 team 3v3."
     ]
   },
   "working_tree_note": "Atlas và manifest đã nâng cấp lên 83 frame hoàn thiện, server cổng 4173 đang chạy nền ổn định.",
   "history": [
+    {
+      "title": "Hợp Nhất Chuỗi Hoạt Ảnh Blazing Halo 83 Frame, Sửa Vòng Lửa Frame 67, Tăng Tốc Đạn 1100px/s, Chuẩn Hóa Bay 4 Hướng Trực Giao 400px/s & 100px/s, Sửa Nghiêng 25° & Bóng Mờ Tiến/Lùi, Nâng Cấp Utility AI Tự Động Di Chuyển",
+      "status": "completed",
+      "changes": [
+        "1. Bỏ hoạt ảnh đánh thường theo yêu cầu; tinh chỉnh Frame 67 bổ sung vòng lửa chuẩn hướng từ 64-68 từ fine_candidates, kết nối toàn bộ hoạt ảnh thành chuỗi 83 frame mềm mại, không bị khựng hình hay mất vòng lửa ở frame 67.",
+        "2. Đóng gói lại atlas 83 frame (2000x1800 px) ghi đè trực tiếp lên vargost_body_atlas.png, atlas_000.png, cập nhật candidate.json, approved-animations-20261031-v9.json, vargost_actions.json.",
+        "3. Tăng tốc độ bay đại cầu lửa Blazing Halo từ 900px/s lên 1100px/s, căn chỉnh điểm phóng đạn chuẩn ở [20, -20] tiếp nối ngay sau Frame 67.",
+        "4. Chuẩn hóa độ nghiêng khi bay: Bay tới chốt 25°, bay lùi -25°, bổ sung bóng mờ (motion ghosts) cho cả bay tới và bay lùi; sửa dứt điểm lỗi bay lùi bị kẹt nghiêng, đảm bảo khi dừng hoặc kết thúc di chuyển nhân vật luôn mượt mà trở về tư thế đứng thẳng (0°).",
+        "5. Giới hạn tốc độ bay 4 hướng trực giao (tiến, lùi, cất cánh, hạ cánh) ở 400px/s, bổ sung chế độ bay chậm tuần tra 100px/s; không bay chéo xiên lung tung (2h, 10h, 8h, 4h).",
+        "6. Nâng cấp bộ não Utility AI: Tự động tuần tra chậm (100px/s), tự đánh giá cự ly mục tiêu để tăng tốc áp sát hoặc lùi giữ cự ly (400px/s), dừng lại đứng thẳng và thi triển Blazing Halo (1100px/s), tự động cất cánh/đáp đất linh hoạt."
+      ],
+      "verification": [
+        "Godot 4.3 Headless CLI: PASS Vargost combat chain: 83 frames (idle 0..21, blazing halo 44..82), unified smooth asset chain, 8-frame projectile @ 1100px/s, range [150, 550], tilt 25 deg, max speed 400px/s, explosion 91 frames.",
+        "npm test: 7/7 bài kiểm thử pass.",
+        "python3 -m unittest discover tests: 2/2 bài kiểm thử pass.",
+        "curl -s -I http://localhost:4173/vargost-skill-test.html trả về HTTP 200 OK."
+      ],
+      "remaining": [],
+      "limitations": [
+        "Vargost đã hoàn thiện chuỗi Blazing Halo mượt mà và bộ não Utility AI tự động di chuyển & chiến đấu trên localhost; sẵn sàng để người dùng kiểm tra trực quan trên trình duyệt."
+      ],
+      "next_steps": [
+        "Người dùng mở http://localhost:4173/vargost-skill-test.html để kiểm tra hoạt ảnh Blazing Halo mới và Utility AI tự động cơ động.",
+        "Sau khi người dùng ưng ý chốt Vargost, chọn tiếp 5 nhân vật tiếp theo để hoàn thiện 2 team 3v3."
+      ]
+    },
     {
       "title": "Khởi Chạy Localhost Asset Viewer (Cổng 4173) Phục Vụ Kiểm Thử Hoạt Ảnh Vargost",
       "status": "completed",

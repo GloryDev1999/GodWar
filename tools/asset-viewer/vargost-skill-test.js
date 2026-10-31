@@ -110,6 +110,7 @@ let currentFrameIndex = 0;
 let frameTimeAccumulator = 0;
 let hoverTimer = 0;
 let autoCooldown = 1.5;
+let altitudeCooldown = 15.0; // Cooldown khóa độ cao (>= 15s) triệt tiêu vòng lặp cất/hạ cánh
 let aiDecisionTimer = 0.3;
 
 // Motion ghosting afterimages for flight
@@ -277,33 +278,37 @@ if (kfReignite) kfReignite.addEventListener('click', () => selectFrame(74));
 btnFlyForward.addEventListener('click', () => {
   currentFlySpeed = Number(rngFlySpeed.value) || SPEED_FAST;
   targetVargostX = Math.min(W - 400, vargostX + 120 * mapScale);
-  if (!isFlying) takeoff();
   locomotionState = 'FLY_FORWARD';
-  hudLocomotion.textContent = `Di chuyển: BAY TIẾN (+120px, Nghiêng +25°) @ ${currentFlySpeed}px/s`;
+  hudLocomotion.textContent = isFlying
+    ? `Di chuyển: BAY TIẾN (+120px, Nghiêng +25°) @ ${currentFlySpeed}px/s`
+    : `Di chuyển: TIẾN TRÊN BỆ (+120px, Nghiêng +25°) @ ${currentFlySpeed}px/s`;
   hudLocomotion.className = 'badge flying';
 });
 
 btnFlyBackward.addEventListener('click', () => {
   currentFlySpeed = Number(rngFlySpeed.value) || SPEED_FAST;
   targetVargostX = Math.max(mapX + 100, vargostX - 120 * mapScale);
-  if (!isFlying) takeoff();
   locomotionState = 'FLY_BACKWARD';
-  hudLocomotion.textContent = `Di chuyển: BAY LÙI (-120px, Nghiêng -25°) @ ${currentFlySpeed}px/s`;
+  hudLocomotion.textContent = isFlying
+    ? `Di chuyển: BAY LÙI (-120px, Nghiêng -25°) @ ${currentFlySpeed}px/s`
+    : `Di chuyển: LÙI TRÊN BỆ (-120px, Nghiêng -25°) @ ${currentFlySpeed}px/s`;
   hudLocomotion.className = 'badge warning';
 });
 
 function land() {
-  if (!isFlying || locomotionState === 'LANDING') return;
+  if (!isFlying || locomotionState === 'LANDING' || locomotionState === 'TAKEOFF') return;
   locomotionState = 'LANDING';
   transitionProgress = 0;
+  altitudeCooldown = 15.0; // Khóa độ cao ít nhất 15s
   hudLocomotion.textContent = 'Di chuyển: HẠ CÁNH (Dọc Y=194)...';
   hudLocomotion.className = 'badge ground';
 }
 
 function takeoff() {
-  if (isFlying && locomotionState !== 'LANDING') return;
+  if (isFlying || locomotionState === 'TAKEOFF' || locomotionState === 'LANDING') return;
   locomotionState = 'TAKEOFF';
   transitionProgress = 0;
+  altitudeCooldown = 15.0; // Khóa độ cao ít nhất 15s
   hudLocomotion.textContent = 'Di chuyển: CẤT CÁNH (Dọc Y=65)...';
   hudLocomotion.className = 'badge flying';
 }
@@ -371,6 +376,8 @@ btnReset.addEventListener('click', () => {
   currentFlySpeed = SPEED_FAST;
   rngFlySpeed.value = SPEED_FAST;
   lblFlySpeed.textContent = `${SPEED_FAST}px/s`;
+  autoCooldown = 1.5;
+  altitudeCooldown = 15.0;
   hudLocomotion.textContent = 'Di chuyển: LƠ LỬNG TRÊN KHÔNG';
   hudLocomotion.className = 'badge';
   hudState.textContent = 'Trạng thái: SẴN SÀNG';
@@ -559,58 +566,74 @@ function update(timestamp) {
   // -------------------------------------------------------------
   if (chkAuto.checked) {
     if (autoCooldown > 0) autoCooldown -= dt;
+    if (altitudeCooldown > 0) altitudeCooldown -= dt;
 
-    if (aiState === 'IDLE' && !pendingCombatAction) {
+    if (aiState === 'IDLE' && !pendingCombatAction && locomotionState !== 'TAKEOFF' && locomotionState !== 'LANDING') {
       aiDecisionTimer -= dt;
       if (aiDecisionTimer <= 0) {
         aiDecisionTimer = 0.35; // chu kỳ ra quyết định 0.35s
 
-        // 1. Nếu cự ly quá xa (> 550px): Tăng tốc 400px/s bay tiến áp sát
+        // 1. Nếu cự ly quá xa (> 550px): Tăng tốc 400px/s tiến áp sát
         if (distInPx > MAX_ATTACK_RANGE) {
           currentFlySpeed = SPEED_FAST;
           rngFlySpeed.value = SPEED_FAST;
           lblFlySpeed.textContent = `${SPEED_FAST}px/s`;
-          if (!isFlying) takeoff();
           targetVargostX = Math.min(W - 400, vargostX + (distInPx - 360) * (mapScale / 2.625));
           locomotionState = 'FLY_FORWARD';
-          hudLocomotion.textContent = `AI: TĂNG TỐC TIẾN ÁP SÁT (400px/s, Nghiêng +25°)`;
+          hudLocomotion.textContent = isFlying
+            ? `AI: TĂNG TỐC BAY TIẾN ÁP SÁT (400px/s, Nghiêng +25°)`
+            : `AI: TIẾN ÁP SÁT TRÊN BỆ ĐÁ (400px/s, Nghiêng +25°)`;
           hudLocomotion.className = 'badge flying';
         }
-        // 2. Nếu cự ly quá gần (< 150px): Tăng tốc 400px/s bay lùi giữ khoảng cách
+        // 2. Nếu cự ly quá gần (< 150px): Tăng tốc 400px/s lùi giữ khoảng cách
         else if (distInPx < MIN_ATTACK_RANGE) {
           currentFlySpeed = SPEED_FAST;
           rngFlySpeed.value = SPEED_FAST;
           lblFlySpeed.textContent = `${SPEED_FAST}px/s`;
-          if (!isFlying) takeoff();
           targetVargostX = Math.max(mapX + 100, vargostX - (300 - distInPx) * (mapScale / 2.625));
           locomotionState = 'FLY_BACKWARD';
-          hudLocomotion.textContent = `AI: TĂNG TỐC LÙI GIỮ CỰ LY (400px/s, Nghiêng -25°)`;
+          hudLocomotion.textContent = isFlying
+            ? `AI: TĂNG TỐC BAY LÙI GIỮ CỰ LY (400px/s, Nghiêng -25°)`
+            : `AI: LÙI GIỮ CỰ LY TRÊN BỆ ĐÁ (400px/s, Nghiêng -25°)`;
           hudLocomotion.className = 'badge warning';
         }
         // 3. Đã vào cự ly tối ưu [150, 550]:
         else {
           if (autoCooldown <= 0) {
-            // Sẵn sàng xuất chiêu Blazing Halo!
-            if (!isFlying) {
-              takeoff();
-            } else {
-              orderBlazingHalo();
-            }
+            // Sẵn sàng xuất chiêu Blazing Halo (Tung chiêu trực tiếp ở cả trên không lẫn trên bệ đá)
+            orderBlazingHalo();
           } else {
-            // Skill đang hồi: Tuần tra bay chậm 100px/s giữ vị trí trên không
-            if (locomotionState === 'IDLE_FLY' && Math.random() < 0.25) {
-              currentFlySpeed = SPEED_SLOW;
-              rngFlySpeed.value = SPEED_SLOW;
-              lblFlySpeed.textContent = `${SPEED_SLOW}px/s`;
-              const driftDir = (vargostX < mapX + 300) ? 1 : ((vargostX > mapX + 650) ? -1 : (Math.random() > 0.5 ? 1 : -1));
-              targetVargostX = vargostX + driftDir * 40 * (mapScale / 2.625);
-              locomotionState = (driftDir > 0) ? 'FLY_FORWARD' : 'FLY_BACKWARD';
-              hudLocomotion.textContent = `AI: TUẦN TRA BAY CHẬM (${SPEED_SLOW}px/s)`;
-              hudLocomotion.className = 'badge';
-            } else if (locomotionState === 'IDLE_FLY' && Math.random() < 0.05) {
-              land(); // Thi thoảng đáp nền đá nghỉ chân
-            } else if (!isFlying && locomotionState === 'IDLE_GROUND' && Math.random() < 0.2) {
-              takeoff(); // Cất cánh lên trời
+            // Skill đang hồi: Tuần tra bay chậm / đi chậm hoặc đổi độ cao khi hết altitudeCooldown
+            if (isFlying) {
+              if (altitudeCooldown <= 0 && Math.random() < 0.08) {
+                // Đã bay trên không đủ lâu (>= 15s), thi thoảng hạ cánh bệ đá nghỉ ngơi
+                land();
+              } else if (locomotionState === 'IDLE_FLY' && Math.random() < 0.25) {
+                // Tuần tra bay chậm 100px/s giữ vị trí lơ lửng
+                currentFlySpeed = SPEED_SLOW;
+                rngFlySpeed.value = SPEED_SLOW;
+                lblFlySpeed.textContent = `${SPEED_SLOW}px/s`;
+                const driftDir = (vargostX < mapX + 300) ? 1 : ((vargostX > mapX + 650) ? -1 : (Math.random() > 0.5 ? 1 : -1));
+                targetVargostX = vargostX + driftDir * 40 * (mapScale / 2.625);
+                locomotionState = (driftDir > 0) ? 'FLY_FORWARD' : 'FLY_BACKWARD';
+                hudLocomotion.textContent = `AI: TUẦN TRA BAY CHẬM (${SPEED_SLOW}px/s)`;
+                hudLocomotion.className = 'badge';
+              }
+            } else {
+              if (altitudeCooldown <= 0 && Math.random() < 0.12) {
+                // Đã đứng trên bệ đá đủ lâu (>= 15s), cất cánh lên không trung
+                takeoff();
+              } else if (locomotionState === 'IDLE_GROUND' && Math.random() < 0.20) {
+                // Tuần tra di chuyển chậm 100px/s trên bệ đá
+                currentFlySpeed = SPEED_SLOW;
+                rngFlySpeed.value = SPEED_SLOW;
+                lblFlySpeed.textContent = `${SPEED_SLOW}px/s`;
+                const driftDir = (vargostX < mapX + 300) ? 1 : ((vargostX > mapX + 550) ? -1 : (Math.random() > 0.5 ? 1 : -1));
+                targetVargostX = vargostX + driftDir * 30 * (mapScale / 2.625);
+                locomotionState = (driftDir > 0) ? 'FLY_FORWARD' : 'FLY_BACKWARD';
+                hudLocomotion.textContent = `AI: TUẦN TRA TRÊN BỆ ĐÁ (${SPEED_SLOW}px/s)`;
+                hudLocomotion.className = 'badge ground';
+              }
             }
           }
         }
@@ -627,14 +650,14 @@ function update(timestamp) {
       currentFlySpeed = SPEED_FAST;
       locomotionState = 'FLY_BACKWARD';
       targetVargostX = Math.max(mapX + 100, vargostX - (300 - distInPx) * (mapScale / 2.625));
-      hudAi.textContent = 'AI: Quá gần! Bay lùi giữ cự ly @ 400px/s (Nghiêng -25°)';
+      hudAi.textContent = 'AI: Quá gần! Lùi giữ cự ly @ 400px/s (Nghiêng -25°)';
       hudAi.className = 'badge warning';
     } else if (distInPx > MAX_ATTACK_RANGE) {
       aiState = 'REPOSITIONING';
       currentFlySpeed = SPEED_FAST;
       locomotionState = 'FLY_FORWARD';
       targetVargostX = Math.min(W - 400, vargostX + (distInPx - 360) * (mapScale / 2.625));
-      hudAi.textContent = 'AI: Quá xa! Bay tiến áp sát @ 400px/s (Nghiêng +25°)';
+      hudAi.textContent = 'AI: Quá xa! Tiến áp sát @ 400px/s (Nghiêng +25°)';
       hudAi.className = 'badge flying';
     } else {
       startBlazingHalo();
@@ -662,12 +685,14 @@ function update(timestamp) {
       vargostX += dir * flySpeed * dt;
       if ((dir > 0 && vargostX >= targetVargostX) || (dir < 0 && vargostX <= targetVargostX)) {
         vargostX = targetVargostX;
-        locomotionState = 'IDLE_FLY';
-        hudLocomotion.textContent = 'Di chuyển: LƠ LỬNG TRÊN KHÔNG (Đứng thẳng 0°)';
-        hudLocomotion.className = 'badge';
+        locomotionState = isFlying ? 'IDLE_FLY' : 'IDLE_GROUND';
+        hudLocomotion.textContent = isFlying ? 'Di chuyển: LƠ LỬNG TRÊN KHÔNG (Đứng thẳng 0°)' : 'Di chuyển: ĐỨNG TRÊN BỆ ĐÁ (Y=194)';
+        hudLocomotion.className = isFlying ? 'badge' : 'badge ground';
       }
     } else {
-      locomotionState = 'IDLE_FLY';
+      locomotionState = isFlying ? 'IDLE_FLY' : 'IDLE_GROUND';
+      hudLocomotion.textContent = isFlying ? 'Di chuyển: LƠ LỬNG TRÊN KHÔNG (Đứng thẳng 0°)' : 'Di chuyển: ĐỨNG TRÊN BỆ ĐÁ (Y=194)';
+      hudLocomotion.className = isFlying ? 'badge' : 'badge ground';
     }
 
     if (Math.random() < 0.4) {
@@ -686,12 +711,14 @@ function update(timestamp) {
       vargostX += dir * flySpeed * dt;
       if ((dir > 0 && vargostX >= targetVargostX) || (dir < 0 && vargostX <= targetVargostX)) {
         vargostX = targetVargostX;
-        locomotionState = 'IDLE_FLY';
-        hudLocomotion.textContent = 'Di chuyển: LƠ LỬNG TRÊN KHÔNG (Đứng thẳng 0°)';
-        hudLocomotion.className = 'badge';
+        locomotionState = isFlying ? 'IDLE_FLY' : 'IDLE_GROUND';
+        hudLocomotion.textContent = isFlying ? 'Di chuyển: LƠ LỬNG TRÊN KHÔNG (Đứng thẳng 0°)' : 'Di chuyển: ĐỨNG TRÊN BỆ ĐÁ (Y=194)';
+        hudLocomotion.className = isFlying ? 'badge' : 'badge ground';
       }
     } else {
-      locomotionState = 'IDLE_FLY';
+      locomotionState = isFlying ? 'IDLE_FLY' : 'IDLE_GROUND';
+      hudLocomotion.textContent = isFlying ? 'Di chuyển: LƠ LỬNG TRÊN KHÔNG (Đứng thẳng 0°)' : 'Di chuyển: ĐỨNG TRÊN BỆ ĐÁ (Y=194)';
+      hudLocomotion.className = isFlying ? 'badge' : 'badge ground';
     }
 
     // Fix: Bổ sung bóng mờ cho chuyển động lùi
@@ -711,6 +738,7 @@ function update(timestamp) {
       vargostY = groundY;
       isFlying = false;
       locomotionState = 'IDLE_GROUND';
+      altitudeCooldown = 15.0; // Khóa độ cao ít nhất 15s trên mặt đất
       currentScaleX = 1.15;
       currentScaleY = 0.85;
       groundDustRings.push({ x: vargostX, y: groundY, radius: 10, alpha: 0.8 });
@@ -732,6 +760,7 @@ function update(timestamp) {
       vargostY = baseFlyY;
       isFlying = true;
       locomotionState = 'IDLE_FLY';
+      altitudeCooldown = 15.0; // Khóa độ cao ít nhất 15s trên không
       hudLocomotion.textContent = 'Di chuyển: LƠ LỬNG TRÊN KHÔNG (Đứng thẳng 0°)';
       hudLocomotion.className = 'badge';
     }
