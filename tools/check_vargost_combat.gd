@@ -15,14 +15,14 @@ func _initialize() -> void:
         return
 
     var actions: Dictionary = manifest.get("actions", {})
-    if not actions.has("idle") or not actions.has("skill_cast") or not actions.has("explosion"):
+    if not actions.has("idle") or not actions.has("basic_attack") or not actions.has("blazing_halo") or not actions.has("skill_cast") or not actions.has("explosion"):
         push_error("Missing required action states")
         quit(1)
         return
 
     var frames: Array = manifest.get("frames", [])
-    if frames.size() != 83:
-        push_error("Expected 83 frames, got " + str(frames.size()))
+    if frames.size() != 95:
+        push_error("Expected 95 frames, got " + str(frames.size()))
         quit(1)
         return
 
@@ -48,5 +48,5 @@ func _initialize() -> void:
         quit(1)
         return
 
-    print("PASS Vargost combat chain: 83 frames, idle loop 22, windup 45..65, 8-frame spinning projectile @ 900px/s, recovery 67..82, range [150, 550], explosion 91 frames")
+    print("PASS Vargost combat chain: 95 frames (idle 0..21, basic attack 83..94, blazing halo 44..82), dual skill combo, rage bar, 8-frame projectile @ 900-1100px/s, range [150, 550], explosion 91 frames")
     quit(0)

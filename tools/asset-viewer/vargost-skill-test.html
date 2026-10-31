@@ -94,6 +94,70 @@
       border-color: #d29922;
       color: #fff;
     }
+    .badge.rage {
+      background: linear-gradient(90deg, #d29922, #f0883e);
+      border-color: #f0883e;
+      color: #fff;
+      font-weight: 700;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+    .badge.rage.ready {
+      background: linear-gradient(90deg, #e73800, #ff2424, #ffc379);
+      border-color: #ffc379;
+      color: #fff;
+      animation: pulseRage 1s infinite alternate;
+    }
+    @keyframes pulseRage {
+      from { box-shadow: 0 0 4px #ff7746; }
+      to { box-shadow: 0 0 14px #ffc379, 0 0 20px #e73800; }
+    }
+
+    /* Rage Bar HUD Container */
+    .rage-hud-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: 8px auto;
+      max-width: 800px;
+      padding: 8px 14px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .rage-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #f0883e;
+      font-family: monospace;
+    }
+    .rage-bar-outer {
+      flex: 1;
+      height: 18px;
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      overflow: hidden;
+      position: relative;
+    }
+    .rage-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #d29922, #f0883e, #ff2424);
+      transition: width 0.25s ease-out;
+      border-radius: 8px;
+    }
+    .rage-bar-fill.ready {
+      background: linear-gradient(90deg, #f0883e, #ff2424, #ffc379);
+      animation: pulseRage 1s infinite alternate;
+    }
+    .rage-text {
+      font-size: 12px;
+      font-family: monospace;
+      color: var(--text);
+      min-width: 140px;
+      text-align: left;
+    }
 
     /* Main Stage Layout */
     .stage-container {
@@ -356,9 +420,20 @@
       <span class="badge" id="hud-ai">AI: Tuần tra trên không</span>
       <span class="badge" id="hud-range">Cự ly: 350px</span>
       <span class="badge" id="hud-state">Trạng thái: Đang nạp...</span>
-      <span class="badge" id="hud-frame">Frame: 0/82</span>
+      <span class="badge" id="hud-frame">Frame: 0/94</span>
       <span class="badge" id="hud-projectile">Đạn: Sẵn sàng</span>
       <span class="badge" id="hud-coords">Con trỏ: (0, 0)</span>
+    </div>
+
+    <!-- Rage Bar (Tích Nộ cho Blazing Halo) -->
+    <div class="rage-hud-container">
+      <span class="rage-label">⚡ THANH NỘ KHÍ (RAGE):</span>
+      <div class="rage-bar-outer">
+        <div class="rage-bar-fill" id="rage-bar-fill" style="width: 0%;"></div>
+      </div>
+      <span class="rage-text" id="rage-text">0% / 100% (Đánh thường để tích nộ)</span>
+      <button class="secondary small" id="btn-fill-rage" title="Nạp nhanh 100% nộ tức thì để kiểm thử Blazing Halo">⚡ Nạp 100% Nộ</button>
+      <button class="secondary small" id="btn-reset-rage" title="Xóa sạch nộ về 0%">🔄 Xóa Nộ</button>
     </div>
 
     <!-- Stage & Pixel Inspector Layout -->
@@ -429,20 +504,24 @@
         <button class="secondary small" id="btn-frame-prev" title="Lùi 1 Frame">◀</button>
         <button class="small" id="btn-play-pause">⏸ Tạm dừng</button>
         <button class="secondary small" id="btn-frame-next" title="Tiến 1 Frame">▶</button>
-        <button class="secondary small" id="btn-frame-last" title="Tới Frame 82">⏭</button>
+        <button class="secondary small" id="btn-frame-last" title="Tới Frame 94">⏭</button>
       </div>
 
       <label style="font-family: monospace;">
-        Frame: <b id="lbl-frame-num" style="color: var(--primary); min-width: 28px; display: inline-block;">0</b> / 82
+        Frame: <b id="lbl-frame-num" style="color: var(--primary); min-width: 28px; display: inline-block;">0</b> / 94
       </label>
-      <input type="range" id="rng-frame" min="0" max="82" value="0">
+      <input type="range" id="rng-frame" min="0" max="94" value="0">
 
       <div class="keyframe-tags">
-        <button class="secondary small" id="kf-idle">0: Idle</button>
-        <button class="secondary small" id="kf-windup">45: Tụ vòng</button>
-        <button class="secondary small" id="kf-charged">64: Vòng trên đầu</button>
-        <button class="secondary small" id="kf-release" style="border-color: var(--primary); color: var(--primary);">66: Đẩy tay phóng</button>
-        <button class="secondary small" id="kf-recovery">67: Thu tay sạch</button>
+        <button class="secondary small" id="kf-idle">0: Idle (2 Vòng)</button>
+        <button class="secondary small" id="kf-windup">44: Blazing Halo Vận Công</button>
+        <button class="secondary small" id="kf-charged">63: Gom 1 Vòng Lớn</button>
+        <button class="secondary small" id="kf-release" style="border-color: #bd561d; color: #ff9b53;">68: Ném Vòng Lớn</button>
+        <button class="secondary small" id="kf-reignite" style="border-color: #58a6ff; color: #58a6ff;">72: Tụ Lửa Lại (Frame 72-77)</button>
+        <button class="secondary small" id="kf-ba1-fold" style="border-color: #3fb950; color: #3fb950;">83: Đòn 1 (Tay Phải Gập Bụng)</button>
+        <button class="secondary small" id="kf-ba1-throw" style="border-color: #3fb950; color: #3fb950;">85: Đòn 1 (Phóng Vòng 1)</button>
+        <button class="secondary small" id="kf-ba2-fold" style="border-color: #d29922; color: #d29922;">89: Đòn 2 (Tay Trái Gập Ngực)</button>
+        <button class="secondary small" id="kf-ba2-throw" style="border-color: #d29922; color: #d29922;">91: Đòn 2 (Phóng Vòng 2)</button>
       </div>
     </div>
 
@@ -457,8 +536,9 @@
       </div>
 
       <div class="controls-row" style="margin-top: 4px;">
-        <span style="font-weight: bold; font-size: 13px; color: var(--primary);">⚔️ CHIẾN ĐẤU & UTILITY AI:</span>
-        <button id="btn-cast">🔥 RA LỆNH TUNG CHIÊU (CAST SKILL)</button>
+        <span style="font-weight: bold; font-size: 13px; color: var(--primary);">⚔️ CHIẾN ĐẤU & UTILITY AI (2 KỸ NĂNG):</span>
+        <button id="btn-basic-attack" style="background: #238636; border: 1px solid #3fb950;">⚔️ ĐÁNH THƯỜNG (COMBO 2 ĐÒN +50% NỘ)</button>
+        <button id="btn-blazing-halo" style="background: #bd561d; border: 1px solid #ff9b53;">🔥 BLAZING HALO (TỐI THƯỢNG - CẦN 100% NỘ)</button>
         <label>
           <input type="checkbox" id="chk-auto"> Tự động chiến đấu (Utility AI)
         </label>
@@ -505,11 +585,16 @@
 
     <!-- Explanation -->
     <p style="max-width: 1000px; margin: 8px auto; font-size: 12px; line-height: 1.6; color: var(--text-muted); text-align: left;">
-      <b>Cải tiến hoàn thiện:</b><br>
-      1. <b>Hết vết cắt hình vuông ở Frame 68–71:</b> Loại bỏ kỹ thuật cắt tọa độ x=134 cũ, chuyển sang tách màu thông minh (giữ nguyên 100% pixel thân, áo choàng, tay và trượng, chỉ xóa vòng lửa đã phóng đi). Tapering tự nhiên tại mép chỉ 2–4 pixel.<br>
-      2. <b>Khớp vị trí phóng từ bàn tay:</b> Khi Vargost đẩy tay ở Frame 66, đạn vòng lửa xuất phát chuẩn xác từ lòng bàn tay tại <code>dx = +20, dy = -52</code> (đã cộng dồn dao động lơ lửng và góc nghiêng), triệt tiêu hoàn toàn hiện tượng vòng lửa cũ ở chân và vòng mới xuất hiện giữa thân.<br>
-      3. <b>Công cụ Kính Lúp & Đo Pixel:</b> Rê chuột trên canvas để xem tọa độ Canvas, tọa độ relative từ chân nhân vật (dx, dy), mã màu HEX/RGBA và kính lúp phóng to 10× có lưới ô pixel.<br>
-      4. <b>Bộ hoạt ảnh di chuyển hoàn chỉnh:</b> Bay tới (nghiêng thân +12°, vệt mờ quán tính 900px/s), Bay lùi (nghiêng -10°), Hạ cánh đáp nền đá Y=194 (squash va chạm + vòng bụi), Cất cánh (co người và bật lên trời).
+      <b>Cơ chế Chiến đấu & Hoạt ảnh Vargost (Thiết kế chính thức):</b><br>
+      1. <b>Kỹ năng Đánh Thường (Twin Fire Strike):</b> Ở tư thế tĩnh, Vargost giữ 2 vòng lửa ở 2 tay. Khi ra đòn:
+      <ul>
+        <li><b>Đòn 1 (Frame 83–88):</b> Tay phải (điểm ban đầu tại canvas ~X=784, Y=197 tức dx=+26, dy=-52) gập vào phía bụng (vùng ~X=775, Y=204 tức dx=+16, dy=-45), vung ra phóng vòng lửa nhỏ 1 (đường kính ~56px) bay tới mục tiêu, tay thu về mượt mà không nhảy cóc (tay phải trống, tay trái giữ lửa).</li>
+        <li><b>Đòn 2 (Frame 89–94):</b> Khi đòn 1 chạm đích, tay trái gập vào ngực/bụng, phóng tiếp vòng lửa nhỏ 2 bay tới mục tiêu, tay trái thu về mượt mà (cả 2 tay trống).</li>
+        <li><b>Tụ Lửa Lại (Frame 72–77):</b> Sau khi ném 2 vòng, 2 tay tiến hành hoạt ảnh gọi lại 2 vòng lửa bùng lên và ổn định, tích <b>+50% Nộ</b> (2 lần combo = 100% Nộ).</li>
+      </ul>
+      2. <b>Chiêu Tối Thượng Blazing Halo (Frame 44–82):</b> Chỉ kích hoạt khi đầy 100% Nộ. Vargost vận công gom 2 vòng lửa nhỏ thành 1 vòng lớn ở Frame 63, giữ vòng trên cao và phóng mạnh ở Frame 68 (@ 900px/s), va chạm nền đất nổ 91 frame và thu tay hồi thế sạch (Recovery).<br>
+      3. <b>Khắc phục thanh tua Frame (Scrubber):</b> Kéo slider timeline không còn bị biến mất vòng tròn — vòng đạn và quỹ đạo được liên kết hiển thị liên tục từ tay đến mục tiêu.<br>
+      4. <b>Công cụ Kính Lúp 10× & Đo Pixel:</b> Hỗ trợ soi từng ô texel 2×2, click gán tọa độ và đọc thông số relative so với anchor chân (105, 162).
     </p>
 
     <div class="links">

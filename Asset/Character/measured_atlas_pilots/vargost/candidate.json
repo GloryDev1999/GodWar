@@ -4,10 +4,10 @@
   "source_sha256": "fbd1eec8544ab241c9d5bede17d181f5f458da5495907815b692f87cab81b62e",
   "input_candidate": "vargost_combat",
   "input_sha256": {
-    "Asset/Character/characters/vargost_combat/vargost_body_atlas.png": "c7003dc6cef7a9bfcc4757166b33fa52f4401a55ecc76cd26040b83307b2de55"
+    "Asset/Character/characters/vargost_combat/vargost_body_atlas.png": "b78a397ebb05985f9690972780b6c071f7d93f1c8b74546e97d6382007b6f2f6"
   },
   "art_source": "existing",
-  "frame_count": 83,
+  "frame_count": 95,
   "frames": [
     {
       "atlas": 0,
@@ -838,6 +838,126 @@
         200
       ],
       "duration_ms": 60
+    },
+    {
+      "atlas": 0,
+      "region": [
+        600,
+        1600,
+        200,
+        200
+      ],
+      "duration_ms": 60
+    },
+    {
+      "atlas": 0,
+      "region": [
+        800,
+        1600,
+        200,
+        200
+      ],
+      "duration_ms": 60
+    },
+    {
+      "atlas": 0,
+      "region": [
+        1000,
+        1600,
+        200,
+        200
+      ],
+      "duration_ms": 60
+    },
+    {
+      "atlas": 0,
+      "region": [
+        1200,
+        1600,
+        200,
+        200
+      ],
+      "duration_ms": 60
+    },
+    {
+      "atlas": 0,
+      "region": [
+        1400,
+        1600,
+        200,
+        200
+      ],
+      "duration_ms": 60
+    },
+    {
+      "atlas": 0,
+      "region": [
+        1600,
+        1600,
+        200,
+        200
+      ],
+      "duration_ms": 60
+    },
+    {
+      "atlas": 0,
+      "region": [
+        1800,
+        1600,
+        200,
+        200
+      ],
+      "duration_ms": 60
+    },
+    {
+      "atlas": 0,
+      "region": [
+        0,
+        1800,
+        200,
+        200
+      ],
+      "duration_ms": 60
+    },
+    {
+      "atlas": 0,
+      "region": [
+        200,
+        1800,
+        200,
+        200
+      ],
+      "duration_ms": 60
+    },
+    {
+      "atlas": 0,
+      "region": [
+        400,
+        1800,
+        200,
+        200
+      ],
+      "duration_ms": 60
+    },
+    {
+      "atlas": 0,
+      "region": [
+        600,
+        1800,
+        200,
+        200
+      ],
+      "duration_ms": 60
+    },
+    {
+      "atlas": 0,
+      "region": [
+        800,
+        1800,
+        200,
+        200
+      ],
+      "duration_ms": 60
     }
   ],
   "frame_size": [
@@ -860,10 +980,10 @@
   "display_scale": 0.872093023255814,
   "measurement_kind": "automatic_alpha_bbox_unreviewed",
   "status": "in_testing",
-  "limitations": "V\u00f9ng alpha c\u00f3 th\u1ec3 ch\u1ee9a v\u0169 kh\u00ed, hi\u1ec7u \u1ee9ng ho\u1eb7c nhi\u1ec1u v\u1eadt th\u1ec3; ch\u01b0a \u0111o th\u00e2n b\u1eb1ng m\u1eaft. \u0110i\u1ec3m neo \u01b0\u1edbc l\u01b0\u1ee3ng t\u1eeb \u0111\u00e1y alpha; ch\u01b0a ki\u1ec3m duy\u1ec7t.",
+  "limitations": "Vùng alpha có thể chứa vũ khí, hiệu ứng hoặc nhiều vật thể; chưa đo thân bằng mắt. Điểm neo ước lượng từ đáy alpha; chưa kiểm duyệt.",
   "method": "Use full frame-0 alpha bounds as provisional reference; preserve all source pixels and one shared scale. Not a verified body measurement.",
   "size_target_approval": "user_approved_combat_round3",
   "approval_date": null,
   "combat_package": "Asset/Character/characters/vargost_combat/vargost_actions.json",
-  "note": "Vargost \u0111ang trong giai \u0111o\u1ea1n ki\u1ec3m th\u1eed chu\u1ed7i h\u00e0nh \u0111\u1ed9ng combat v\u00e0 Utility AI tr\u00ean localhost (vargost-skill-test.html); ng\u01b0\u1eddi d\u00f9ng ch\u01b0a ch\u1ed1t ch\u00ednh th\u1ee9c v\u00e0 s\u1ebd ti\u1ebfp t\u1ee5c \u0111\u00e1nh gi\u00e1 \u1edf phi\u00ean ti\u1ebfp theo."
+  "note": "Vargost đang trong giai đoạn kiểm thử chuỗi hành động combat và Utility AI trên localhost (vargost-skill-test.html); người dùng chưa chốt chính thức và sẽ tiếp tục đánh giá ở phiên tiếp theo."
 }

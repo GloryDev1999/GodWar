@@ -1,5 +1,6 @@
 // Vargost Utility AI & Pixel Inspector Simulator
 // Auto-battler 3v3 Engine Demo (GodWar)
+// Chế độ 2 Kỹ năng: Đánh Thường (Combo 2 đòn + Tụ Lửa + Tích Nộ) & Blazing Halo (Tối Thượng)
 
 const W = 1920, H = 1080;
 const stageCanvas = document.getElementById('stage');
@@ -17,6 +18,12 @@ const hudState = document.getElementById('hud-state');
 const hudFrame = document.getElementById('hud-frame');
 const hudProjectile = document.getElementById('hud-projectile');
 const hudCoords = document.getElementById('hud-coords');
+
+// Rage Bar Elements
+const rageBarFill = document.getElementById('rage-bar-fill');
+const rageText = document.getElementById('rage-text');
+const btnFillRage = document.getElementById('btn-fill-rage');
+const btnResetRage = document.getElementById('btn-reset-rage');
 
 // Inspector Readout
 const inspCanvasXy = document.getElementById('insp-canvas-xy');
@@ -38,18 +45,26 @@ const btnFramePrev = document.getElementById('btn-frame-prev');
 const btnPlayPause = document.getElementById('btn-play-pause');
 const btnFrameNext = document.getElementById('btn-frame-next');
 const btnFrameLast = document.getElementById('btn-frame-last');
+
+// Keyframe bookmarks
 const kfIdle = document.getElementById('kf-idle');
 const kfWindup = document.getElementById('kf-windup');
 const kfCharged = document.getElementById('kf-charged');
 const kfRelease = document.getElementById('kf-release');
-const kfRecovery = document.getElementById('kf-recovery');
+const kfReignite = document.getElementById('kf-reignite');
+const kfBa1Fold = document.getElementById('kf-ba1-fold');
+const kfBa1Throw = document.getElementById('kf-ba1-throw');
+const kfBa2Fold = document.getElementById('kf-ba2-fold');
+const kfBa2Throw = document.getElementById('kf-ba2-throw');
 
 // Combat & Locomotion Controls
 const btnFlyForward = document.getElementById('btn-fly-forward');
 const btnFlyBackward = document.getElementById('btn-fly-backward');
 const btnLand = document.getElementById('btn-land');
 const btnTakeoff = document.getElementById('btn-takeoff');
-const btnCast = document.getElementById('btn-cast');
+const btnBasicAttack = document.getElementById('btn-basic-attack');
+const btnBlazingHalo = document.getElementById('btn-blazing-halo');
+const btnCastLegacy = document.getElementById('btn-cast');
 const chkAuto = document.getElementById('chk-auto');
 const rngDistance = document.getElementById('rng-distance');
 const lblDistance = document.getElementById('lbl-distance');
@@ -68,7 +83,7 @@ const btnReset = document.getElementById('btn-reset');
 const MIN_ATTACK_RANGE = 150;
 const MAX_ATTACK_RANGE = 550;
 const DEFAULT_FLY_SPEED = 900;
-const PROJECTILE_SPEED = 900;
+const MAX_FRAME_INDEX = 94;
 
 // Scene Coordinates & Scales
 const zoom = 0.7;
@@ -91,19 +106,27 @@ let currentScaleY = 1.0;
 let locomotionState = 'IDLE_FLY';
 let transitionProgress = 0;
 
-// Combat AI States: 'IDLE', 'REPOSITIONING', 'CAST_WINDUP', 'CAST_RELEASE', 'CAST_RECOVERY'
+// Combat AI States:
+// 'IDLE', 'REPOSITIONING'
+// 'BA1_WINDUP', 'BA1_RECOVERY', 'BA1_WAIT_HIT'
+// 'BA2_WINDUP', 'BA2_RECOVERY', 'BA2_WAIT_HIT'
+// 'BA_REIGNITE'
+// 'HALO_WINDUP', 'HALO_CHARGED', 'HALO_RELEASE', 'HALO_RECOVERY'
 let aiState = 'IDLE';
+let pendingCombatAction = null; // 'BASIC_ATTACK' or 'BLAZING_HALO'
 let isPlaying = true;
 let currentFrameIndex = 0;
 let frameTimeAccumulator = 0;
 let hoverTimer = 0;
 let autoCooldown = 2.0;
-let isCastOrdered = false;
+
+// Rage State (0 to 100)
+let currentRage = 0;
 
 // Motion ghosting afterimages for high-speed flight
 const motionGhosts = [];
 
-// Projectile & Impact VFX
+// Projectiles & Impact VFX
 let activeProjectile = null;
 let activeExplosion = null;
 const groundDustRings = [];
@@ -143,6 +166,7 @@ async function init() {
       explosion: explAtlas,
     };
 
+    setRage(0);
     updateCurrentSpawnDisplay();
     hudState.textContent = 'Trạng thái: SẴN SÀNG (LƠ LỬNG TRÊN KHÔNG)';
     hudAi.textContent = 'AI: Tuần tra trên không';
@@ -159,6 +183,52 @@ function showToast(text) {
   setTimeout(() => toastMsg.classList.remove('show'), 2000);
 }
 
+function setRage(val) {
+  currentRage = Math.max(0, Math.min(100, Math.round(val)));
+  if (rageBarFill) {
+    rageBarFill.style.width = `${currentRage}%`;
+    if (currentRage >= 100) {
+      rageBarFill.classList.add('ready');
+    } else {
+      rageBarFill.classList.remove('ready');
+    }
+  }
+  if (rageText) {
+    if (currentRage >= 100) {
+      rageText.innerHTML = `<b style="color: #ffc379;">100% (ĐẦY NỘ - SẴN SÀNG BLAZING HALO!)</b>`;
+    } else {
+      rageText.textContent = `${currentRage}% / 100% (Đánh thường để tích nộ)`;
+    }
+  }
+  if (btnBlazingHalo) {
+    if (currentRage >= 100) {
+      btnBlazingHalo.disabled = false;
+      btnBlazingHalo.style.opacity = '1';
+      btnBlazingHalo.style.cursor = 'pointer';
+      btnBlazingHalo.style.borderColor = '#ffc379';
+    } else {
+      btnBlazingHalo.disabled = true;
+      btnBlazingHalo.style.opacity = '0.5';
+      btnBlazingHalo.style.cursor = 'not-allowed';
+      btnBlazingHalo.style.borderColor = '#ff9b53';
+    }
+  }
+}
+
+if (btnFillRage) {
+  btnFillRage.addEventListener('click', () => {
+    setRage(100);
+    showToast('⚡ Đã nạp đầy 100% Nộ khí!');
+  });
+}
+
+if (btnResetRage) {
+  btnResetRage.addEventListener('click', () => {
+    setRage(0);
+    showToast('Đã đặt lại Nộ về 0%');
+  });
+}
+
 function updateCurrentSpawnDisplay() {
   const dx = Number(numSpawnDx.value);
   const dy = Number(numSpawnDy.value);
@@ -169,11 +239,17 @@ numSpawnDx.addEventListener('input', updateCurrentSpawnDisplay);
 numSpawnDy.addEventListener('input', updateCurrentSpawnDisplay);
 
 // Timeline Controls
-rngFrame.addEventListener('input', () => {
+function selectFrame(f) {
   isPlaying = false;
   btnPlayPause.textContent = '▶ Tiếp tục';
-  currentFrameIndex = Number(rngFrame.value);
+  currentFrameIndex = Math.max(0, Math.min(MAX_FRAME_INDEX, f));
+  rngFrame.value = currentFrameIndex;
   lblFrameNum.textContent = currentFrameIndex;
+  hudFrame.textContent = `Frame: ${currentFrameIndex}/${MAX_FRAME_INDEX}`;
+}
+
+rngFrame.addEventListener('input', () => {
+  selectFrame(Number(rngFrame.value));
 });
 
 btnPlayPause.addEventListener('click', () => {
@@ -181,44 +257,21 @@ btnPlayPause.addEventListener('click', () => {
   btnPlayPause.textContent = isPlaying ? '⏸ Tạm dừng' : '▶ Tiếp tục';
 });
 
-btnFrameFirst.addEventListener('click', () => {
-  isPlaying = false;
-  btnPlayPause.textContent = '▶ Tiếp tục';
-  currentFrameIndex = 0;
-  rngFrame.value = 0;
-  lblFrameNum.textContent = 0;
-});
-
-btnFramePrev.addEventListener('click', () => {
-  isPlaying = false;
-  btnPlayPause.textContent = '▶ Tiếp tục';
-  currentFrameIndex = Math.max(0, currentFrameIndex - 1);
-  rngFrame.value = currentFrameIndex;
-  lblFrameNum.textContent = currentFrameIndex;
-});
-
-btnFrameNext.addEventListener('click', () => {
-  isPlaying = false;
-  btnPlayPause.textContent = '▶ Tiếp tục';
-  currentFrameIndex = Math.min(82, currentFrameIndex + 1);
-  rngFrame.value = currentFrameIndex;
-  lblFrameNum.textContent = currentFrameIndex;
-});
-
-btnFrameLast.addEventListener('click', () => {
-  isPlaying = false;
-  btnPlayPause.textContent = '▶ Tiếp tục';
-  currentFrameIndex = 82;
-  rngFrame.value = 82;
-  lblFrameNum.textContent = 82;
-});
+btnFrameFirst.addEventListener('click', () => selectFrame(0));
+btnFramePrev.addEventListener('click', () => selectFrame(currentFrameIndex - 1));
+btnFrameNext.addEventListener('click', () => selectFrame(currentFrameIndex + 1));
+btnFrameLast.addEventListener('click', () => selectFrame(MAX_FRAME_INDEX));
 
 // Keyframe bookmarks
-kfIdle.addEventListener('click', () => { currentFrameIndex = 0; rngFrame.value = 0; lblFrameNum.textContent = 0; isPlaying = false; btnPlayPause.textContent = '▶ Tiếp tục'; });
-kfWindup.addEventListener('click', () => { currentFrameIndex = 45; rngFrame.value = 45; lblFrameNum.textContent = 45; isPlaying = false; btnPlayPause.textContent = '▶ Tiếp tục'; });
-kfCharged.addEventListener('click', () => { currentFrameIndex = 64; rngFrame.value = 64; lblFrameNum.textContent = 64; isPlaying = false; btnPlayPause.textContent = '▶ Tiếp tục'; });
-kfRelease.addEventListener('click', () => { currentFrameIndex = 66; rngFrame.value = 66; lblFrameNum.textContent = 66; isPlaying = false; btnPlayPause.textContent = '▶ Tiếp tục'; });
-kfRecovery.addEventListener('click', () => { currentFrameIndex = 67; rngFrame.value = 67; lblFrameNum.textContent = 67; isPlaying = false; btnPlayPause.textContent = '▶ Tiếp tục'; });
+kfIdle.addEventListener('click', () => selectFrame(0));
+kfWindup.addEventListener('click', () => selectFrame(44));
+kfCharged.addEventListener('click', () => selectFrame(63));
+kfRelease.addEventListener('click', () => selectFrame(68));
+kfReignite.addEventListener('click', () => selectFrame(72));
+kfBa1Fold.addEventListener('click', () => selectFrame(83));
+kfBa1Throw.addEventListener('click', () => selectFrame(85));
+kfBa2Fold.addEventListener('click', () => selectFrame(89));
+kfBa2Throw.addEventListener('click', () => selectFrame(91));
 
 // Locomotion Commands
 btnFlyForward.addEventListener('click', () => {
@@ -270,12 +323,12 @@ rngTilt.addEventListener('input', () => {
 btnTestNear.addEventListener('click', () => {
   rngDistance.value = 80;
   lblDistance.textContent = '80px';
-  orderCast();
+  orderBasicAttack();
 });
 btnTestFar.addEventListener('click', () => {
   rngDistance.value = 680;
   lblDistance.textContent = '680px';
-  orderCast();
+  orderBasicAttack();
 });
 
 btnReset.addEventListener('click', () => {
@@ -285,6 +338,7 @@ btnReset.addEventListener('click', () => {
   isFlying = true;
   locomotionState = 'IDLE_FLY';
   aiState = 'IDLE';
+  pendingCombatAction = null;
   currentFrameIndex = 0;
   isPlaying = true;
   btnPlayPause.textContent = '⏸ Tạm dừng';
@@ -297,6 +351,7 @@ btnReset.addEventListener('click', () => {
   numSpawnDx.value = 20;
   numSpawnDy.value = -52;
   updateCurrentSpawnDisplay();
+  setRage(0);
   activeProjectile = null;
   activeExplosion = null;
   groundDustRings.length = 0;
@@ -340,11 +395,8 @@ stageCanvas.addEventListener('mousemove', (e) => {
     const hex = `#${((1 << 24) + (p[0] << 16) + (p[1] << 8) + p[2]).toString(16).slice(1)}`;
     inspHex.textContent = hex;
     inspColorBox.style.backgroundColor = `rgba(${p[0]}, ${p[1]}, ${p[2]}, ${p[3] / 255})`;
-  } catch (err) {
-    // Canvas tainted or out of bounds
-  }
+  } catch (err) {}
 
-  // Render Loupe View
   renderLoupe(mouseX, mouseY);
 });
 
@@ -415,19 +467,175 @@ function renderLoupe(cx, cy) {
   } catch (err) {}
 }
 
-function orderCast() {
-  isCastOrdered = true;
+// -------------------------------------------------------------
+// Skill Orders & Combat State Machine
+// -------------------------------------------------------------
+function orderBasicAttack() {
+  if (aiState !== 'IDLE' && aiState !== 'REPOSITIONING') return;
+  pendingCombatAction = 'BASIC_ATTACK';
+  isPlaying = true;
+  btnPlayPause.textContent = '⏸ Tạm dừng';
 }
 
-btnCast.addEventListener('click', orderCast);
+function orderBlazingHalo() {
+  if (currentRage < 100) {
+    showToast('⚠️ Chưa đủ Nộ! Cần đánh thường tích đủ 100% Nộ để thi triển Blazing Halo.');
+    return;
+  }
+  if (aiState !== 'IDLE' && aiState !== 'REPOSITIONING') return;
+  pendingCombatAction = 'BLAZING_HALO';
+  isPlaying = true;
+  btnPlayPause.textContent = '⏸ Tạm dừng';
+}
+
+btnBasicAttack.addEventListener('click', orderBasicAttack);
+btnBlazingHalo.addEventListener('click', orderBlazingHalo);
+if (btnCastLegacy) {
+  btnCastLegacy.addEventListener('click', () => {
+    if (currentRage >= 100) orderBlazingHalo();
+    else orderBasicAttack();
+  });
+}
+
 window.addEventListener('keydown', (e) => {
-  if (e.code === 'Space' || e.code === 'KeyF') {
+  if (e.code === 'KeyQ') {
     e.preventDefault();
-    orderCast();
+    orderBasicAttack();
+  } else if (e.code === 'KeyR' || e.code === 'Space') {
+    e.preventDefault();
+    orderBlazingHalo();
   }
 });
 
+function startBasicAttack1() {
+  aiState = 'BA1_WINDUP';
+  pendingCombatAction = null;
+  currentFrameIndex = 83;
+  frameTimeAccumulator = 0;
+  hudState.textContent = 'Đòn 1: TAY PHẢI GẬP BỤNG (dx=+16, dy=-45)';
+  hudState.className = 'badge active';
+  hudAi.textContent = 'AI: Đánh thường Đòn 1';
+  hudAi.className = 'badge active';
+}
+
+function startBasicAttack2() {
+  aiState = 'BA2_WINDUP';
+  currentFrameIndex = 89;
+  frameTimeAccumulator = 0;
+  hudState.textContent = 'Đòn 2: TAY TRÁI GẬP NGỰC/BỤNG';
+  hudState.className = 'badge active';
+  hudAi.textContent = 'AI: Đánh thường Đòn 2';
+  hudAi.className = 'badge active';
+}
+
+function startReignite() {
+  aiState = 'BA_REIGNITE';
+  currentFrameIndex = 72;
+  frameTimeAccumulator = 0;
+  hudState.textContent = 'Hồi chiêu: TỤ LẠI 2 VÒNG LỬA (Frame 72-77)';
+  hudState.className = 'badge';
+  hudAi.textContent = 'AI: Gọi lại vòng lửa';
+  hudAi.className = 'badge';
+}
+
+function startBlazingHalo() {
+  aiState = 'HALO_WINDUP';
+  pendingCombatAction = null;
+  currentFrameIndex = 44;
+  frameTimeAccumulator = 0;
+  hudState.textContent = 'Tối Thượng: VẬN CÔNG GOM VÒNG LỚN (Frame 44)';
+  hudState.className = 'badge active';
+  hudAi.textContent = 'AI: Thi triển Blazing Halo';
+  hudAi.className = 'badge active';
+}
+
+// -------------------------------------------------------------
+// Projectile Spawner
+// -------------------------------------------------------------
+function spawnSmallProjectile(targetX, targetY, isLeftHand) {
+  const spriteScale = assets.manifest.display_scale * (zoom / 0.7);
+  const hoverOffset = isFlying ? Math.sin(hoverTimer * 3.2) * 8 : 0;
+
+  // Offsets: Right hand [24, -48], Left hand [-15, -48]
+  const dx = isLeftHand ? -15 : 24;
+  const dy = -48;
+
+  const cos = Math.cos(currentTilt);
+  const sin = Math.sin(currentTilt);
+  const rdx = dx * cos - dy * sin;
+  const rdy = dx * sin + dy * cos;
+
+  const startX = vargostX + rdx * spriteScale;
+  const startY = (vargostY + hoverOffset) + rdy * spriteScale;
+
+  activeProjectile = {
+    startX: startX,
+    startY: startY,
+    x: startX,
+    y: startY,
+    targetX: targetX,
+    targetY: targetY,
+    spinFrame: 0,
+    spinAccum: 0,
+    time: 0,
+    isSmall: true,
+    size: 56 * spriteScale,
+    speed: 1100,
+    onHit: isLeftHand ? 'ON_HIT_D2' : 'ON_HIT_D1'
+  };
+
+  hudProjectile.textContent = isLeftHand ? 'Đạn 2: Phóng vòng nhỏ từ tay trái' : 'Đạn 1: Phóng vòng nhỏ từ tay phải';
+}
+
+function spawnLargeProjectile(targetX, targetY) {
+  const spriteScale = assets.manifest.display_scale * (zoom / 0.7);
+  const hoverOffset = isFlying ? Math.sin(hoverTimer * 3.2) * 8 : 0;
+
+  // Offset from both hands pushed forward [20, -52]
+  const dx = Number(numSpawnDx.value);
+  const dy = Number(numSpawnDy.value);
+
+  const cos = Math.cos(currentTilt);
+  const sin = Math.sin(currentTilt);
+  const rdx = dx * cos - dy * sin;
+  const rdy = dx * sin + dy * cos;
+
+  const startX = vargostX + rdx * spriteScale;
+  const startY = (vargostY + hoverOffset) + rdy * spriteScale;
+
+  activeProjectile = {
+    startX: startX,
+    startY: startY,
+    x: startX,
+    y: startY,
+    targetX: targetX,
+    targetY: targetY,
+    spinFrame: 0,
+    spinAccum: 0,
+    time: 0,
+    isSmall: false,
+    size: 80 * spriteScale,
+    speed: 900,
+    onHit: 'ON_HIT_HALO'
+  };
+
+  hudProjectile.textContent = 'Đạn: ĐANG PHÓNG VÒNG LỚN BLAZING HALO';
+}
+
+function spawnExplosion(x, y, isSmall) {
+  activeExplosion = {
+    x: x,
+    y: y,
+    frame: 0,
+    timeAccum: 0,
+    isSmall: isSmall,
+    maxFrames: isSmall ? 40 : 91
+  };
+}
+
+// -------------------------------------------------------------
 // Main Animation & Physics Loop
+// -------------------------------------------------------------
 function mainLoop(timestamp) {
   if (!lastTimestamp) lastTimestamp = timestamp;
   const rawDt = Math.min((timestamp - lastTimestamp) / 1000, 0.1);
@@ -462,16 +670,20 @@ function update(dt) {
   hudRange.className = inRange ? 'badge active' : 'badge warning';
 
   // Auto-Cast AI Loop
-  if (chkAuto.checked && aiState === 'IDLE' && !isCastOrdered) {
+  if (chkAuto.checked && aiState === 'IDLE' && !pendingCombatAction) {
     autoCooldown -= dt;
     if (autoCooldown <= 0) {
-      isCastOrdered = true;
-      autoCooldown = 4.0;
+      if (currentRage >= 100) {
+        orderBlazingHalo();
+      } else {
+        orderBasicAttack();
+      }
+      autoCooldown = 3.5;
     }
   }
 
   // Utility AI Range Evaluation
-  if (isCastOrdered && aiState === 'IDLE') {
+  if (pendingCombatAction && aiState === 'IDLE') {
     if (distInPx < MIN_ATTACK_RANGE) {
       aiState = 'REPOSITIONING';
       locomotionState = 'FLY_BACKWARD';
@@ -483,7 +695,8 @@ function update(dt) {
       hudAi.textContent = 'AI: Quá xa! Bay tiến tới áp sát @ ' + flySpeed + 'px/s';
       hudAi.className = 'badge flying';
     } else {
-      startWindup();
+      if (pendingCombatAction === 'BASIC_ATTACK') startBasicAttack1();
+      else if (pendingCombatAction === 'BLAZING_HALO') startBlazingHalo();
     }
   }
 
@@ -493,25 +706,25 @@ function update(dt) {
     if (distInPx < MIN_ATTACK_RANGE) {
       vargostX -= moveStep;
       if (distInPx >= MIN_ATTACK_RANGE + 35) {
-        startWindup();
+        if (pendingCombatAction === 'BASIC_ATTACK') startBasicAttack1();
+        else if (pendingCombatAction === 'BLAZING_HALO') startBlazingHalo();
       }
     } else if (distInPx > MAX_ATTACK_RANGE) {
       vargostX += moveStep;
       if (distInPx <= MAX_ATTACK_RANGE - 35) {
-        startWindup();
+        if (pendingCombatAction === 'BASIC_ATTACK') startBasicAttack1();
+        else if (pendingCombatAction === 'BLAZING_HALO') startBlazingHalo();
       }
     }
   }
 
-  // Locomotion State Machine Execution
+  // Locomotion Execution
   if (locomotionState === 'FLY_FORWARD') {
-    // Tilt forward
     const rad = (targetTiltDeg * Math.PI) / 180;
     currentTilt += (rad - currentTilt) * Math.min(dt * 8, 1);
     currentScaleX = 1.05;
     currentScaleY = 0.95;
 
-    // Movement towards targetVargostX
     if (Math.abs(vargostX - targetVargostX) > 2) {
       const dir = Math.sign(targetVargostX - vargostX);
       vargostX += dir * flySpeed * dt;
@@ -522,13 +735,10 @@ function update(dt) {
         hudLocomotion.className = 'badge';
       }
     }
-
-    // Spawn flight afterimage ghost
     if (Math.random() < 0.35) {
       motionGhosts.push({ x: vargostX, y: vargostY, alpha: 0.35 });
     }
   } else if (locomotionState === 'FLY_BACKWARD') {
-    // Tilt backward
     const rad = (-10 * Math.PI) / 180;
     currentTilt += (rad - currentTilt) * Math.min(dt * 8, 1);
     currentScaleX = 0.96;
@@ -545,7 +755,6 @@ function update(dt) {
       }
     }
   } else if (locomotionState === 'LANDING') {
-    // Smooth ease-out descent
     transitionProgress += dt * 1.8;
     const t = Math.min(1, transitionProgress);
     const ease = 1 - Math.pow(1 - t, 3);
@@ -556,7 +765,7 @@ function update(dt) {
       vargostY = groundY;
       isFlying = false;
       locomotionState = 'IDLE_GROUND';
-      currentScaleX = 1.15; // Squash on impact
+      currentScaleX = 1.15;
       currentScaleY = 0.85;
       groundDustRings.push({ x: vargostX, y: groundY, radius: 10, alpha: 0.8 });
       hudLocomotion.textContent = 'Di chuyển: ĐÃ ĐÁP XUỐNG BỆ ĐÁ (Y=194)';
@@ -567,7 +776,7 @@ function update(dt) {
     const t = Math.min(1, transitionProgress);
     const ease = t * t * (3 - 2 * t);
     vargostY = groundY + (baseFlyY - groundY) * ease;
-    currentScaleX = 0.90; // Stretch on lift
+    currentScaleX = 0.90;
     currentScaleY = 1.12;
 
     if (t >= 1) {
@@ -587,13 +796,13 @@ function update(dt) {
     currentScaleY += (1.0 - currentScaleY) * Math.min(dt * 8, 1);
   }
 
-  // Update Motion Ghosts
+  // Motion Ghosts
   for (let i = motionGhosts.length - 1; i >= 0; i--) {
     motionGhosts[i].alpha -= dt * 2.5;
     if (motionGhosts[i].alpha <= 0) motionGhosts.splice(i, 1);
   }
 
-  // Update Dust Rings
+  // Dust Rings
   for (let i = groundDustRings.length - 1; i >= 0; i--) {
     const d = groundDustRings[i];
     d.radius += dt * 60;
@@ -601,7 +810,7 @@ function update(dt) {
     if (d.alpha <= 0) groundDustRings.splice(i, 1);
   }
 
-  // Animation Frame Progression (if playing)
+  // Frame Progression
   const frameDur = 0.06;
   if (isPlaying) {
     frameTimeAccumulator += dt;
@@ -610,27 +819,66 @@ function update(dt) {
 
       if (aiState === 'IDLE' || aiState === 'REPOSITIONING') {
         currentFrameIndex = (currentFrameIndex + 1) % 22;
-      } else if (aiState === 'CAST_WINDUP') {
+      }
+      // Basic Attack 1 (83 -> 84 -> 85 -> 86 -> 87 -> 88)
+      else if (aiState === 'BA1_WINDUP') {
         currentFrameIndex++;
-        if (currentFrameIndex === 66) {
-          spawnProjectile(targetX, targetY);
-          aiState = 'CAST_RELEASE';
-          hudState.textContent = 'Trạng thái: PHÓNG CHIÊU (RELEASE)';
-          hudAi.textContent = 'AI: Phóng Vòng Lửa @ 900px/s';
-          hudAi.className = 'badge active';
+        if (currentFrameIndex === 85) {
+          spawnSmallProjectile(targetX, targetY, false);
+          aiState = 'BA1_RECOVERY';
+          hudState.textContent = 'Đòn 1: PHÓNG VÒNG LỬA NHỎ 1 (FRAME 85)';
         }
-      } else if (aiState === 'CAST_RELEASE') {
-        currentFrameIndex = 67;
-        aiState = 'CAST_RECOVERY';
-        hudState.textContent = 'Trạng thái: HỒI THẾ SẠCH (RECOVERY)';
-        hudAi.textContent = 'AI: Thu tay hồi chiêu';
-        hudAi.className = 'badge';
-      } else if (aiState === 'CAST_RECOVERY') {
+      } else if (aiState === 'BA1_RECOVERY') {
+        currentFrameIndex++;
+        if (currentFrameIndex >= 88) {
+          currentFrameIndex = 88;
+          aiState = 'BA1_WAIT_HIT';
+          hudState.textContent = 'Đòn 1: THU TAY TRỐNG - ĐỢI ĐẠN CHẠM ĐÍCH';
+        }
+      }
+      // Basic Attack 2 (89 -> 90 -> 91 -> 92 -> 93 -> 94)
+      else if (aiState === 'BA2_WINDUP') {
+        currentFrameIndex++;
+        if (currentFrameIndex === 91) {
+          spawnSmallProjectile(targetX, targetY, true);
+          aiState = 'BA2_RECOVERY';
+          hudState.textContent = 'Đòn 2: PHÓNG VÒNG LỬA NHỎ 2 (FRAME 91)';
+        }
+      } else if (aiState === 'BA2_RECOVERY') {
+        currentFrameIndex++;
+        if (currentFrameIndex >= 94) {
+          currentFrameIndex = 94;
+          aiState = 'BA2_WAIT_HIT';
+          hudState.textContent = 'Đòn 2: 2 TAY ĐỀU TRỐNG - ĐỢI ĐẠN CHẠM ĐÍCH';
+        }
+      }
+      // Reignite Sequence (72 -> 77 -> 82 -> loop to 0)
+      else if (aiState === 'BA_REIGNITE') {
         currentFrameIndex++;
         if (currentFrameIndex > 82) {
-          aiState = 'IDLE';
           currentFrameIndex = 0;
-          isCastOrdered = false;
+          aiState = 'IDLE';
+          hudState.textContent = isFlying ? 'Trạng thái: SẴN SÀNG (LƠ LỬNG)' : 'Trạng thái: SẴN SÀNG (ĐỨNG TRÊN BỆ)';
+          hudAi.textContent = 'AI: Tuần tra';
+        }
+      }
+      // Blazing Halo Ultimate (44..63..67 -> 68 release -> 69..82 recovery)
+      else if (aiState === 'HALO_WINDUP') {
+        currentFrameIndex++;
+        if (currentFrameIndex === 63) {
+          hudState.textContent = 'Tối Thượng: ĐÃ GOM THÀNH 1 VÒNG LỚN (Frame 63)';
+        }
+        if (currentFrameIndex === 68) {
+          spawnLargeProjectile(targetX, targetY);
+          setRage(0); // Consume 100% Rage
+          aiState = 'HALO_RECOVERY';
+          hudState.textContent = 'Tối Thượng: PHÓNG VÒNG LỚN (Frame 68)';
+        }
+      } else if (aiState === 'HALO_RECOVERY') {
+        currentFrameIndex++;
+        if (currentFrameIndex > 82) {
+          currentFrameIndex = 0;
+          aiState = 'IDLE';
           hudState.textContent = isFlying ? 'Trạng thái: SẴN SÀNG (LƠ LỬNG)' : 'Trạng thái: SẴN SÀNG (ĐỨNG TRÊN BỆ)';
           hudAi.textContent = 'AI: Tuần tra';
         }
@@ -641,9 +889,9 @@ function update(dt) {
     }
   }
 
-  hudFrame.textContent = `Frame: ${currentFrameIndex}/82`;
+  hudFrame.textContent = `Frame: ${currentFrameIndex}/${MAX_FRAME_INDEX}`;
 
-  // Projectile Flight Logic (8-frame spinning fire ring)
+  // Projectile Flight Physics
   if (activeProjectile) {
     const p = activeProjectile;
     p.time += dt;
@@ -657,20 +905,40 @@ function update(dt) {
     const dx = p.targetX - p.x;
     const dy = p.targetY - p.y;
     const distRem = Math.sqrt(dx * dx + dy * dy);
-    const step = PROJECTILE_SPEED * dt;
+    const step = p.speed * dt;
 
     if (distRem <= step || p.x >= p.targetX || p.y >= p.targetY) {
-      spawnExplosion(p.targetX, p.targetY);
+      // Hit target!
+      p.x = p.targetX;
+      p.y = p.targetY;
+      const hitAction = p.onHit;
       activeProjectile = null;
-      hudProjectile.textContent = 'Đạn: ĐÃ TIẾP ĐẤT & NỔ';
+
+      if (hitAction === 'ON_HIT_D1') {
+        spawnExplosion(p.targetX, p.targetY, true);
+        setRage(currentRage + 25);
+        showToast('🎯 Đòn 1 trúng mục tiêu! +25% Nộ');
+        hudProjectile.textContent = 'Đạn 1: Trúng đích! Kích hoạt Đòn 2';
+        startBasicAttack2();
+      } else if (hitAction === 'ON_HIT_D2') {
+        spawnExplosion(p.targetX, p.targetY, true);
+        setRage(currentRage + 25);
+        showToast('🎯 Đòn 2 trúng mục tiêu! +25% Nộ (Tổng +50%)');
+        hudProjectile.textContent = 'Đạn 2: Trúng đích! Bắt đầu Tụ Lại 2 Vòng Lửa';
+        startReignite();
+      } else if (hitAction === 'ON_HIT_HALO') {
+        spawnExplosion(p.targetX, p.targetY, false);
+        hudProjectile.textContent = 'Blazing Halo: NỔ DIỆN RỘNG MẶT ĐẤT!';
+        showToast('💥 BLAZING HALO TIẾP ĐẤT PHÁT NỔ CỰC ĐẠI!');
+      }
     } else {
       p.x += (dx / distRem) * step;
       p.y += (dy / distRem) * step;
-      hudProjectile.textContent = `Đạn: Bay xoay 8 frame (${Math.round(p.x)}, ${Math.round(p.y)})`;
+      hudProjectile.textContent = `Đạn: Bay xoay 8 frame (${Math.round(p.x)}, ${Math.round(p.y)}) @ ${p.speed}px/s`;
     }
   }
 
-  // Explosion VFX Logic (91 frames matched 2x2 texel)
+  // Explosion Progression
   if (activeExplosion) {
     const exp = activeExplosion;
     exp.timeAccum += dt;
@@ -678,60 +946,9 @@ function update(dt) {
     if (exp.timeAccum >= expFrameDur) {
       exp.timeAccum -= expFrameDur;
       exp.frame++;
-      if (exp.frame >= 91) activeExplosion = null;
+      if (exp.frame >= exp.maxFrames) activeExplosion = null;
     }
   }
-}
-
-function startWindup() {
-  aiState = 'CAST_WINDUP';
-  currentFrameIndex = 45;
-  frameTimeAccumulator = 0;
-  hudState.textContent = 'Trạng thái: VẬN CÔNG (WINDUP)';
-  hudState.className = 'badge active';
-  hudAi.textContent = 'AI: Vận công tụ vòng lửa';
-  hudAi.className = 'badge active';
-}
-
-function spawnProjectile(targetX, targetY) {
-  const spriteScale = assets.manifest.display_scale * (zoom / 0.7);
-  const hoverOffset = isFlying ? Math.sin(hoverTimer * 3.2) * 8 : 0;
-
-  // Exact spawn offset from raised hands
-  const dx = Number(numSpawnDx.value);
-  const dy = Number(numSpawnDy.value);
-
-  // Compute rotated position around anchor
-  const cos = Math.cos(currentTilt);
-  const sin = Math.sin(currentTilt);
-  const rdx = dx * cos - dy * sin;
-  const rdy = dx * sin + dy * cos;
-
-  const startX = vargostX + rdx * spriteScale;
-  const startY = (vargostY + hoverOffset) + rdy * spriteScale;
-
-  activeProjectile = {
-    startX: startX,
-    startY: startY,
-    x: startX,
-    y: startY,
-    targetX: targetX,
-    targetY: targetY,
-    spinFrame: 0,
-    spinAccum: 0,
-    time: 0,
-  };
-
-  hudProjectile.textContent = 'Đạn: ĐANG PHÓNG TỪ TAY VỀ PHÍA TRƯỚC';
-}
-
-function spawnExplosion(x, y) {
-  activeExplosion = {
-    x: x,
-    y: y,
-    frame: 0,
-    timeAccum: 0,
-  };
 }
 
 function render() {
@@ -786,7 +1003,7 @@ function render() {
   }
 
   // Trajectory guide line
-  if (aiState === 'CAST_WINDUP' || aiState === 'CAST_RELEASE') {
+  if (aiState.includes('WINDUP') || aiState.includes('RELEASE') || aiState.includes('WAIT')) {
     ctx.strokeStyle = 'rgba(237, 137, 54, 0.45)';
     ctx.lineWidth = 1.5;
     ctx.setLineDash([6, 6]);
@@ -797,7 +1014,7 @@ function render() {
     ctx.setLineDash([]);
   }
 
-  // 3. Draw Motion Ghosts (High-speed afterimage)
+  // 3. Draw Motion Ghosts
   const spriteScale = assets.manifest.display_scale * (zoom / 0.7);
   const anchorX = assets.manifest.anchor_px[0];
   const anchorY = assets.manifest.anchor_px[1];
@@ -836,21 +1053,19 @@ function render() {
     200 * spriteScale, 200 * spriteScale
   );
 
-  // Draw Spawn Point Reticle on Vargost (when inspector is active)
+  // Reticle circle on inspector
   if (chkInspector.checked) {
     const spDx = Number(numSpawnDx.value);
     const spDy = Number(numSpawnDy.value);
     const spScreenX = spDx * spriteScale;
     const spScreenY = spDy * spriteScale;
 
-    // Reticle circle
     ctx.strokeStyle = '#f85149';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.arc(spScreenX, spScreenY, 6, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Crosshair
     ctx.beginPath();
     ctx.moveTo(spScreenX - 9, spScreenY);
     ctx.lineTo(spScreenX + 9, spScreenY);
@@ -858,7 +1073,6 @@ function render() {
     ctx.lineTo(spScreenX, spScreenY + 9);
     ctx.stroke();
 
-    // Anchor point crosshair (0, 0)
     ctx.strokeStyle = '#58a6ff';
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -868,49 +1082,103 @@ function render() {
 
   ctx.restore();
 
-  // Character Label
+  // Character Status Label
   ctx.fillStyle = '#e2e8f0';
   ctx.font = '13px monospace';
   ctx.textAlign = 'center';
   const labelStatus = isFlying ? 'Bay @ 900px/s' : 'Đứng trên bệ đá';
   ctx.fillText(`Vargost (${labelStatus})`, vargostX, vargostY + hoverOffset - 80 * spriteScale);
 
-  // 5. Draw Projectile (8-frame spinning fire ring)
-  if (activeProjectile) {
-    const p = activeProjectile;
-    const pSize = 75 * spriteScale;
-    const psx = p.spinFrame * 80;
+  // 5. Projectile Rendering: Dynamic Flight & Scrubber Preview Linkage
+  let renderProjX = null, renderProjY = null, renderProjSize = null, renderSpinFrame = 0;
 
+  if (activeProjectile) {
+    renderProjX = activeProjectile.x;
+    renderProjY = activeProjectile.y;
+    renderProjSize = activeProjectile.size;
+    renderSpinFrame = activeProjectile.spinFrame;
+  }
+  // TIMELINE SCRUBBER CONTINUITY:
+  // When user is manually scrubbing the timeline slider without playing:
+  // Connect the ring continuously so it never disappears!
+  else if (!isPlaying) {
+    // Blazing Halo Throw Flight (Frames 68 to 74)
+    if (currentFrameIndex >= 68 && currentFrameIndex <= 74) {
+      const t = (currentFrameIndex - 68) / 6.0;
+      const startX = vargostX + 20 * spriteScale;
+      const startY = (vargostY + hoverOffset) - 52 * spriteScale;
+      renderProjX = startX + (targetX - startX) * t;
+      renderProjY = startY + (targetY - startY) * t;
+      renderProjSize = 80 * spriteScale;
+      renderSpinFrame = (currentFrameIndex * 2) % 8;
+    }
+    // Basic Attack 1 Throw Flight (Frames 85 to 88)
+    else if (currentFrameIndex >= 85 && currentFrameIndex <= 88) {
+      const t = (currentFrameIndex - 85) / 3.0;
+      const startX = vargostX + 24 * spriteScale;
+      const startY = (vargostY + hoverOffset) - 48 * spriteScale;
+      renderProjX = startX + (targetX - startX) * t;
+      renderProjY = startY + (targetY - startY) * t;
+      renderProjSize = 56 * spriteScale;
+      renderSpinFrame = (currentFrameIndex * 2) % 8;
+    }
+    // Basic Attack 2 Throw Flight (Frames 91 to 94)
+    else if (currentFrameIndex >= 91 && currentFrameIndex <= 94) {
+      const t = (currentFrameIndex - 91) / 3.0;
+      const startX = vargostX - 15 * spriteScale;
+      const startY = (vargostY + hoverOffset) - 48 * spriteScale;
+      renderProjX = startX + (targetX - startX) * t;
+      renderProjY = startY + (targetY - startY) * t;
+      renderProjSize = 56 * spriteScale;
+      renderSpinFrame = (currentFrameIndex * 2) % 8;
+    }
+  }
+
+  if (renderProjX !== null && renderProjY !== null) {
+    const psx = renderSpinFrame * 80;
     ctx.save();
     ctx.drawImage(
       assets.projectile,
       psx, 0, 80, 80,
-      p.x - pSize / 2, p.y - pSize / 2, pSize, pSize
+      renderProjX - renderProjSize / 2, renderProjY - renderProjSize / 2,
+      renderProjSize, renderProjSize
     );
     ctx.restore();
   }
 
-  // 6. Draw Explosion VFX (91 frames matched 2x2 texel)
-  if (activeExplosion) {
-    const exp = activeExplosion;
-    const fIdx = exp.frame;
-    const expCols = 13;
-    const esx = (fIdx % expCols) * 128;
-    const esy = Math.floor(fIdx / expCols) * 66;
+  // 6. Explosion VFX Rendering: Dynamic & Scrubber Preview
+  let expFrameToDraw = null, expX = targetX, expY = targetY, expIsSmall = false;
 
-    const expW = 128 * spriteScale * 1.5;
-    const expH = 66 * spriteScale * 1.5;
-    const expX = exp.x - expW / 2;
-    const expY = exp.y - expH + 12;
+  if (activeExplosion) {
+    expFrameToDraw = activeExplosion.frame;
+    expX = activeExplosion.x;
+    expY = activeExplosion.y;
+    expIsSmall = activeExplosion.isSmall;
+  } else if (!isPlaying && currentFrameIndex >= 75 && currentFrameIndex <= 82) {
+    // Scrubber preview of ground explosion during recovery
+    expFrameToDraw = Math.min(90, Math.floor((currentFrameIndex - 75) * 11));
+    expIsSmall = false;
+  }
+
+  if (expFrameToDraw !== null) {
+    const expCols = 13;
+    const esx = (expFrameToDraw % expCols) * 128;
+    const esy = Math.floor(expFrameToDraw / expCols) * 66;
+
+    const mult = expIsSmall ? 0.9 : 1.5;
+    const expW = 128 * spriteScale * mult;
+    const expH = 66 * spriteScale * mult;
+    const drawX = expX - expW / 2;
+    const drawY = expY - expH + 12;
 
     ctx.drawImage(
       assets.explosion,
       esx, esy, 128, 66,
-      expX, expY, expW, expH
+      drawX, drawY, expW, expH
     );
   }
 
-  // 7. Draw Crosshair across canvas (when inspector is active)
+  // 7. Inspector Crosshair
   if (chkInspector.checked && mouseX > 0 && mouseY > 0) {
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
     ctx.lineWidth = 1;

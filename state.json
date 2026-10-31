@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-10-31T06:45:00Z",
+  "updated_at_utc": "2026-10-31T07:44:00Z",
   "purpose": "Bộ nhớ bàn giao ngắn gọn cho agent; đối chiếu với mã, tài liệu và git status khi bắt đầu phiên.",
   "product_goal": {
-    "source": "Yêu cầu của người dùng ngày 2026-10-31 (cập nhật lúc 04:50 UTC)",
-    "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mỗi model/class được đào tạo tư duy chiến đấu riêng biệt (Utility AI: di chuyển, bay, chọn mục tiêu, kích hoạt skill theo thời gian tối ưu, Tanker che chắn skill hiểm, Healer hồi máu đồng đội nguy cấp). 2 đội tranh giành 1 vật phẩm ở giữa map bằng cách đứng chiếm giữ liên tục trong 15s để chiến thắng. Khởi đầu với model Vargost đang trong giai đoạn kiểm thử chuỗi hành động hoàn chỉnh (người dùng chưa chốt, sẽ tiếp tục ở phiên sau).",
+    "source": "Yêu cầu của người dùng ngày 2026-10-31 (cập nhật lúc 07:25 UTC)",
+    "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mỗi model/class được đào tạo tư duy chiến đấu riêng biệt (Utility AI: di chuyển, bay, chọn mục tiêu, kích hoạt skill theo thời gian tối ưu, Tanker che chắn skill hiểm, Healer hồi máu đồng đội nguy cấp). 2 đội tranh giành 1 vật phẩm ở giữa map bằng cách đứng chiếm giữ liên tục trong 15s để chiến thắng. Vargost là nhân vật đầu tiên hoàn thiện đầy đủ 2 kỹ năng: Đánh thường Twin Fire Strike (combo 2 đòn tích nộ + tụ lửa lại) và Chiêu Tối Thượng Blazing Halo (vận công gom vòng lớn từ frame 44..63, phóng ở frame 68, nổ diện rộng khi đầy 100% nộ).",
     "open_questions": [
-      "Tiếp tục tinh chỉnh hoạt ảnh và thông số chiến đấu cho Vargost ở phiên sau theo phản hồi kiểm thử của người dùng",
+      "Người dùng đánh giá trải nghiệm thực tế bộ 2 skill của Vargost trên localhost:4173/vargost-skill-test.html",
       "Chọn 5 nhân vật tiếp theo để đủ 6 nhân vật cho 2 team sau khi Vargost đạt chuẩn",
       "Tọa độ và bán kính chính xác của vùng chứa vật phẩm 15s ở giữa map ngang",
       "Các chỉ số cơ bản cho Vargost và các nhân vật (HP, tầm đánh, cooldown skill, DPS)"
@@ -38,11 +38,11 @@
       "source": "AGENTS.md"
     },
     {
-      "fact": "Vargost đang trong giai đoạn kiểm thử chuỗi hành động combat và Utility AI trên localhost (vargost-skill-test.html); người dùng chưa chốt chính thức và sẽ tiếp tục ở phiên sau.",
-      "source": "Asset/Character/characters/approved-animations-20261031-v9.json"
+      "fact": "Vargost có 95 frame hoàn chỉnh gồm Idle (0..21), Blazing Halo (44..82), Basic Attack Đòn 1 (83..88), Basic Attack Đòn 2 (89..94) và Re-ignite (72..77).",
+      "source": "Asset/Character/characters/vargost_combat/vargost_actions.json"
     },
     {
-      "fact": "Trang mô phỏng chuỗi tấn công Vargost chạy tại http://localhost:4173/vargost-skill-test.html tích hợp Kính Lúp Đo Pixel 10x và hoạt ảnh di chuyển bay tới/lùi/hạ cánh.",
+      "fact": "Trang mô phỏng chuỗi tấn công Vargost chạy tại http://localhost:4173/vargost-skill-test.html tích hợp Kính Lúp Đo Pixel 10x, thanh Nộ Khí (Rage Bar) và liên kết liên tục khi scrub timeline.",
       "source": "tools/asset-viewer/vargost-skill-test.html"
     }
   ],
@@ -57,29 +57,57 @@
     "Asset/Scenes/amore_scale_test/README.md"
   ],
   "current_task": {
-    "title": "Khởi Chạy Localhost Asset Viewer (Cổng 4173) Phục Vụ Kiểm Thử Hoạt Ảnh Vargost",
+    "title": "Thiết Kế Hoạt Ảnh Đánh Thường 2 Đòn (Twin Fire Strike), Tụ Lửa, Tích Nộ & Chốt Blazing Halo Cho Vargost",
     "status": "completed",
     "changes": [
-      "1. Khởi chạy daemon máy chủ Asset Viewer tại 0.0.0.0:4173 phục vụ kiểm thử trực quan trên trình duyệt.",
-      "2. Xác minh hoạt động của toàn bộ 3 trang giao diện kiểm thử: http://localhost:4173/ (Asset Viewer tổng quan), http://localhost:4173/vargost-skill-test.html (Chuỗi hành động Vargost & Kính Lúp Đo Pixel 10x), http://localhost:4173/amore-scene.html (Thử tỷ lệ Amore/Vargost trên map).",
-      "3. Chạy toàn bộ bộ test tự động npm test (7/7 pass)."
+      "1. Dựng 12 frame pixel art hoàn chỉnh cho Đánh Thường (Twin Fire Strike) từ nguyên bản Vargost:",
+      "   - Đòn 1 (Frame 83..88): Tay phải gập về bụng (dx=+16, dy=-45), phóng vòng lửa nhỏ 1 (56px) @ 1100px/s, tay thu về mượt mà không nhảy cóc (tay phải trống, tay trái giữ lửa).",
+      "   - Đòn 2 (Frame 89..94): Khi đòn 1 trúng đích, tay trái gập vào ngực/bụng, phóng tiếp vòng lửa nhỏ 2 @ 1100px/s, tay thu về mượt mà (cả 2 tay trống).",
+      "   - Tụ Lại 2 Vòng Lửa (Frame 72..77): Lửa nhen nhóm và bùng lên tại 2 tay, tái lập 2 vòng xoay, loop về frame 0, nạp +50% Nộ.",
+      "2. Chốt Chiêu Tối Thượng Blazing Halo: Yêu cầu 100% Nộ khí. Vận công gom 2 vòng nhỏ thành 1 vòng lớn ở Frame 63, phóng ở Frame 68 (@ 900px/s), nổ diện rộng 91 frame và thu tay hồi thế sạch (Frame 69..82).",
+      "3. Khắc phục thanh tua Frame (Timeline Scrubber): Liên kết hiển thị vòng đạn liên tục theo quỹ đạo trong các frame phóng (Frame 68..74, 85..88, 91..94), giải quyết triệt để lỗi biến mất vòng tròn khi kéo tay.",
+      "4. Đóng gói unified atlas 95 frame (2000x2000 px), ghi đè trực tiếp lên vargost_body_atlas.png và atlas_000.png, cập nhật vargost_actions.json, candidate.json, approved-animations-20261031-v9.json.",
+      "5. Cập nhật giao diện vargost-skill-test.html và vargost-skill-test.js: Thêm thanh Nộ Khí (Rage Bar) rực sáng khi 100%, 2 nút kỹ năng riêng biệt, 9 bookmark keyframe."
     ],
     "verification": [
-      "curl -s -I http://localhost:4173/ trả về HTTP 200 OK.",
-      "curl -s -I http://localhost:4173/vargost-skill-test.html trả về HTTP 200 OK.",
-      "curl -s -I http://localhost:4173/amore-scene.html trả về HTTP 200 OK.",
-      "npm test: 7/7 bài kiểm thử pass."
+      "Godot 4.3 Headless CLI: PASS Vargost combat chain: 95 frames (idle 0..21, basic attack 83..94, blazing halo 44..82), dual skill combo, rage bar, 8-frame projectile @ 900-1100px/s, range [150, 550], explosion 91 frames.",
+      "npm test: 7/7 bài kiểm thử pass.",
+      "python3 -m unittest discover tests: 2/2 bài kiểm thử pass.",
+      "curl -s -I http://localhost:4173/vargost-skill-test.html và vargost-skill-test.js trả về HTTP 200 OK."
     ],
     "remaining": [],
     "limitations": [
-      "Vargost đang trong giai đoạn kiểm thử; sẵn sàng tiếp nhận phản hồi của người dùng để tiếp tục thiết kế/tinh chỉnh."
+      "Vargost đã hoàn thiện 2 bộ kỹ năng và cơ chế nộ trên localhost; sẵn sàng tiếp nhận phản hồi kiểm thử của người dùng."
     ],
     "next_steps": [
-      "Tiếp tục hỗ trợ anh thiết kế và tinh chỉnh hoạt ảnh, cử động, VFX hoặc thông số của Vargost theo phản hồi."
+      "Người dùng mở http://localhost:4173/vargost-skill-test.html để kiểm tra combo đánh thường 2 đòn, tích nộ, tụ lửa và chiêu Blazing Halo.",
+      "Sau khi người dùng ưng ý chốt Vargost, chọn tiếp 5 nhân vật để hoàn thiện 2 team 3v3."
     ]
   },
-  "working_tree_note": "Working tree sạch, server 4173 đang chạy nền.",
+  "working_tree_note": "Atlas và manifest đã nâng cấp lên 95 frame, server cổng 4173 đang chạy nền ổn định.",
   "history": [
+    {
+      "title": "Khởi Chạy Localhost Asset Viewer (Cổng 4173) Phục Vụ Kiểm Thử Hoạt Ảnh Vargost",
+      "status": "completed",
+      "changes": [
+        "1. Khởi chạy daemon máy chủ Asset Viewer tại 0.0.0.0:4173 phục vụ kiểm thử trực quan trên trình duyệt.",
+        "2. Xác minh hoạt động của toàn bộ 3 trang giao diện kiểm thử: http://localhost:4173/ (Asset Viewer tổng quan), http://localhost:4173/vargost-skill-test.html (Chuỗi hành động Vargost & Kính Lúp Đo Pixel 10x), http://localhost:4173/amore-scene.html (Thử tỷ lệ Amore/Vargost trên map).",
+        "3. Chạy toàn bộ bộ test tự động npm test (7/7 pass)."
+      ],
+      "verification": [
+        "curl -s -I http://localhost:4173/ trả về HTTP 200 OK.",
+        "curl -s -I http://localhost:4173/vargost-skill-test.html trả về HTTP 200 OK.",
+        "curl -s -I http://localhost:4173/amore-scene.html trả về HTTP 200 OK.",
+        "npm test: 7/7 bài kiểm thử pass."
+      ],
+      "remaining": [],
+      "limitations": [
+        "Vargost đang trong giai đoạn kiểm thử; sẵn sàng tiếp nhận phản hồi của người dùng để tiếp tục thiết kế/tinh chỉnh."
+      ],
+      "next_steps": [
+        "Tiếp tục hỗ trợ anh thiết kế và tinh chỉnh hoạt ảnh, cử động, VFX hoặc thông số của Vargost theo phản hồi."
+      ]
+    },
     {
       "title": "Cập Nhật Hiến Pháp AGENTS.md Quy Tắc Ghi Đè Asset Không Backup & Ghi Nhận Vargost Đang Kiểm Thử Chưa Chốt",
       "status": "completed",
