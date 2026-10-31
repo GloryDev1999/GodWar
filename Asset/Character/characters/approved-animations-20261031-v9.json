@@ -3034,7 +3034,7 @@
           "combat_actions_sha256": "d940f105106811a4af3c43a099911e09f180cb38b40c8f6601e3b947e1b0f026",
           "projectile_atlas_sha256": "ec4c89454db7ddb1c2110d23e6335fefd2ff7357f5015994b072151a7aa6988d",
           "explosion_atlas_sha256": "c4d99ff52414cb96796da3fc615274f30d47c404289679ae1155451c478abc14",
-          "status": "user_approved_combat_version"
+          "status": "in_testing"
         }
       ]
     },

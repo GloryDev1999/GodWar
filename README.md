@@ -42,7 +42,7 @@ Hệ thống hỗ trợ làm việc song song 100% giữa Codex CLI và AGY CLI,
 
 Ngày 30/10/2026: azza, bearen, black, momo, snowpie và namero đã được gỡ khỏi danh sách hiện hành và tài nguyên riêng. Nguồn chung `3 char` vẫn chứa các frame của namero để bảo toàn solist và kukaomni; ghi chép cũ bên dưới mang tính lịch sử.
 
-**Mốc hiện hành:** danh sách chốt hoạt ảnh đến 31/10/2026 tại [danh sách chốt v9](docs/approved-animations-20261031.md) và [manifest v9](Asset/Character/characters/approved-animations-20261031-v9.json), gồm toàn bộ 177 mục / 178 profile với chuỗi hoạt ảnh combat chính thức của Vargost (83 frame body sạch vách cắt, đạn vòng lửa xoay 8 frame, VFX nổ 91 frame 2×2 texel, bộ di chuyển bay/đáp đất và Utility AI [150-550px]). Viewer đánh dấu bản đã chốt và các bản tham khảo cũ.
+**Mốc hiện hành:** danh sách hoạt ảnh đến 31/10/2026 tại [danh mục v9](docs/approved-animations-20261031.md) và [manifest v9](Asset/Character/characters/approved-animations-20261031-v9.json), gồm 177 mục / 178 profile cùng chuỗi hoạt ảnh combat đang kiểm thử của Vargost (83 frame body sạch vách cắt, đạn vòng lửa xoay 8 frame, VFX nổ 91 frame 2×2 texel, bộ di chuyển bay/đáp đất và Utility AI [150-550px]). Viewer đánh dấu bản đã chốt và các bản tham khảo cũ.
 
 Quy trình sử dụng Agent Sprite Forge cho nhân vật được ghi tại [docs/sprite-forge.md](docs/sprite-forge.md).
 

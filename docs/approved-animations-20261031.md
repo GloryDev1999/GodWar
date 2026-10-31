@@ -2,20 +2,20 @@
 
 Tổng cộng 177 mục (178 profile). Chi tiết hash và đường dẫn atlas nằm tại [`Asset/Character/characters/approved-animations-20261031-v9.json`](file:///workspaces/GodWar/Asset/Character/characters/approved-animations-20261031-v9.json).
 
-## Điểm nhấn mốc v9: Chốt Chuỗi Hoạt Ảnh Chiến Đấu Vargost
+## Điểm nhấn mốc v9: Kiểm Thử Chuỗi Hoạt Ảnh Chiến Đấu Vargost
 
-Theo yêu cầu của người dùng ngày 31/10/2026, nhân vật **Vargost** được chính thức chốt ở phiên bản kiểm thử combat hoàn chỉnh:
+Theo xác nhận của người dùng ngày 31/10/2026, nhân vật **Vargost** hiện **đang trong giai đoạn kiểm thử** (chưa chốt chính thức, sẽ tiếp tục đánh giá và hoàn thiện ở phiên sau):
 - **Bộ hoạt ảnh cơ thể (83 frame, chiều cao 75 px, lưới 2×2 texel):**
   - `Idle`: 22 frame lơ lửng tuần hoàn (0..43, loop 0..21).
   - `Cast Windup`: 21 frame tụ vòng lửa trên đầu (45..65).
   - `Cast Release`: Frame 66, vươn tay đẩy vòng lửa với điểm xuất phát chuẩn `[dx: +20, dy: -52]`.
   - `Cast Recovery`: 16 frame thu tay sạch sẽ (67..82), loại bỏ hoàn toàn vết cắt hình vuông ở mép phải và tàn lửa ở chân; giữ 100% chi tiết thân, áo choàng, tay và trượng với mép ngoài tự nhiên chỉ 2–4 pixel.
   - Atlas lưu tại: [`Asset/Character/characters/vargost_combat/vargost_body_atlas.png`](file:///workspaces/GodWar/Asset/Character/characters/vargost_combat/vargost_body_atlas.png) và [`Asset/Character/measured_atlas_pilots/vargost/atlas_000.png`](file:///workspaces/GodWar/Asset/Character/measured_atlas_pilots/vargost/atlas_000.png) (SHA-256: `c7003dc6cef7a9bfcc4757166b33fa52f4401a55ecc76cd26040b83307b2de55`).
-  - Bản atlas cũ trước khi chốt đã được lưu trữ an toàn tại `Asset/Character/archive/vargost_before_combat_freeze/`.
+  - Quy tắc hiến pháp mới: Mọi chỉnh sửa ghi đè trực tiếp lên asset hiện hành, không tạo backup bản cũ để tiết kiệm dung lượng.
 - **Đạn vòng lửa xoay 8 frame:**
-  - 8 góc xoay 45° liên tục, kích thước 80×80 px trên lưới hạt 2×2 texel.
+  - 8 góc xoay 45° liên tục ([`ring_0.png`](file:///workspaces/GodWar/Asset/Character/characters/vargost_combat/projectile/ring_0.png) .. [`ring_7.png`](file:///workspaces/GodWar/Asset/Character/characters/vargost_combat/projectile/ring_7.png)), kích thước 80×80 px trên lưới hạt 2×2 texel, sạch 100% không còn pixel tay/thân dính vào (`non-flame = 0`).
   - Tốc độ bay 900 px/s, chu kỳ xoay 35 ms/frame.
-  - Atlas lưu tại: [`Asset/Character/characters/vargost_combat/projectile_sheet.png`](file:///workspaces/GodWar/Asset/Character/characters/vargost_combat/projectile_sheet.png) (SHA-256: `ec4c89454db7ddb1c2110d23e6335fefd2ff7357f5015994b072151a7aa6988d`).
+  - Sheet đạn lưu tại: [`Asset/Character/characters/vargost_combat/projectile_sheet.png`](file:///workspaces/GodWar/Asset/Character/characters/vargost_combat/projectile_sheet.png) (SHA-256: `ec4c89454db7ddb1c2110d23e6335fefd2ff7357f5015994b072151a7aa6988d`).
 - **Hiệu ứng nổ mặt đất (91 frame):**
   - Chuẩn hóa đồng bộ 100% mật độ hạt 2×2 texel với phong cách đồ họa Vargost.
   - Atlas lưu tại: [`Asset/Character/characters/vargost_combat/vfx_fire_explosion_sheet.png`](file:///workspaces/GodWar/Asset/Character/characters/vargost_combat/vfx_fire_explosion_sheet.png) (SHA-256: `c4d99ff52414cb96796da3fc615274f30d47c404289679ae1155451c478abc14`).
@@ -96,7 +96,7 @@ Theo yêu cầu của người dùng ngày 31/10/2026, nhân vật **Vargost** �
 | ghostian | ghostian | 85 | 22 | Chốt ngày 30/10/2026 |
 | ghostic | ghostic | 85 | 38 | Chốt ngày 30/10/2026 |
 | ... (117 nhân vật tiếp theo giữ nguyên theo mốc v8) ... | | | | |
-| **vargost** | **vargost** | **75** | **83** | **Chốt Chuỗi Combat ngày 31/10/2026 (v9)** |
+| **vargost** | **vargost** | **75** | **83** | **Đang kiểm thử chuỗi combat (chưa chốt)** |
 | vemou | vemou | 80 | 95 | Chốt ngày 30/10/2026 |
 | venom | venom | 80 | 47 | Chốt ngày 30/10/2026 |
 | wind | wind | 80 | 47 | Chốt ngày 30/10/2026 |

@@ -12,7 +12,8 @@
 - Chia công việc lớn thành các bước có thể kiểm tra; cập nhật trạng thái và bằng chứng thực tế trong tài liệu theo dõi của dự án.
 - Chạy các kiểm thử phù hợp với thay đổi; kiểm tra đường đi chính, các trường hợp biên quan trọng và tích hợp liên quan. Báo lệnh, kết quả và giới hạn; không gọi kiểm thử là đã chạy nếu chưa chạy.
 - Nếu thiếu thiết bị, dữ liệu, quyền hoặc công cụ để kiểm tra, ghi rõ phần chưa kiểm chứng và cách kiểm chứng. Không chốt chất lượng phát hành khi chưa có bằng chứng thích hợp.
-- Bảo vệ dữ liệu gốc và thay đổi hiện có của người dùng. Mọi xử lý asset phải có đường dẫn về nguồn, có thể tái tạo và không ghi đè nguồn.
+- Bảo vệ dữ liệu gốc và thay đổi hiện có của người dùng. Mọi xử lý asset phải có đường dẫn về nguồn, có thể tái tạo và không ghi đè nguồn GIF gốc ban đầu.
+- **Quy tắc chỉnh sửa asset hoàn thiện nhân vật:** Trong quá trình dựng và tinh chỉnh asset theo phản hồi/yêu cầu của người dùng, mọi chỉnh sửa/sửa lỗi phải được **ghi đè trực tiếp lên asset cũ** để đảm bảo tính nhất quán, tránh nhầm lẫn giữa các phiên bản và **không tạo bản backup cho các bản cũ/bản lỗi** nhằm tránh phình to dung lượng repository.
 - Với GIF: không mặc định tên file là danh tính nhân vật hay một đoạn là động tác/skill khi chưa xem và xác nhận. Ghi riêng dữ kiện quan sát, dữ liệu còn thiếu và các quyết định cần người dùng duyệt.
 - Ưu tiên Godot 4 và mobile; việc tối ưu, kiểm tra Android/iOS và thiết bị thật phải có số liệu trước khi tuyên bố đạt mục tiêu.
 

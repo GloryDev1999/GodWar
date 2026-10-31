@@ -1,12 +1,13 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-10-31T04:47:30Z",
+  "updated_at_utc": "2026-10-31T04:52:00Z",
   "purpose": "Bộ nhớ bàn giao ngắn gọn cho agent; đối chiếu với mã, tài liệu và git status khi bắt đầu phiên.",
   "product_goal": {
-    "source": "Yêu cầu của người dùng ngày 2026-10-31 (cập nhật lúc 03:10 UTC)",
-    "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mỗi model/class được đào tạo tư duy chiến đấu riêng biệt (Utility AI: di chuyển, bay, chọn mục tiêu, kích hoạt skill theo thời gian tối ưu, Tanker che chắn skill hiểm, Healer hồi máu đồng đội nguy cấp). 2 đội tranh giành 1 vật phẩm ở giữa map bằng cách đứng chiếm giữ liên tục trong 15s để chiến thắng. Khởi đầu với model Vargost ghép thành chuỗi hành động hoàn chỉnh.",
+    "source": "Yêu cầu của người dùng ngày 2026-10-31 (cập nhật lúc 04:50 UTC)",
+    "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mỗi model/class được đào tạo tư duy chiến đấu riêng biệt (Utility AI: di chuyển, bay, chọn mục tiêu, kích hoạt skill theo thời gian tối ưu, Tanker che chắn skill hiểm, Healer hồi máu đồng đội nguy cấp). 2 đội tranh giành 1 vật phẩm ở giữa map bằng cách đứng chiếm giữ liên tục trong 15s để chiến thắng. Khởi đầu với model Vargost đang trong giai đoạn kiểm thử chuỗi hành động hoàn chỉnh (người dùng chưa chốt, sẽ tiếp tục ở phiên sau).",
     "open_questions": [
-      "Chọn 5 nhân vật tiếp theo để đủ 6 nhân vật cho 2 team (hiện Vargost là nhân vật đầu tiên hoàn thiện và đã chốt chuỗi hành động)",
+      "Tiếp tục tinh chỉnh hoạt ảnh và thông số chiến đấu cho Vargost ở phiên sau theo phản hồi kiểm thử của người dùng",
+      "Chọn 5 nhân vật tiếp theo để đủ 6 nhân vật cho 2 team sau khi Vargost đạt chuẩn",
       "Tọa độ và bán kính chính xác của vùng chứa vật phẩm 15s ở giữa map ngang",
       "Các chỉ số cơ bản cho Vargost và các nhân vật (HP, tầm đánh, cooldown skill, DPS)"
     ]
@@ -33,11 +34,11 @@
       "source": "docs/dual-agent-guide.md"
     },
     {
-      "fact": "Đã cập nhật mục tiêu sản phẩm Utility AI 3v3 chiếm cứ điểm 15s vào AGENTS.md và state.json.",
+      "fact": "Đã cập nhật quy định hiến pháp trong AGENTS.md: Chỉnh sửa dựng asset phải ghi đè trực tiếp, không backup bản cũ tránh nặng dung lượng.",
       "source": "AGENTS.md"
     },
     {
-      "fact": "Vargost đã được người dùng chốt chính thức ở mốc v9: 83 frame body sạch vách cắt, đạn vòng lửa xoay 8 frame (sạch 100% không dính tay), VFX nổ 91 frame 2x2 texel, bộ di chuyển bay/đáp đất và Utility AI [150-550px].",
+      "fact": "Vargost đang trong giai đoạn kiểm thử chuỗi hành động combat và Utility AI trên localhost (vargost-skill-test.html); người dùng chưa chốt chính thức và sẽ tiếp tục ở phiên sau.",
       "source": "Asset/Character/characters/approved-animations-20261031-v9.json"
     },
     {
@@ -46,6 +47,7 @@
     }
   ],
   "tracking_documents": [
+    "AGENTS.md",
     "docs/approved-animations-20261031.md",
     "docs/approved-animations-20261030.md",
     "docs/approved-animations-20261029.md",
@@ -55,29 +57,52 @@
     "Asset/Scenes/amore_scale_test/README.md"
   ],
   "current_task": {
-    "title": "Làm Sạch Toàn Bộ 8 Frame Đạn Trong vargost_combat/projectile Loại Bỏ Hoàn Toàn 672 Pixel Tay Dính",
+    "title": "Cập Nhật Hiến Pháp AGENTS.md Quy Tắc Ghi Đè Asset Không Backup & Ghi Nhận Vargost Đang Kiểm Thử Chưa Chốt",
     "status": "completed",
     "changes": [
-      "1. Rà soát thư mục Asset/Character/characters/vargost_combat/projectile phát hiện các file ring_0..3 cũ sót lại từ giai đoạn trước có 672 pixel tay/thân dính vào.",
-      "2. Trích xuất đồng bộ lại toàn bộ 8 frame xoay sạch từ projectile_sheet.png (ring_0.png .. ring_7.png, 80x80 px), kiểm tra thuật toán xác nhận 0 pixel non-flame (100% hạt lửa chuẩn).",
-      "3. Đồng bộ toàn bộ các frame đạn và kiểm thử tự động."
+      "1. Bổ sung quy định vào Hiến pháp AGENTS.md: Mọi chỉnh sửa trong quá trình dựng asset hoàn thiện nhân vật phải được ghi đè trực tiếp lên asset cũ để tránh nhầm lẫn giữa các phiên bản; tuyệt đối không tạo bản sao backup các bản nháp/bản lỗi để tránh phình to dung lượng repository. File GIF gốc ban đầu vẫn được bảo vệ nguyên vẹn.",
+      "2. Xóa bỏ thư mục backup tạm Asset/Character/archive/vargost_before_combat_freeze/ theo đúng chỉ đạo không backup tránh nặng repo.",
+      "3. Cập nhật trạng thái Vargost: Đang trong giai đoạn kiểm thử (in_testing), người dùng chưa chốt chính thức và sẽ tiếp tục đánh giá, hoàn thiện ở phiên tiếp theo.",
+      "4. Cập nhật đồng bộ candidate.json, approved-animations-20261031-v9.json, docs/approved-animations-20261031.md, README.md và state.json."
     ],
     "verification": [
-      "Kiểm tra pixel: ring_0.png đến ring_7.png đều đạt non-flame (hand/body) = 0.",
       "Godot 4.3 Headless CLI: PASS 83 frames, idle loop 22, windup 45..65, 8-frame spinning projectile @ 900px/s, recovery 67..82, range [150, 550], explosion 91 frames.",
       "npm test: 7/7 bài kiểm thử pass.",
-      "python3 -m unittest discover tests: 2/2 bài kiểm thử pass."
+      "python3 -m unittest discover tests: 2/2 bài kiểm thử pass.",
+      "curl -s -I http://localhost:4173/ trả về HTTP 200 OK."
     ],
     "remaining": [],
     "limitations": [
-      "Cơ chế tranh chấp cứ điểm vật phẩm 15s giữa 2 team sẽ được tích hợp trong room 3v3 ở giai đoạn tiếp theo."
+      "Vargost đang trong giai đoạn kiểm thử người dùng; các hiệu chỉnh hoạt ảnh hoặc hitbox tiếp theo sẽ tiếp tục thực hiện ở phiên sau."
     ],
     "next_steps": [
-      "Người dùng lựa chọn 5 nhân vật tiếp theo (Tanker, Healer, ...) để hoàn thiện danh sách 6 nhân vật cho trận đấu 3v3 trên map ngang."
+      "Ở phiên sau, tiếp tục hỗ trợ người dùng kiểm thử và tinh chỉnh hoạt ảnh, cử động hoặc hiệu ứng của Vargost trên localhost:4173/vargost-skill-test.html cho đến khi đạt độ ưng ý để chốt chính thức."
     ]
   },
   "working_tree_note": "Khi bắt đầu task, git status đã báo 11 GIF trong 13 charnew/ bị xóa; chưa xác định nguyên nhân và giữ nguyên các thay đổi đó.",
   "history": [
+    {
+      "title": "Làm Sạch Toàn Bộ 8 Frame Đạn Trong vargost_combat/projectile Loại Bỏ Hoàn Toàn 672 Pixel Tay Dính",
+      "status": "completed",
+      "changes": [
+        "1. Rà soát thư mục Asset/Character/characters/vargost_combat/projectile phát hiện các file ring_0..3 cũ sót lại từ giai đoạn trước có 672 pixel tay/thân dính vào.",
+        "2. Trích xuất đồng bộ lại toàn bộ 8 frame xoay sạch từ projectile_sheet.png (ring_0.png .. ring_7.png, 80x80 px), kiểm tra thuật toán xác nhận 0 pixel non-flame (100% hạt lửa chuẩn).",
+        "3. Đồng bộ toàn bộ các frame đạn và kiểm thử tự động."
+      ],
+      "verification": [
+        "Kiểm tra pixel: ring_0.png đến ring_7.png đều đạt non-flame (hand/body) = 0.",
+        "Godot 4.3 Headless CLI: PASS 83 frames, idle loop 22, windup 45..65, 8-frame spinning projectile @ 900px/s, recovery 67..82, range [150, 550], explosion 91 frames.",
+        "npm test: 7/7 bài kiểm thử pass.",
+        "python3 -m unittest discover tests: 2/2 bài kiểm thử pass."
+      ],
+      "remaining": [],
+      "limitations": [
+        "Cơ chế tranh chấp cứ điểm vật phẩm 15s giữa 2 team sẽ được tích hợp trong room 3v3 ở giai đoạn tiếp theo."
+      ],
+      "next_steps": [
+        "Người dùng lựa chọn 5 nhân vật tiếp theo (Tanker, Healer, ...) để hoàn thiện danh sách 6 nhân vật cho trận đấu 3v3 trên map ngang."
+      ]
+    },
     {
       "title": "Chốt Hoạt Ảnh Chiến Đấu Vargost ở Version Kiểm Thử Hiện Tại (Mốc v9)",
       "status": "completed",
