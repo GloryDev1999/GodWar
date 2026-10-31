@@ -2,29 +2,33 @@
 
 Tổng cộng 177 mục (178 profile). Chi tiết hash và đường dẫn atlas nằm tại [`Asset/Character/characters/approved-animations-20261031-v9.json`](file:///workspaces/GodWar/Asset/Character/characters/approved-animations-20261031-v9.json).
 
-## Điểm nhấn mốc v9: Kiểm Thử Chuỗi Hoạt Ảnh Chiến Đấu Vargost
+## Điểm nhấn mốc v9: Chính Thức Phê Duyệt Nhân Vật Vargost (Official User Approved)
 
-Theo xác nhận của người dùng ngày 31/10/2026, nhân vật **Vargost** hiện **đang trong giai đoạn kiểm thử** (chưa chốt chính thức, sẽ tiếp tục đánh giá và hoàn thiện ở phiên sau):
+Theo xác nhận của người dùng ngày 31/10/2026, nhân vật **Vargost** đã được **chính thức phê duyệt và chốt hoàn thiện toàn bộ** hoạt ảnh chiến đấu, chiêu thức Blazing Halo, động học bay 2D Vector và bộ não Utility AI:
 - **Bộ hoạt ảnh cơ thể (83 frame, chiều cao 75 px, lưới 2×2 texel):**
-  - `Idle`: 22 frame lơ lửng tuần hoàn (0..43, loop 0..21).
-  - `Cast Windup`: 21 frame tụ vòng lửa trên đầu (45..65).
-  - `Cast Release`: Frame 66, vươn tay đẩy vòng lửa với điểm xuất phát chuẩn `[dx: +20, dy: -52]`.
-  - `Cast Recovery`: 16 frame thu tay sạch sẽ (67..82), loại bỏ hoàn toàn vết cắt hình vuông ở mép phải và tàn lửa ở chân; giữ 100% chi tiết thân, áo choàng, tay và trượng với mép ngoài tự nhiên chỉ 2–4 pixel.
-  - Atlas lưu tại: [`Asset/Character/characters/vargost_combat/vargost_body_atlas.png`](file:///workspaces/GodWar/Asset/Character/characters/vargost_combat/vargost_body_atlas.png) và [`Asset/Character/measured_atlas_pilots/vargost/atlas_000.png`](file:///workspaces/GodWar/Asset/Character/measured_atlas_pilots/vargost/atlas_000.png) (SHA-256: `c7003dc6cef7a9bfcc4757166b33fa52f4401a55ecc76cd26040b83307b2de55`).
-  - Quy tắc hiến pháp mới: Mọi chỉnh sửa ghi đè trực tiếp lên asset hiện hành, không tạo backup bản cũ để tiết kiệm dung lượng.
+  - `Idle`: 22 frame lơ lửng tuần hoàn (loop 0..21) với 2 vòng lửa ở 2 tay.
+  - `Blazing Halo (Chiêu Tối Thượng)`: Chuỗi 39 frame liền mạch (44..82). Vận công gom vòng lửa lớn từ frame 44..63, vung tay và xuất lực qua frame 64..67 (vòng lửa di chuyển mượt mà liên tục theo chiều 64-68 từ fine_candidates), phóng đại cầu lửa ở frame 68 @ 1100 px/s từ điểm xuất phát chuẩn `[dx: +20, dy: -20]`, thu hồi và tụ lại 2 vòng lửa ở frame 74..77.
+  - Atlas lưu tại: [`Asset/Character/characters/vargost_combat/vargost_body_atlas.png`](file:///workspaces/GodWar/Asset/Character/characters/vargost_combat/vargost_body_atlas.png) và [`Asset/Character/measured_atlas_pilots/vargost/atlas_000.png`](file:///workspaces/GodWar/Asset/Character/measured_atlas_pilots/vargost/atlas_000.png) (SHA-256: `e4fb347c69c4746203b2f665719e77078e466dbb952b947690ef11c218ca0449`).
+  - Trạng thái chốt: `user_approved` ngày 31/10/2026.
 - **Đạn vòng lửa xoay 8 frame:**
   - 8 góc xoay 45° liên tục ([`ring_0.png`](file:///workspaces/GodWar/Asset/Character/characters/vargost_combat/projectile/ring_0.png) .. [`ring_7.png`](file:///workspaces/GodWar/Asset/Character/characters/vargost_combat/projectile/ring_7.png)), kích thước 80×80 px trên lưới hạt 2×2 texel, sạch 100% không còn pixel tay/thân dính vào (`non-flame = 0`).
-  - Tốc độ bay 900 px/s, chu kỳ xoay 35 ms/frame.
+  - Tốc độ bay 1100 px/s, chu kỳ xoay 35 ms/frame.
   - Sheet đạn lưu tại: [`Asset/Character/characters/vargost_combat/projectile_sheet.png`](file:///workspaces/GodWar/Asset/Character/characters/vargost_combat/projectile_sheet.png) (SHA-256: `ec4c89454db7ddb1c2110d23e6335fefd2ff7357f5015994b072151a7aa6988d`).
 - **Hiệu ứng nổ mặt đất (91 frame):**
   - Chuẩn hóa đồng bộ 100% mật độ hạt 2×2 texel với phong cách đồ họa Vargost.
   - Atlas lưu tại: [`Asset/Character/characters/vargost_combat/vfx_fire_explosion_sheet.png`](file:///workspaces/GodWar/Asset/Character/characters/vargost_combat/vfx_fire_explosion_sheet.png) (SHA-256: `c4d99ff52414cb96796da3fc615274f30d47c404289679ae1155451c478abc14`).
-- **Quy tắc Utility AI & Hoạt ảnh di chuyển:**
-  - Tầm đánh chuẩn `[150px – 550px]`, tự động kiting lùi khi quá gần hoặc bay áp sát khi quá xa @ 900 px/s.
-  - Hoạt ảnh di chuyển: Bay tới nghiêng $+12^\circ$ kèm vệt bóng mờ quán tính, Bay lùi nghiêng $-10^\circ$, Hạ cánh đáp nền đá $Y=194$ (squash va chạm + vòng bụi), Cất cánh bay lên bầu trời $Y=65$.
+- **Động học 2D Vector & Bộ não Utility AI:**
+  - Di chuyển 2D Vector đa hướng: Trực giao (12h, 3h, 6h, 9h) và Bay xéo (10h, 2h, 4h, 8h) ở 400 px/s (chế độ chậm tuần tra 100 px/s).
+  - Tự động nghiêng thân $\pm 25^\circ$ theo hướng di chuyển ngang, co giãn quán tính (squash & stretch) theo vector dọc, vệt bóng mờ 2D (motion ghosts), khi dừng tự động trả về thẳng đứng $0^\circ$.
+  - Utility AI tự động đánh giá cự ly mục tiêu [150, 550], tự động tăng tốc bay xéo áp sát/lùi giữ cự ly, dừng lại đứng thẳng và tung Blazing Halo từ bất kỳ độ cao nào (trên không hoặc bệ đá). Khóa độ cao 15s (`altitudeCooldown`) triệt tiêu hoàn toàn vòng lặp cất/hạ cánh.
+- **Đóng gói Hệ thống hóa cho Godot 4 & Android Mobile:**
+  - Scene Godot 4: [`Asset/Character/characters/vargost_combat/vargost_character.tscn`](file:///workspaces/GodWar/Asset/Character/characters/vargost_combat/vargost_character.tscn).
+  - Script Godot 4: [`Asset/Character/characters/vargost_combat/vargost_character.gd`](file:///workspaces/GodWar/Asset/Character/characters/vargost_combat/vargost_character.gd).
+  - Thư viện nạp: [`scripts/animation/gif_atlas_library.gd`](file:///workspaces/GodWar/scripts/animation/gif_atlas_library.gd) hàm `create_vargost_combat()`.
+  - Cấu hình đóng gói Android: [`export_presets.cfg`](file:///workspaces/GodWar/export_presets.cfg) đã bao gồm toàn bộ manifest JSON chiến đấu.
 - **Bộ công cụ trực quan:**
   - Trình kiểm thử: [`tools/asset-viewer/vargost-skill-test.html`](file:///workspaces/GodWar/tools/asset-viewer/vargost-skill-test.html) và [`vargost-skill-test.js`](file:///workspaces/GodWar/tools/asset-viewer/vargost-skill-test.js).
-  - Tích hợp Kính Lúp Pixel 10× có lưới ô pixel, đọc tọa độ Canvas, tọa độ tương đối từ neo (dx, dy), mã màu HEX/RGBA và nút click-to-pick gán điểm phóng.
+  - Giao diện được cố định tuyệt đối (Zero Layout Shift), tích hợp cụm phím bay xéo Q/E/Z/C/W/A/S/D và Kính Lúp Pixel 10×.
 
 ---
 

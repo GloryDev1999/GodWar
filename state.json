@@ -1,13 +1,12 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-10-31T09:53:00Z",
+  "updated_at_utc": "2026-10-31T10:05:00Z",
   "purpose": "Bộ nhớ bàn giao ngắn gọn cho agent; đối chiếu với mã, tài liệu và git status khi bắt đầu phiên.",
   "product_goal": {
-    "source": "Yêu cầu của người dùng ngày 2026-10-31 (cập nhật lúc 09:50 UTC)",
-    "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mỗi model/class được đào tạo tư duy chiến đấu riêng biệt (Utility AI: di chuyển, bay, chọn mục tiêu, kích hoạt skill theo thời gian tối ưu, Tanker che chắn skill hiểm, Healer hồi máu đồng đội nguy cấp). 2 đội tranh giành 1 vật phẩm ở giữa map bằng cách đứng chiếm giữ liên tục trong 15s để chiến thắng. Vargost là nhân vật đầu tiên hoàn thiện chuỗi hoạt ảnh 83 frame thống nhất mượt mà với Chiêu Tối Thượng Blazing Halo (vận công gom vòng lớn từ frame 44..63, xuất lực qua 64..67 có vòng lửa chuẩn hướng, phóng đại cầu lửa ở frame 68 @ 1100px/s, nổ diện rộng, hồi chiêu và tụ lại vòng lửa 74..77) cùng hệ thống di chuyển 2D Vector đa hướng (trực giao 12h, 3h, 6h, 9h và bay xéo 10h, 2h, 4h, 8h @ 400px/s cơ động, 100px/s tuần tra, nghiêng +-25° + squash & stretch + bóng mờ 2D, dừng đứng thẳng 0°) và bộ não Utility AI tự động cơ động chiến thuật 2D. Giao diện kiểm thử trực quan trên cổng 4173 được cố định cấu trúc tĩnh tuyệt đối, triệt tiêu hoàn toàn hiện tượng layout shift / nhảy khung view khi các thông số metric thay đổi.",
+    "source": "Yêu cầu của người dùng ngày 2026-10-31 (cập nhật lúc 10:00 UTC)",
+    "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mỗi model/class được đào tạo tư duy chiến đấu riêng biệt (Utility AI: di chuyển, bay, chọn mục tiêu, kích hoạt skill theo thời gian tối ưu, Tanker che chắn skill hiểm, Healer hồi máu đồng đội nguy cấp). 2 đội tranh giành 1 vật phẩm ở giữa map bằng cách đứng chiếm giữ liên tục trong 15s để chiến thắng. Vargost là nhân vật ĐẦU TIÊN ĐÃ ĐƯỢC NGƯỜI DÙNG PHÊ DUYỆT CHỐT HOÀN TOÀN (user_approved): Chuỗi hoạt ảnh 83 frame mượt mà, Chiêu Tối Thượng Blazing Halo (1100px/s), nổ diện rộng 91 frame, hệ thống di chuyển 2D Vector đa hướng (trực giao và bay xéo 10h, 2h, 4h, 8h @ 400px/s cơ động, 100px/s tuần tra, nghiêng +-25°, squash & stretch, bóng mờ 2D, dừng đứng thẳng 0°), đóng gói hoàn chỉnh thành Character Scene trong Godot 4 (vargost_character.tscn) và cấu hình xuất xưởng Android. Chuẩn bị tiếp nhận nhân vật thứ 2.",
     "open_questions": [
-      "Người dùng trải nghiệm giao diện cố định êm ái, không còn nhảy khung view và thử nghiệm bay xéo 10h, 2h, 4h, 8h trên localhost:4173/vargost-skill-test.html",
-      "Chọn 5 nhân vật tiếp theo để đủ 6 nhân vật cho 2 team sau khi Vargost đạt chuẩn",
+      "Người dùng chọn nhân vật thứ 2 (Tanker, Healer, hay Melee Assassin trong 177 nhân vật) để tiến hành dựng hoạt ảnh, hitbox và bộ não Utility AI theo chuẩn tương tự Vargost",
       "Tọa độ và bán kính chính xác của vùng chứa vật phẩm 15s ở giữa map ngang",
       "Các chỉ số cơ bản cho Vargost và các nhân vật (HP, tầm đánh, cooldown skill, DPS)"
     ]
@@ -38,8 +37,12 @@
       "source": "AGENTS.md"
     },
     {
-      "fact": "Vargost có chuỗi hoạt ảnh 83 frame hợp nhất chuẩn xác gồm Idle (0..21) và Blazing Halo (44..82) với Frame 67 có vòng lửa chuẩn hướng 64-68, tốc độ đạn 1100px/s, giới hạn bay 400px/s (chế độ chậm 100px/s), nghiêng 25° kèm bóng mờ cho cả tiến và lùi, dừng đứng thẳng 0°, di chuyển 2D Vector đa hướng (12h, 3h, 6h, 9h, 10h, 2h, 4h, 8h) và Utility AI tự động chiến đấu.",
+      "fact": "Vargost đã được người dùng CHÍNH THỨC PHÊ DUYỆT CHỐT HOÀN TẤT (user_approved ngày 31/10/2026): Chuỗi hoạt ảnh 83 frame hợp nhất chuẩn xác gồm Idle (0..21) và Blazing Halo (44..82) với Frame 67 có vòng lửa chuẩn hướng 64-68, tốc độ đạn 1100px/s, giới hạn bay 400px/s (chế độ chậm 100px/s), nghiêng 25° kèm bóng mờ cho cả tiến và lùi, dừng đứng thẳng 0°, di chuyển 2D Vector đa hướng (12h, 3h, 6h, 9h, 10h, 2h, 4h, 8h) và Utility AI tự động chiến đấu.",
       "source": "Asset/Character/characters/vargost_combat/vargost_actions.json"
+    },
+    {
+      "fact": "Vargost đã được hệ thống hóa hoàn chỉnh thành Godot 4 Character Node: Asset/Character/characters/vargost_combat/vargost_character.tscn và vargost_character.gd, tích hợp sẵn vào scripts/animation/gif_atlas_library.gd và cấu hình export_presets.cfg cho Android.",
+      "source": "Asset/Character/characters/vargost_combat/vargost_character.tscn"
     },
     {
       "fact": "Trang mô phỏng chuỗi tấn công Vargost chạy tại http://localhost:4173/vargost-skill-test.html tích hợp Kính Lúp Đo Pixel 10x, thanh Nộ Khí (Rage Bar), cụm nút điều khiển bay xéo 10h/2h/4h/8h (phím Q/E/Z/C), cấu trúc HUD 2 tầng cố định triệt tiêu 100% layout shift, và liên kết liên tục khi scrub timeline.",
@@ -57,31 +60,59 @@
     "Asset/Scenes/amore_scale_test/README.md"
   ],
   "current_task": {
-    "title": "Cố Định Giao Diện UI & Khóa Chiều Cao HUD Triệt Tiêu Hoàn Toàn Hiện Tượng Nhảy Khung Viewport",
+    "title": "Chính Thức Chốt Hoạt Ảnh & Chiêu Thức Vargost, Hệ Thống Hóa Toàn Diện Chạy Trên Godot 4 & Android, và Push Lên Main",
     "status": "completed",
     "changes": [
-      "1. Thiết kế lại .status-hud thành cấu trúc 2 hàng cố định (fixed 2-row layout, 66px locked height): Hàng 1 gồm 3 badge trạng thái cơ động, trí tuệ AI và hành động kỹ năng; Hàng 2 gồm 4 badge số liệu cự ly, frame timeline, đạn VFX và tọa độ trỏ chuột.",
-      "2. Thiết lập overflow: hidden; text-overflow: ellipsis; white-space: nowrap; và min-width: 0; trên toàn bộ các badge: loại bỏ hoàn toàn hiện tượng badge tự động xuống dòng/co giãn bất ngờ khi độ dài chữ thay đổi.",
-      "3. Khóa cố định chiều cao header (64px) và thêm contain: paint layout; cho .viewport-wrapper: tạo ranh giới layout cô lập tuyệt đối, giữ cho khung canvas #stage đứng yên 100%, không bị xê dịch dù chỉ 1 pixel.",
-      "4. Thêm thuộc tính title hiển thị tooltip nguyên văn chi tiết khi người dùng rê chuột vào bất kỳ badge nào trên thanh trạng thái."
+      "1. Người dùng chính thức chốt hoạt ảnh và chiêu thức Vargost: Cập nhật candidate.json sang status: user_approved, approval_date: 2026-10-31, ghi nhận mốc phê duyệt chính thức.",
+      "2. Cập nhật đồng bộ manifest snapshot Asset/Character/characters/approved-animations-20261031-v9.json với SHA-256 mới của candidate.json (8f3d5b3e199ba1bebbb3e26c5933ea659e3e013f9e505507fafff805873f7c82) và status user_approved.",
+      "3. Xây dựng Character Scene và Script hoàn chỉnh trong Godot 4: Asset/Character/characters/vargost_combat/vargost_character.tscn và vargost_character.gd với CharacterBody2D, AnimatedSprite2D, CapsuleShape2D và SpawnMarker2D, hỗ trợ đầy đủ 2D vector flight và Utility AI.",
+      "4. Nâng cấp thư viện động scripts/animation/gif_atlas_library.gd: bổ sung create_vargost_combat() tạo tự động SpriteFrames (idle 22, blazing_halo 39, windup 24, recovery 14, projectile 8, explosion 91) và _load_texture_safe() tải texture độc lập tương thích cả headless CLI lẫn export runtime.",
+      "5. Cập nhật export_presets.cfg cho Android: bổ sung filter include_filter đóng gói toàn bộ manifest JSON chiến đấu và measured atlas vào APK/PCK.",
+      "6. Cập nhật README.md và docs/approved-animations-20261031.md ghi nhận Vargost là nhân vật chính thức đầu tiên hoàn tất quy trình chuẩn hóa."
     ],
     "verification": [
-      "curl -s -I http://localhost:4173/vargost-skill-test.html trả về HTTP 200 OK.",
+      "Godot 4.3 Headless CLI: PASS check_vargost_godot.gd (load vargost combat package: 22 idle frames, 39 blazing halo frames, 8 projectile frames, 91 explosion frames, scale 0.872, anchor [105, 162]).",
+      "Godot 4.3 Headless CLI: PASS test_instantiate_vargost_scene.gd (instantiate vargost_character.tscn into scene tree).",
+      "Godot 4.3 Headless CLI: PASS check_vargost_combat.gd.",
       "npm test: 7/7 bài kiểm thử pass.",
       "python3 -m unittest discover tests: 2/2 bài kiểm thử pass.",
-      "Godot 4.3 Headless CLI: PASS Vargost combat chain: 83 frames, range [150, 550], tilt 25 deg, max speed 400px/s."
+      "curl -s -I http://localhost:4173/vargost-skill-test.html trả về HTTP 200 OK."
     ],
     "remaining": [],
     "limitations": [
-      "Giao diện đã được cố định vững chắc, không còn tình trạng nhảy giật khung view khi AI thay đổi trạng thái."
+      "Vargost đã hoàn thiện 100% và sẵn sàng cho room chiến đấu 3v3 trên Godot 4 và Android mobile."
     ],
     "next_steps": [
-      "Người dùng mở http://localhost:4173/vargost-skill-test.html để cảm nhận khung view đứng yên tĩnh lặng và hoạt ảnh mượt mà.",
-      "Sau khi người dùng ưng ý chốt Vargost, chọn tiếp 5 nhân vật tiếp theo để hoàn thiện 2 team 3v3."
+      "Người dùng chọn nhân vật tiếp theo (Tanker, Healer, hay Melee Assassin trong 177 nhân vật) để tiến hành dựng hoạt ảnh, hitbox và bộ não Utility AI theo chuẩn tương tự Vargost.",
+      "Tích hợp các nhân vật vào sàn đấu 3v3 tranh vật phẩm 15s ở giữa map."
     ]
   },
-  "working_tree_note": "Atlas và manifest đã nâng cấp lên 83 frame hoàn thiện, server cổng 4173 đang chạy nền ổn định.",
+  "working_tree_note": "Vargost đã chính thức chốt và đóng gói hoàn chỉnh cho Godot 4 & Android, server cổng 4173 đang chạy nền ổn định.",
   "history": [
+    {
+      "title": "Cố Định Giao Diện UI & Khóa Chiều Cao HUD Triệt Tiêu Hoàn Toàn Hiện Tượng Nhảy Khung Viewport",
+      "status": "completed",
+      "changes": [
+        "1. Thiết kế lại .status-hud thành cấu trúc 2 hàng cố định (fixed 2-row layout, 66px locked height): Hàng 1 gồm 3 badge trạng thái cơ động, trí tuệ AI và hành động kỹ năng; Hàng 2 gồm 4 badge số liệu cự ly, frame timeline, đạn VFX và tọa độ trỏ chuột.",
+        "2. Thiết lập overflow: hidden; text-overflow: ellipsis; white-space: nowrap; và min-width: 0; trên toàn bộ các badge: loại bỏ hoàn toàn hiện tượng badge tự động xuống dòng/co giãn bất ngờ khi độ dài chữ thay đổi.",
+        "3. Khóa cố định chiều cao header (64px) và thêm contain: paint layout; cho .viewport-wrapper: tạo ranh giới layout cô lập tuyệt đối, giữ cho khung canvas #stage đứng yên 100%, không bị xê dịch dù chỉ 1 pixel.",
+        "4. Thêm thuộc tính title hiển thị tooltip nguyên văn chi tiết khi người dùng rê chuột vào bất kỳ badge nào trên thanh trạng thái."
+      ],
+      "verification": [
+        "curl -s -I http://localhost:4173/vargost-skill-test.html trả về HTTP 200 OK.",
+        "npm test: 7/7 bài kiểm thử pass.",
+        "python3 -m unittest discover tests: 2/2 bài kiểm thử pass.",
+        "Godot 4.3 Headless CLI: PASS Vargost combat chain: 83 frames, range [150, 550], tilt 25 deg, max speed 400px/s."
+      ],
+      "remaining": [],
+      "limitations": [
+        "Giao diện đã được cố định vững chắc, không còn tình trạng nhảy giật khung view khi AI thay đổi trạng thái."
+      ],
+      "next_steps": [
+        "Người dùng mở http://localhost:4173/vargost-skill-test.html để cảm nhận khung view đứng yên tĩnh lặng và hoạt ảnh mượt mà.",
+        "Sau khi người dùng ưng ý chốt Vargost, chọn tiếp 5 nhân vật tiếp theo để hoàn thiện 2 team 3v3."
+      ]
+    },
     {
       "title": "Hiện Thực Hóa Hệ Thống Bay Vector 2D Đa Hướng & Bay Xéo (10h, 2h, 4h, 8h) Cho Vargost & Utility AI",
       "status": "completed",

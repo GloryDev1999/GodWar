@@ -858,12 +858,12 @@
     162
   ],
   "display_scale": 0.872093023255814,
-  "measurement_kind": "automatic_alpha_bbox_unreviewed",
-  "status": "in_testing",
-  "limitations": "V\u00f9ng alpha c\u00f3 th\u1ec3 ch\u1ee9a v\u0169 kh\u00ed, hi\u1ec7u \u1ee9ng ho\u1eb7c nhi\u1ec1u v\u1eadt th\u1ec3; ch\u01b0a \u0111o th\u00e2n b\u1eb1ng m\u1eaft. \u0110i\u1ec3m neo \u01b0\u1edbc l\u01b0\u1ee3ng t\u1eeb \u0111\u00e1y alpha; ch\u01b0a ki\u1ec3m duy\u1ec7t.",
-  "method": "Use full frame-0 alpha bounds as provisional reference; preserve all source pixels and one shared scale. Not a verified body measurement.",
+  "measurement_kind": "user_approved_combat_pilot",
+  "status": "user_approved",
+  "limitations": "Chuỗi hoạt ảnh chiến đấu 83 frame (Idle 0..21, Blazing Halo 44..82), đạn xoay 8 frame 1100px/s, nổ 91 frame và Utility AI 2D vector đã được hoàn thiện mượt mà và người dùng duyệt chốt.",
+  "method": "Atlas 83 frame 2000x1800 px khớp điểm neo [105, 162] và tỷ lệ 0.872. Đã được kiểm chứng trực quan trên viewer và Godot 4.3 Headless CLI.",
   "size_target_approval": "user_approved_combat_round3",
-  "approval_date": null,
+  "approval_date": "2026-10-31",
   "combat_package": "Asset/Character/characters/vargost_combat/vargost_actions.json",
-  "note": "Vargost \u0111ang trong giai \u0111o\u1ea1n ki\u1ec3m th\u1eed chu\u1ed7i h\u00e0nh \u0111\u1ed9ng combat v\u00e0 Utility AI tr\u00ean localhost (vargost-skill-test.html); ng\u01b0\u1eddi d\u00f9ng ch\u01b0a ch\u1ed1t ch\u00ednh th\u1ee9c v\u00e0 s\u1ebd ti\u1ebfp t\u1ee5c \u0111\u00e1nh gi\u00e1 \u1edf phi\u00ean ti\u1ebfp theo."
+  "note": "Người dùng đã chính thức chốt hoạt ảnh và chiêu thức chiến đấu Blazing Halo của Vargost vào ngày 2026-10-31."
 }

@@ -7,7 +7,19 @@ const CATALOG_PATH := "res://Asset/Character/extracted/catalog.json"
 const SPLIT_CATALOG_PATH := "res://Asset/Character/extracted/split-catalog.json"
 const COMPOSITE_CATALOG_PATH := "res://Asset/Character/extracted/composite-catalog.json"
 const ATLAS_ROOT := "res://Asset/Character/extracted"
-const APPROVED_ANIMATIONS_PATH := "res://Asset/Character/characters/approved-animations-20261030-v8.json"
+const APPROVED_ANIMATIONS_PATH := "res://Asset/Character/characters/approved-animations-20261031-v9.json"
+
+static func _load_texture_safe(res_path: String) -> Texture2D:
+    if ResourceLoader.exists(res_path):
+        var res = load(res_path)
+        if res is Texture2D:
+            return res
+    var abs_path := ProjectSettings.globalize_path(res_path)
+    if FileAccess.file_exists(res_path) or FileAccess.file_exists(abs_path):
+        var img := Image.load_from_file(abs_path)
+        if img != null:
+            return ImageTexture.create_from_image(img)
+    return null
 
 ## Load the user-approved default, rather than guessing among older variants.
 static func create_approved_animation(asset_id: String) -> Dictionary:
@@ -75,7 +87,7 @@ static func create_measured_pilot(asset_id: String) -> Dictionary:
     for frame in entry.frames:
         var page: int = frame.atlas
         if not pages.has(page):
-            var texture: Texture2D = load("%s/atlas_%03d.png" % [path, page])
+            var texture: Texture2D = _load_texture_safe("%s/atlas_%03d.png" % [path, page])
             if texture == null:
                 push_error("Cannot load measured atlas: " + asset_id)
                 return {}
@@ -89,6 +101,96 @@ static func create_measured_pilot(asset_id: String) -> Dictionary:
     return {"frames": result, "display_scale": target_height / reference_height,
             "anchor_px": Vector2(entry.anchor_px[0], entry.anchor_px[1]),
             "target_height_px": target_height}
+
+## Loads Vargost's official combat package (83 frames, Blazing Halo, Projectiles, Explosion VFX)
+static func create_vargost_combat() -> Dictionary:
+    var manifest_path := "res://Asset/Character/characters/vargost_combat/vargost_actions.json"
+    var file := FileAccess.open(manifest_path, FileAccess.READ)
+    if file == null:
+        push_error("Cannot open " + manifest_path)
+        return {}
+    var manifest: Variant = JSON.parse_string(file.get_as_text())
+    if not manifest is Dictionary:
+        push_error("Invalid manifest: " + manifest_path)
+        return {}
+
+    var atlas_texture := _load_texture_safe("res://" + manifest.atlas_path)
+    if atlas_texture == null:
+        push_error("Cannot load body atlas: " + manifest.atlas_path)
+        return {}
+
+    var frames_res := SpriteFrames.new()
+    frames_res.rename_animation("default", "idle")
+    frames_res.set_animation_speed("idle", 16.66)
+    frames_res.set_animation_loop("idle", true)
+    frames_res.add_animation("blazing_halo")
+    frames_res.set_animation_speed("blazing_halo", 16.66)
+    frames_res.set_animation_loop("blazing_halo", false)
+    frames_res.add_animation("windup")
+    frames_res.set_animation_speed("windup", 16.66)
+    frames_res.set_animation_loop("windup", false)
+    frames_res.add_animation("recovery")
+    frames_res.set_animation_speed("recovery", 16.66)
+    frames_res.set_animation_loop("recovery", false)
+
+    var frame_list: Array = manifest.get("frames", [])
+    for i in range(frame_list.size()):
+        var frame_data: Dictionary = frame_list[i]
+        var region: Array = frame_data.region
+        var tile := AtlasTexture.new()
+        tile.atlas = atlas_texture
+        tile.region = Rect2(region[0], region[1], region[2], region[3])
+        tile.filter_clip = true
+
+        # Idle: frames 0..21
+        if i <= 21:
+            frames_res.add_frame("idle", tile)
+        # Blazing Halo: frames 44..82
+        if i >= 44 and i <= 82:
+            frames_res.add_frame("blazing_halo", tile)
+            if i <= 67:
+                frames_res.add_frame("windup", tile)
+            if i >= 69:
+                frames_res.add_frame("recovery", tile)
+
+    # Load 8-frame spinning projectile atlas
+    var proj_texture := _load_texture_safe("res://" + manifest.projectile_atlas)
+    var proj_frames := SpriteFrames.new()
+    proj_frames.rename_animation("default", "spin")
+    proj_frames.set_animation_speed("spin", 28.5)
+    proj_frames.set_animation_loop("spin", true)
+    if proj_texture != null:
+        for p in range(8):
+            var ptile := AtlasTexture.new()
+            ptile.atlas = proj_texture
+            ptile.region = Rect2(p * 80, 0, 80, 80)
+            proj_frames.add_frame("spin", ptile)
+
+    # Load 91-frame explosion atlas
+    var exp_texture := _load_texture_safe("res://" + manifest.explosion_atlas)
+    var exp_frames := SpriteFrames.new()
+    exp_frames.rename_animation("default", "explode")
+    exp_frames.set_animation_speed("explode", 30.0)
+    exp_frames.set_animation_loop("explode", false)
+    if exp_texture != null:
+        for ef in range(91):
+            var col := ef % 13
+            var row := ef / 13
+            var etile := AtlasTexture.new()
+            etile.atlas = exp_texture
+            etile.region = Rect2(col * 128, row * 66, 128, 66)
+            exp_frames.add_frame("explode", etile)
+
+    return {
+        "frames": frames_res,
+        "projectile_frames": proj_frames,
+        "explosion_frames": exp_frames,
+        "display_scale": float(manifest.display_scale),
+        "anchor_px": Vector2(manifest.anchor_px[0], manifest.anchor_px[1]),
+        "target_height_px": float(manifest.target_height_px),
+        "actions": manifest.actions,
+        "ai_combat_rules": manifest.ai_combat_rules
+    }
 
 ## Loads a motion or reconstructed review candidate. Candidate metadata owns
 ## its timeline and regions; it must not be paired with the source catalog.

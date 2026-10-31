@@ -3025,7 +3025,7 @@
         {
           "id": "vargost",
           "candidate": "Asset/Character/measured_atlas_pilots/vargost/candidate.json",
-          "candidate_sha256": "75380f9ec295f92c18aac327037c0be0d8a324de6e6845274c5d7c99699dd195",
+          "candidate_sha256": "8f3d5b3e199ba1bebbb3e26c5933ea659e3e013f9e505507fafff805873f7c82",
           "atlas_sha256": {
             "Asset/Character/measured_atlas_pilots/vargost/atlas_000.png": "e4fb347c69c4746203b2f665719e77078e466dbb952b947690ef11c218ca0449"
           },
@@ -3034,7 +3034,7 @@
           "combat_actions_sha256": "b7b1b64866b041a21d4760d63deff58ea7336f66e9c67d2b3a519057cfa7b5d6",
           "projectile_atlas_sha256": "ec4c89454db7ddb1c2110d23e6335fefd2ff7357f5015994b072151a7aa6988d",
           "explosion_atlas_sha256": "c4d99ff52414cb96796da3fc615274f30d47c404289679ae1155451c478abc14",
-          "status": "in_testing"
+          "status": "user_approved"
         }
       ]
     },

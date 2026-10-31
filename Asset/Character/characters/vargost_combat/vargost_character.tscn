@@ -1,0 +1,21 @@
+[gd_scene load_steps=3 format=3 uid="uid://vargost_combat_node"]
+
+[ext_resource type="Script" path="res://Asset/Character/characters/vargost_combat/vargost_character.gd" id="1_vargost"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_vargost"]
+radius = 24.0
+height = 68.0
+
+[node name="Vargost" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_vargost")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -34)
+shape = SubResource("CapsuleShape2D_vargost")
+
+[node name="SpawnMarker" type="Marker2D" parent="."]
+position = Vector2(17, -17)
