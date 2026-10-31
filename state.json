@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-10-31T04:18:00Z",
+  "updated_at_utc": "2026-10-31T04:45:00Z",
   "purpose": "Bộ nhớ bàn giao ngắn gọn cho agent; đối chiếu với mã, tài liệu và git status khi bắt đầu phiên.",
   "product_goal": {
     "source": "Yêu cầu của người dùng ngày 2026-10-31 (cập nhật lúc 03:10 UTC)",
     "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mỗi model/class được đào tạo tư duy chiến đấu riêng biệt (Utility AI: di chuyển, bay, chọn mục tiêu, kích hoạt skill theo thời gian tối ưu, Tanker che chắn skill hiểm, Healer hồi máu đồng đội nguy cấp). 2 đội tranh giành 1 vật phẩm ở giữa map bằng cách đứng chiếm giữ liên tục trong 15s để chiến thắng. Khởi đầu với model Vargost ghép thành chuỗi hành động hoàn chỉnh.",
     "open_questions": [
-      "Chọn 5 nhân vật tiếp theo để đủ 6 nhân vật cho 2 team (hiện Vargost là nhân vật đầu tiên hoàn thiện chuỗi hành động)",
+      "Chọn 5 nhân vật tiếp theo để đủ 6 nhân vật cho 2 team (hiện Vargost là nhân vật đầu tiên hoàn thiện và đã chốt chuỗi hành động)",
       "Tọa độ và bán kính chính xác của vùng chứa vật phẩm 15s ở giữa map ngang",
       "Các chỉ số cơ bản cho Vargost và các nhân vật (HP, tầm đánh, cooldown skill, DPS)"
     ]
@@ -37,8 +37,8 @@
       "source": "AGENTS.md"
     },
     {
-      "fact": "Vargost đã được phân đoạn chuỗi hành động: Idle (loop 22 frame), Cast Windup (45..65), Release (66), Recovery sạch (67..82), Projectile (80x80) và VFX nổ mặt đất (91 frame).",
-      "source": "Asset/Character/characters/vargost_combat/vargost_actions.json"
+      "fact": "Vargost đã được người dùng chốt chính thức ở mốc v9: 83 frame body sạch vách cắt, đạn vòng lửa xoay 8 frame, VFX nổ 91 frame 2x2 texel, bộ di chuyển bay/đáp đất và Utility AI [150-550px].",
+      "source": "Asset/Character/characters/approved-animations-20261031-v9.json"
     },
     {
       "fact": "Trang mô phỏng chuỗi tấn công Vargost chạy tại http://localhost:4173/vargost-skill-test.html tích hợp Kính Lúp Đo Pixel 10x và hoạt ảnh di chuyển bay tới/lùi/hạ cánh.",
@@ -46,41 +46,66 @@
     }
   ],
   "tracking_documents": [
+    "docs/approved-animations-20261031.md",
+    "docs/approved-animations-20261030.md",
+    "docs/approved-animations-20261029.md",
     "docs/dual-agent-guide.md",
     "docs/asset-character-plan.md",
     "docs/asset-review-2026-10-28.md",
-    "docs/approved-animations-20261029.md",
-    "docs/animation-asset-todo.md",
     "Asset/Scenes/amore_scale_test/README.md"
   ],
   "current_task": {
-    "title": "Sửa Cắt Khung Vuông Recovery Frame 68–71, Khớp Điểm Phóng Đạn Bàn Tay, Thêm Kính Lúp Đo Pixel & Hoạt Ảnh Di Chuyển Hoàn Chỉnh Vargost",
+    "title": "Chốt Hoạt Ảnh Chiến Đấu Vargost ở Version Kiểm Thử Hiện Tại (Mốc v9)",
     "status": "completed",
     "changes": [
-      "1. Tái tạo sạch recovery frames 67..82: loại bỏ kỹ thuật cắt tọa độ x=134 cũ, chuyển sang tách màu thông minh (giữ 100% pixel thân, áo choàng, tay, trượng; chỉ lọc bỏ vòng lửa bay đi), mép ngoài tự nhiên chỉ 2-4 pixel, giải quyết triệt để vết cắt hình vuông ở image copy 6.png.",
-      "2. Đồng bộ vị trí xuất phát đạn từ bàn tay ở Frame 66: điểm phóng đạn [dx: +20, dy: -52] khớp với tư thế đẩy tay, xoay đồng bộ theo góc nghiêng thân và dao động lơ lửng, triệt tiêu lỗi đạn bay từ chân nhưng xuất hiện giữa thân.",
-      "3. Xây dựng công cụ Kính Lúp & Đo Pixel trực quan trong vargost-skill-test.html/js: kính lúp phóng to 10x có lưới ô pixel, đọc tọa độ canvas, tọa độ relative từ neo (dx, dy), mã màu RGB/HEX, nút click-to-pick gán điểm phóng trực tiếp trên Vargost và nút sao chép tọa độ.",
-      "4. Xây dựng bộ hoạt ảnh di chuyển hoàn chỉnh: Bay tới (nghiêng thân +12°, vệt mờ quán tính @ 900px/s), Bay lùi (nghiêng -10°), Hạ cánh (đáp êm xuống nền đá Y=194, squash va chạm, vòng bụi va đập, đứng yên vững vàng), Cất cánh (co người bật lên bầu trời Y=65).",
-      "5. Thêm thanh Timeline Scrubber tua từng frame từ 0 đến 82, nút Play/Pause, tua lùi/tiến từng frame, và các bookmark keyframe [0: Idle, 45: Windup, 64: Charged, 66: Release, 67: Recovery] giúp người dùng soi từng pixel chi tiết.",
-      "6. Cập nhật vargost_actions.json với offset [20, -52] và quy tắc di chuyển locomotion."
+      "1. Lưu trữ bản atlas cũ vào Asset/Character/archive/vargost_before_combat_freeze/ để bảo toàn dữ liệu lịch sử.",
+      "2. Triển khai atlas combat hoàn chỉnh vào Asset/Character/measured_atlas_pilots/vargost/atlas_000.png (SHA-256: c7003dc6cef7a9bfcc4757166b33fa52f4401a55ecc76cd26040b83307b2de55).",
+      "3. Cập nhật candidate.json (SHA-256: b0d3f58d8441a859215aaf593820bafbe2e87d9a26f7fda0845d09e5fc8a52c7) với trạng thái user_approved_combat_version và liên kết trực tiếp tới vargost_actions.json.",
+      "4. Tạo manifest snapshot mới approved-animations-20261031-v9.json chốt 177 mục / 178 profile với chuỗi combat chính thức của Vargost.",
+      "5. Tạo tài liệu theo dõi docs/approved-animations-20261031.md và cập nhật README.md, tools/asset-viewer/app.js, amore-scene.js trỏ về manifest v9."
     ],
     "verification": [
       "Godot 4.3 Headless CLI: PASS 83 frames, idle loop 22, windup 45..65, 8-frame spinning projectile @ 900px/s, recovery 67..82, range [150, 550], explosion 91 frames.",
       "npm test: 7/7 bài kiểm thử pass.",
       "python3 -m unittest discover tests: 2/2 bài kiểm thử pass.",
-      "curl -s -I http://localhost:4173/vargost-skill-test.html và vargost-skill-test.js trả về HTTP 200 OK."
+      "curl -s -I http://localhost:4173/ trả về HTTP 200 OK."
     ],
     "remaining": [],
     "limitations": [
       "Cơ chế tranh chấp cứ điểm vật phẩm 15s giữa 2 team sẽ được tích hợp trong room 3v3 ở giai đoạn tiếp theo."
     ],
     "next_steps": [
-      "Người dùng mở http://localhost:4173/vargost-skill-test.html để sử dụng Kính Lúp 10x soi tọa độ pixel, thử nghiệm các nút Bay Tới, Bay Lùi, Hạ Cánh, Cất Cánh và kiểm tra chuỗi tung chiêu mượt mà.",
-      "Lựa chọn 5 nhân vật tiếp theo để hoàn thiện danh sách 6 nhân vật cho trận đấu 3v3."
+      "Người dùng lựa chọn 5 nhân vật tiếp theo (Tanker, Healer, ...) để hoàn thiện danh sách 6 nhân vật cho trận đấu 3v3 trên map ngang."
     ]
   },
   "working_tree_note": "Khi bắt đầu task, git status đã báo 11 GIF trong 13 charnew/ bị xóa; chưa xác định nguyên nhân và giữ nguyên các thay đổi đó.",
   "history": [
+    {
+      "title": "Sửa Cắt Khung Vuông Recovery Frame 68–71, Khớp Điểm Phóng Đạn Bàn Tay, Thêm Kính Lúp Đo Pixel & Hoạt Ảnh Di Chuyển Hoàn Chỉnh Vargost",
+      "status": "completed",
+      "changes": [
+        "1. Tái tạo sạch recovery frames 67..82: loại bỏ kỹ thuật cắt tọa độ x=134 cũ, chuyển sang tách màu thông minh (giữ 100% pixel thân, áo choàng, tay, trượng; chỉ lọc bỏ vòng lửa bay đi), mép ngoài tự nhiên chỉ 2-4 pixel, giải quyết triệt để vết cắt hình vuông ở image copy 6.png.",
+        "2. Đồng bộ vị trí xuất phát đạn từ bàn tay ở Frame 66: điểm phóng đạn [dx: +20, dy: -52] khớp với tư thế đẩy tay, xoay đồng bộ theo góc nghiêng thân và dao động lơ lửng, triệt tiêu lỗi đạn bay từ chân nhưng xuất hiện giữa thân.",
+        "3. Xây dựng công cụ Kính Lúp & Đo Pixel trực quan trong vargost-skill-test.html/js: kính lúp phóng to 10x có lưới ô pixel, đọc tọa độ canvas, tọa độ relative từ neo (dx, dy), mã màu RGB/HEX, nút click-to-pick gán điểm phóng trực tiếp trên Vargost và nút sao chép tọa độ.",
+        "4. Xây dựng bộ hoạt ảnh di chuyển hoàn chỉnh: Bay tới (nghiêng thân +12°, vệt mờ quán tính @ 900px/s), Bay lùi (nghiêng -10°), Hạ cánh (đáp êm xuống nền đá Y=194, squash va chạm, vòng bụi va đập, đứng yên vững vàng), Cất cánh (co người bật lên bầu trời Y=65).",
+        "5. Thêm thanh Timeline Scrubber tua từng frame từ 0 đến 82, nút Play/Pause, tua lùi/tiến từng frame, và các bookmark keyframe [0: Idle, 45: Windup, 64: Charged, 66: Release, 67: Recovery] giúp người dùng soi từng pixel chi tiết.",
+        "6. Cập nhật vargost_actions.json với offset [20, -52] và quy tắc di chuyển locomotion."
+      ],
+      "verification": [
+        "Godot 4.3 Headless CLI: PASS 83 frames, idle loop 22, windup 45..65, 8-frame spinning projectile @ 900px/s, recovery 67..82, range [150, 550], explosion 91 frames.",
+        "npm test: 7/7 bài kiểm thử pass.",
+        "python3 -m unittest discover tests: 2/2 bài kiểm thử pass.",
+        "curl -s -I http://localhost:4173/vargost-skill-test.html và vargost-skill-test.js trả về HTTP 200 OK."
+      ],
+      "remaining": [],
+      "limitations": [
+        "Cơ chế tranh chấp cứ điểm vật phẩm 15s giữa 2 team sẽ được tích hợp trong room 3v3 ở giai đoạn tiếp theo."
+      ],
+      "next_steps": [
+        "Người dùng mở http://localhost:4173/vargost-skill-test.html để sử dụng Kính Lúp 10x soi tọa độ pixel, thử nghiệm các nút Bay Tới, Bay Lùi, Hạ Cánh, Cất Cánh và kiểm tra chuỗi tung chiêu mượt mà.",
+        "Lựa chọn 5 nhân vật tiếp theo để hoàn thiện danh sách 6 nhân vật cho trận đấu 3v3."
+      ]
+    },
     {
       "title": "Hoàn tất Tinh chỉnh Hoạt ảnh Vargost: Mật độ Pixel, Vòng Lửa Sạch 8 Frame Xoay & Tầm Đánh Utility AI",
       "status": "completed",

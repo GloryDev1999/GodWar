@@ -2,9 +2,9 @@
   "id": "vargost",
   "source": "Asset/Character/vfx/vargost.gif",
   "source_sha256": "fbd1eec8544ab241c9d5bede17d181f5f458da5495907815b692f87cab81b62e",
-  "input_candidate": "fine_candidates",
+  "input_candidate": "vargost_combat",
   "input_sha256": {
-    "Asset/Character/fine_candidates/vargost/atlas_000.png": "7d647abf48e32ccab51caf59b89d2b5fe48597c5574ee46df95b8c35cc30a1e4"
+    "Asset/Character/characters/vargost_combat/vargost_body_atlas.png": "c7003dc6cef7a9bfcc4757166b33fa52f4401a55ecc76cd26040b83307b2de55"
   },
   "art_source": "existing",
   "frame_count": 83,
@@ -859,8 +859,11 @@
   ],
   "display_scale": 0.872093023255814,
   "measurement_kind": "automatic_alpha_bbox_unreviewed",
-  "status": "automatic_candidate_unreviewed",
-  "limitations": "Vùng alpha có thể chứa vũ khí, hiệu ứng hoặc nhiều vật thể; chưa đo thân bằng mắt. Điểm neo ước lượng từ đáy alpha; chưa kiểm duyệt.",
+  "status": "user_approved_combat_version",
+  "limitations": "V\u00f9ng alpha c\u00f3 th\u1ec3 ch\u1ee9a v\u0169 kh\u00ed, hi\u1ec7u \u1ee9ng ho\u1eb7c nhi\u1ec1u v\u1eadt th\u1ec3; ch\u01b0a \u0111o th\u00e2n b\u1eb1ng m\u1eaft. \u0110i\u1ec3m neo \u01b0\u1edbc l\u01b0\u1ee3ng t\u1eeb \u0111\u00e1y alpha; ch\u01b0a ki\u1ec3m duy\u1ec7t.",
   "method": "Use full frame-0 alpha bounds as provisional reference; preserve all source pixels and one shared scale. Not a verified body measurement.",
-  "size_target_approval": "user_approved_unchanged_round2"
+  "size_target_approval": "user_approved_combat_round3",
+  "approval_date": "2026-10-31",
+  "combat_package": "Asset/Character/characters/vargost_combat/vargost_actions.json",
+  "note": "Ho\u1ea1t \u1ea3nh \u0111\u00e3 \u0111\u01b0\u1ee3c ng\u01b0\u1eddi d\u00f9ng ch\u1ed1t ch\u00ednh th\u1ee9c ng\u00e0y 31/10/2026 theo phi\u00ean b\u1ea3n ki\u1ec3m th\u1eed combat ho\u00e0n ch\u1ec9nh (83 frame body s\u1ea1ch v\u00e1ch c\u1eaft, \u0111\u1ea1n v\u00f2ng l\u1eeda xoay 8 frame, VFX n\u1ed5 91 frame 2x2 texel, b\u1ed9 di chuy\u1ec3n bay/\u0111\u00e1p \u0111\u1ea5t v\u00e0 Utility AI [150-550px])."
 }
