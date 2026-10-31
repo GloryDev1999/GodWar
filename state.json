@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-10-31T09:35:00Z",
+  "updated_at_utc": "2026-10-31T09:49:00Z",
   "purpose": "Bộ nhớ bàn giao ngắn gọn cho agent; đối chiếu với mã, tài liệu và git status khi bắt đầu phiên.",
   "product_goal": {
-    "source": "Yêu cầu của người dùng ngày 2026-10-31 (cập nhật lúc 09:30 UTC)",
-    "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mỗi model/class được đào tạo tư duy chiến đấu riêng biệt (Utility AI: di chuyển, bay, chọn mục tiêu, kích hoạt skill theo thời gian tối ưu, Tanker che chắn skill hiểm, Healer hồi máu đồng đội nguy cấp). 2 đội tranh giành 1 vật phẩm ở giữa map bằng cách đứng chiếm giữ liên tục trong 15s để chiến thắng. Vargost là nhân vật đầu tiên hoàn thiện chuỗi hoạt ảnh 83 frame thống nhất mượt mà với Chiêu Tối Thượng Blazing Halo (vận công gom vòng lớn từ frame 44..63, xuất lực qua 64..67 có vòng lửa chuẩn hướng, phóng đại cầu lửa ở frame 68 @ 1100px/s, nổ diện rộng, hồi chiêu và tụ lại vòng lửa 74..77) cùng hệ thống di chuyển 4 hướng trực giao (400px/s cơ động, 100px/s tuần tra, nghiêng 25° + bóng mờ cho cả tiến và lùi, dừng đứng thẳng 0°) và bộ não Utility AI tự động cơ động chiến đấu.",
+    "source": "Yêu cầu của người dùng ngày 2026-10-31 (cập nhật lúc 09:43 UTC)",
+    "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mỗi model/class được đào tạo tư duy chiến đấu riêng biệt (Utility AI: di chuyển, bay, chọn mục tiêu, kích hoạt skill theo thời gian tối ưu, Tanker che chắn skill hiểm, Healer hồi máu đồng đội nguy cấp). 2 đội tranh giành 1 vật phẩm ở giữa map bằng cách đứng chiếm giữ liên tục trong 15s để chiến thắng. Vargost là nhân vật đầu tiên hoàn thiện chuỗi hoạt ảnh 83 frame thống nhất mượt mà với Chiêu Tối Thượng Blazing Halo (vận công gom vòng lớn từ frame 44..63, xuất lực qua 64..67 có vòng lửa chuẩn hướng, phóng đại cầu lửa ở frame 68 @ 1100px/s, nổ diện rộng, hồi chiêu và tụ lại vòng lửa 74..77) cùng hệ thống di chuyển 2D Vector đa hướng (trực giao 12h, 3h, 6h, 9h và bay xéo 10h, 2h, 4h, 8h @ 400px/s cơ động, 100px/s tuần tra, nghiêng +-25° + squash & stretch + bóng mờ 2D, dừng đứng thẳng 0°) và bộ não Utility AI tự động cơ động chiến thuật 2D.",
     "open_questions": [
-      "Người dùng đánh giá trải nghiệm thực tế chuỗi Blazing Halo mượt mà và Utility AI tự động cơ động không còn vòng lặp cất/hạ cánh trên localhost:4173/vargost-skill-test.html",
+      "Người dùng trải nghiệm bay xéo 10h, 2h, 4h, 8h trên localhost:4173/vargost-skill-test.html qua các nút bấm hoặc phím Q/E/Z/C và Utility AI tự động lượn lờ 2D",
       "Chọn 5 nhân vật tiếp theo để đủ 6 nhân vật cho 2 team sau khi Vargost đạt chuẩn",
       "Tọa độ và bán kính chính xác của vùng chứa vật phẩm 15s ở giữa map ngang",
       "Các chỉ số cơ bản cho Vargost và các nhân vật (HP, tầm đánh, cooldown skill, DPS)"
@@ -38,11 +38,11 @@
       "source": "AGENTS.md"
     },
     {
-      "fact": "Vargost có chuỗi hoạt ảnh 83 frame hợp nhất chuẩn xác gồm Idle (0..21) và Blazing Halo (44..82) với Frame 67 có vòng lửa chuẩn hướng 64-68, tốc độ đạn 1100px/s, giới hạn bay 400px/s (chế độ chậm 100px/s), nghiêng 25° kèm bóng mờ cho cả tiến và lùi, dừng đứng thẳng 0°, di chuyển 4 hướng trực giao và Utility AI tự động chiến đấu.",
+      "fact": "Vargost có chuỗi hoạt ảnh 83 frame hợp nhất chuẩn xác gồm Idle (0..21) và Blazing Halo (44..82) với Frame 67 có vòng lửa chuẩn hướng 64-68, tốc độ đạn 1100px/s, giới hạn bay 400px/s (chế độ chậm 100px/s), nghiêng 25° kèm bóng mờ cho cả tiến và lùi, dừng đứng thẳng 0°, di chuyển 2D Vector đa hướng (12h, 3h, 6h, 9h, 10h, 2h, 4h, 8h) và Utility AI tự động chiến đấu.",
       "source": "Asset/Character/characters/vargost_combat/vargost_actions.json"
     },
     {
-      "fact": "Trang mô phỏng chuỗi tấn công Vargost chạy tại http://localhost:4173/vargost-skill-test.html tích hợp Kính Lúp Đo Pixel 10x, thanh Nộ Khí (Rage Bar) và liên kết liên tục khi scrub timeline.",
+      "fact": "Trang mô phỏng chuỗi tấn công Vargost chạy tại http://localhost:4173/vargost-skill-test.html tích hợp Kính Lúp Đo Pixel 10x, thanh Nộ Khí (Rage Bar), cụm nút điều khiển bay xéo 10h/2h/4h/8h (phím Q/E/Z/C) và liên kết liên tục khi scrub timeline.",
       "source": "tools/asset-viewer/vargost-skill-test.html"
     }
   ],
@@ -57,17 +57,16 @@
     "Asset/Scenes/amore_scale_test/README.md"
   ],
   "current_task": {
-    "title": "Khắc Phục Dứt Điểm Lỗi Utility AI Bị Kẹt Vòng Lặp Vô Tận Cất Cánh / Hạ Cánh",
+    "title": "Hiện Thực Hóa Hệ Thống Bay Vector 2D Đa Hướng & Bay Xéo (10h, 2h, 4h, 8h) Cho Vargost & Utility AI",
     "status": "completed",
     "changes": [
-      "1. Thiết lập biến cooldown khóa độ cao altitudeCooldown (>= 15 giây): mỗi khi cất cánh lên không hoặc đáp xuống bệ đá, Vargost giữ nguyên độ cao ít nhất 15s, triệt tiêu hoàn toàn hiện tượng cất cánh -> hạ cánh liên hồi.",
-      "2. Cho phép Vargost xuất chiêu Blazing Halo trực tiếp từ bất kỳ độ cao nào (trên không hoặc đứng vững trên bệ đá); gỡ bỏ điều kiện ép buộc takeoff() khi xuất chiêu.",
-      "3. Sửa trạng thái kết thúc di chuyển ngang (FLY_FORWARD / FLY_BACKWARD): chuyển về đúng locomotionState tương ứng với độ cao thực tế (isFlying ? 'IDLE_FLY' : 'IDLE_GROUND'), tránh gán nhầm IDLE_FLY khi đang ở mặt đất.",
-      "4. Bổ sung cơ chế bảo vệ trong land() và takeoff(): ngăn chặn tuyệt đối việc tái kích hoạt khi đang trong tiến trình chuyển đổi độ cao (TAKEOFF / LANDING).",
-      "5. Cho phép di chuyển ngang dọc theo bệ đá mà không ép cất cánh khi bấm nút thủ công hoặc AI tự động áp sát/lùi giữ cự ly."
+      "1. Mở rộng mô hình động học từ 1D sang Vector Kinematics 2D: hỗ trợ tọa độ mục tiêu (targetVargostX, targetVargostY) và không gian hành lang bầu trời Y in [skyCeilingY, skyLowY].",
+      "2. Hiện thực hóa các hướng bay mặt đồng hồ: 12h (thẳng lên), 3h (thẳng tới), 6h (hạ cánh), 9h (thẳng lùi), 10h (lùi-lên, phím Q), 2h (tiến-lên, phím E), 8h (lùi-xuống, phím Z), 4h (tiến-xuống/bổ nhào, phím C).",
+      "3. Tự động tính toán góc nghiêng thân theo trục X (+25° khi tiến, -25° khi lùi, 0° khi dừng), co giãn quán tính (squash & stretch) theo vector Y, và phát tán bóng mờ 2D (motion ghosts) dọc theo quỹ đạo chuyển động thực tế.",
+      "4. Nâng cấp bộ não Utility AI: Tự động tuần tra bay xéo 2D chậm 100px/s trong không phận (lượn lờ 2h -> 8h -> 10h -> 4h), bay xéo 400px/s áp sát (2h/4h) hoặc thoát thân né đòn (10h/8h) cực kỳ thông minh và tự nhiên.",
+      "5. Tích hợp 4 nút bấm bay xéo trên thanh điều khiển vargost-skill-test.html và phím tắt Q/E/Z/C/W/A/S/D."
     ],
     "verification": [
-      "Kiểm tra tính logic state machine: node test_ai_loop.js xác nhận đạt 100%.",
       "node --check tools/asset-viewer/vargost-skill-test.js: cú pháp JS hợp lệ, không có lỗi runtime.",
       "Godot 4.3 Headless CLI: PASS Vargost combat chain: 83 frames, range [150, 550], tilt 25 deg, max speed 400px/s.",
       "npm test: 7/7 bài kiểm thử pass.",
@@ -76,15 +75,42 @@
     ],
     "remaining": [],
     "limitations": [
-      "Vargost đã hoàn thiện mượt mà và hoạt động ổn định không bị kẹt lặp độ cao; sẵn sàng để người dùng thẩm định trực tiếp trên browser."
+      "Đã hoàn tất cả về mặt giải pháp lý thuyết lẫn hiện thực chạy live trên trình duyệt và sẵn sàng mã nguồn GDScript cho Godot 4."
     ],
     "next_steps": [
-      "Người dùng mở http://localhost:4173/vargost-skill-test.html kiểm tra Utility AI vận hành tự nhiên và mượt mà.",
+      "Người dùng mở http://localhost:4173/vargost-skill-test.html bấm thử các nút bay xéo 10h/2h/4h/8h hoặc phím Q/E/Z/C và quan sát Utility AI tự động lượn lờ 2D.",
       "Sau khi người dùng ưng ý chốt Vargost, chọn tiếp 5 nhân vật tiếp theo để hoàn thiện 2 team 3v3."
     ]
   },
   "working_tree_note": "Atlas và manifest đã nâng cấp lên 83 frame hoàn thiện, server cổng 4173 đang chạy nền ổn định.",
   "history": [
+    {
+      "title": "Khắc Phục Dứt Điểm Lỗi Utility AI Bị Kẹt Vòng Lặp Vô Tận Cất Cánh / Hạ Cánh",
+      "status": "completed",
+      "changes": [
+        "1. Thiết lập biến cooldown khóa độ cao altitudeCooldown (>= 15 giây): mỗi khi cất cánh lên không hoặc đáp xuống bệ đá, Vargost giữ nguyên độ cao ít nhất 15s, triệt tiêu hoàn toàn hiện tượng cất cánh -> hạ cánh liên hồi.",
+        "2. Cho phép Vargost xuất chiêu Blazing Halo trực tiếp từ bất kỳ độ cao nào (trên không hoặc đứng vững trên bệ đá); gỡ bỏ điều kiện ép buộc takeoff() khi xuất chiêu.",
+        "3. Sửa trạng thái kết thúc di chuyển ngang (FLY_FORWARD / FLY_BACKWARD): chuyển về đúng locomotionState tương ứng với độ cao thực tế (isFlying ? 'IDLE_FLY' : 'IDLE_GROUND'), tránh gán nhầm IDLE_FLY khi đang ở mặt đất.",
+        "4. Bổ sung cơ chế bảo vệ trong land() và takeoff(): ngăn chặn tuyệt đối việc tái kích hoạt khi đang trong tiến trình chuyển đổi độ cao (TAKEOFF / LANDING).",
+        "5. Cho phép di chuyển ngang dọc theo bệ đá mà không ép cất cánh khi bấm nút thủ công hoặc AI tự động áp sát/lùi giữ cự ly."
+      ],
+      "verification": [
+        "Kiểm tra tính logic state machine: node test_ai_loop.js xác nhận đạt 100%.",
+        "node --check tools/asset-viewer/vargost-skill-test.js: cú pháp JS hợp lệ, không có lỗi runtime.",
+        "Godot 4.3 Headless CLI: PASS Vargost combat chain: 83 frames, range [150, 550], tilt 25 deg, max speed 400px/s.",
+        "npm test: 7/7 bài kiểm thử pass.",
+        "python3 -m unittest discover tests: 2/2 bài kiểm thử pass.",
+        "curl -s -I http://localhost:4173/vargost-skill-test.html và http://localhost:4173/vargost-skill-test.js trả về HTTP 200 OK."
+      ],
+      "remaining": [],
+      "limitations": [
+        "Vargost đã hoàn thiện mượt mà và hoạt động ổn định không bị kẹt lặp độ cao; sẵn sàng để người dùng thẩm định trực tiếp trên browser."
+      ],
+      "next_steps": [
+        "Người dùng mở http://localhost:4173/vargost-skill-test.html kiểm tra Utility AI vận hành tự nhiên và mượt mà.",
+        "Sau khi người dùng ưng ý chốt Vargost, chọn tiếp 5 nhân vật tiếp theo để hoàn thiện 2 team 3v3."
+      ]
+    },
     {
       "title": "Hợp Nhất Chuỗi Hoạt Ảnh Blazing Halo 83 Frame, Sửa Vòng Lửa Frame 67, Tăng Tốc Đạn 1100px/s, Chuẩn Hóa Bay 4 Hướng Trực Giao 400px/s & 100px/s, Sửa Nghiêng 25° & Bóng Mờ Tiến/Lùi, Nâng Cấp Utility AI Tự Động Di Chuyển",
       "status": "completed",

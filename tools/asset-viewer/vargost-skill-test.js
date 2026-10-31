@@ -54,6 +54,10 @@ const btnFlyForward = document.getElementById('btn-fly-forward');
 const btnFlyBackward = document.getElementById('btn-fly-backward');
 const btnLand = document.getElementById('btn-land');
 const btnTakeoff = document.getElementById('btn-takeoff');
+const btnFly10h = document.getElementById('btn-fly-10h');
+const btnFly2h = document.getElementById('btn-fly-2h');
+const btnFly8h = document.getElementById('btn-fly-8h');
+const btnFly4h = document.getElementById('btn-fly-4h');
 const btnSpeedSlow = document.getElementById('btn-speed-slow');
 const btnSpeedFast = document.getElementById('btn-speed-fast');
 const btnBlazingHalo = document.getElementById('btn-blazing-halo');
@@ -87,11 +91,15 @@ const mapX = (W - 512 * mapScale) / 2;
 const mapY = (H - 352 * mapScale) / 2;
 const groundY = mapY + 194.0 * mapScale; // Stone platform ground level
 const baseFlyY = mapY + 65.0 * mapScale;  // Sky flight height
+const skyCeilingY = mapY + 28.0 * mapScale; // Trần bay trên cao (12h/10h/2h)
+const skyLowY = mapY + 140.0 * mapScale;     // Tầng bay thấp (4h/8h)
 
 // Actor Position & State
 let vargostX = mapX + 180.0 * mapScale;
 let vargostY = baseFlyY;
 let targetVargostX = vargostX;
+let targetVargostY = vargostY;
+let transitionStartY = baseFlyY;
 let isFlying = true;
 let currentTilt = 0; // in radians
 let currentScaleX = 1.0;
@@ -274,13 +282,14 @@ if (kfThrust) kfThrust.addEventListener('click', () => selectFrame(67));
 if (kfRelease) kfRelease.addEventListener('click', () => selectFrame(68));
 if (kfReignite) kfReignite.addEventListener('click', () => selectFrame(74));
 
-// Locomotion Commands (Orthogonal 4 directions)
+// Locomotion Commands (Orthogonal 4 + Diagonal 4 Directions)
 btnFlyForward.addEventListener('click', () => {
   currentFlySpeed = Number(rngFlySpeed.value) || SPEED_FAST;
   targetVargostX = Math.min(W - 400, vargostX + 120 * mapScale);
-  locomotionState = 'FLY_FORWARD';
+  targetVargostY = isFlying ? vargostY : groundY;
+  locomotionState = 'FLY_VECTOR';
   hudLocomotion.textContent = isFlying
-    ? `Di chuyển: BAY TIẾN (+120px, Nghiêng +25°) @ ${currentFlySpeed}px/s`
+    ? `Di chuyển: BAY TIẾN 3h (+120px, Nghiêng +25°) @ ${currentFlySpeed}px/s`
     : `Di chuyển: TIẾN TRÊN BỆ (+120px, Nghiêng +25°) @ ${currentFlySpeed}px/s`;
   hudLocomotion.className = 'badge flying';
 });
@@ -288,17 +297,39 @@ btnFlyForward.addEventListener('click', () => {
 btnFlyBackward.addEventListener('click', () => {
   currentFlySpeed = Number(rngFlySpeed.value) || SPEED_FAST;
   targetVargostX = Math.max(mapX + 100, vargostX - 120 * mapScale);
-  locomotionState = 'FLY_BACKWARD';
+  targetVargostY = isFlying ? vargostY : groundY;
+  locomotionState = 'FLY_VECTOR';
   hudLocomotion.textContent = isFlying
-    ? `Di chuyển: BAY LÙI (-120px, Nghiêng -25°) @ ${currentFlySpeed}px/s`
+    ? `Di chuyển: BAY LÙI 9h (-120px, Nghiêng -25°) @ ${currentFlySpeed}px/s`
     : `Di chuyển: LÙI TRÊN BỆ (-120px, Nghiêng -25°) @ ${currentFlySpeed}px/s`;
   hudLocomotion.className = 'badge warning';
 });
+
+function flyDiagonal(dxRatio, dyRatio, label, clockName) {
+  currentFlySpeed = Number(rngFlySpeed.value) || SPEED_FAST;
+  if (!isFlying) {
+    takeoff();
+    showToast(`Cất cánh trước khi bay xéo ${clockName}!`);
+    return;
+  }
+  targetVargostX = Math.max(mapX + 100, Math.min(W - 400, vargostX + dxRatio * 110 * mapScale));
+  targetVargostY = Math.max(skyCeilingY, Math.min(skyLowY, vargostY + dyRatio * 55 * mapScale));
+  locomotionState = 'FLY_VECTOR';
+  const tiltDeg = dxRatio > 0 ? '+25°' : '-25°';
+  hudLocomotion.textContent = `Di chuyển: BAY XÉO ${clockName} (${label}, Nghiêng ${tiltDeg}) @ ${currentFlySpeed}px/s`;
+  hudLocomotion.className = dxRatio > 0 ? 'badge flying' : 'badge warning';
+}
+
+if (btnFly10h) btnFly10h.addEventListener('click', () => flyDiagonal(-1, -1, 'Lùi - Vút Lên', '10h'));
+if (btnFly2h) btnFly2h.addEventListener('click', () => flyDiagonal(1, -1, 'Tiến - Vút Lên', '2h'));
+if (btnFly8h) btnFly8h.addEventListener('click', () => flyDiagonal(-1, 1, 'Lùi - Sà Xuống', '8h'));
+if (btnFly4h) btnFly4h.addEventListener('click', () => flyDiagonal(1, 1, 'Tiến - Bổ Nhào', '4h'));
 
 function land() {
   if (!isFlying || locomotionState === 'LANDING' || locomotionState === 'TAKEOFF') return;
   locomotionState = 'LANDING';
   transitionProgress = 0;
+  transitionStartY = vargostY; // Bắt đầu hạ cánh từ đúng vị trí Y hiện tại
   altitudeCooldown = 15.0; // Khóa độ cao ít nhất 15s
   hudLocomotion.textContent = 'Di chuyển: HẠ CÁNH (Dọc Y=194)...';
   hudLocomotion.className = 'badge ground';
@@ -308,6 +339,7 @@ function takeoff() {
   if (isFlying || locomotionState === 'TAKEOFF' || locomotionState === 'LANDING') return;
   locomotionState = 'TAKEOFF';
   transitionProgress = 0;
+  targetVargostY = baseFlyY;
   altitudeCooldown = 15.0; // Khóa độ cao ít nhất 15s
   hudLocomotion.textContent = 'Di chuyển: CẤT CÁNH (Dọc Y=65)...';
   hudLocomotion.className = 'badge flying';
@@ -362,6 +394,8 @@ btnReset.addEventListener('click', () => {
   vargostX = mapX + 180.0 * mapScale;
   vargostY = baseFlyY;
   targetVargostX = vargostX;
+  targetVargostY = baseFlyY;
+  transitionStartY = baseFlyY;
   isFlying = true;
   currentTilt = 0;
   locomotionState = 'IDLE_FLY';
@@ -456,6 +490,14 @@ window.addEventListener('keydown', (e) => {
     takeoff();
   } else if (e.code === 'ArrowDown' || e.code === 'KeyS') {
     land();
+  } else if (e.code === 'KeyQ') {
+    if (btnFly10h) btnFly10h.click();
+  } else if (e.code === 'KeyE') {
+    if (btnFly2h) btnFly2h.click();
+  } else if (e.code === 'KeyZ') {
+    if (btnFly8h) btnFly8h.click();
+  } else if (e.code === 'KeyC') {
+    if (btnFly4h) btnFly4h.click();
   }
 });
 
@@ -573,28 +615,44 @@ function update(timestamp) {
       if (aiDecisionTimer <= 0) {
         aiDecisionTimer = 0.35; // chu kỳ ra quyết định 0.35s
 
-        // 1. Nếu cự ly quá xa (> 550px): Tăng tốc 400px/s tiến áp sát
+        // 1. Nếu cự ly quá xa (> 550px): Tăng tốc 400px/s bay xéo tiến áp sát
         if (distInPx > MAX_ATTACK_RANGE) {
           currentFlySpeed = SPEED_FAST;
           rngFlySpeed.value = SPEED_FAST;
           lblFlySpeed.textContent = `${SPEED_FAST}px/s`;
           targetVargostX = Math.min(W - 400, vargostX + (distInPx - 360) * (mapScale / 2.625));
-          locomotionState = 'FLY_FORWARD';
-          hudLocomotion.textContent = isFlying
-            ? `AI: TĂNG TỐC BAY TIẾN ÁP SÁT (400px/s, Nghiêng +25°)`
-            : `AI: TIẾN ÁP SÁT TRÊN BỆ ĐÁ (400px/s, Nghiêng +25°)`;
+          if (isFlying) {
+            const preferUp = (vargostY > (skyCeilingY + skyLowY) / 2);
+            targetVargostY = preferUp
+              ? Math.max(skyCeilingY, vargostY - 35 * mapScale)
+              : Math.min(skyLowY, vargostY + 35 * mapScale);
+            const clockStr = preferUp ? '2h (Tiến-Lên)' : '4h (Tiến-Bổ Nhào)';
+            hudLocomotion.textContent = `AI: TĂNG TỐC BAY XÉO ÁP SÁT @ 400px/s (Hướng ${clockStr}, Nghiêng +25°)`;
+          } else {
+            targetVargostY = groundY;
+            hudLocomotion.textContent = `AI: TIẾN ÁP SÁT TRÊN BỆ ĐÁ (400px/s, Nghiêng +25°)`;
+          }
+          locomotionState = 'FLY_VECTOR';
           hudLocomotion.className = 'badge flying';
         }
-        // 2. Nếu cự ly quá gần (< 150px): Tăng tốc 400px/s lùi giữ khoảng cách
+        // 2. Nếu cự ly quá gần (< 150px): Tăng tốc 400px/s bay xéo lùi giữ khoảng cách
         else if (distInPx < MIN_ATTACK_RANGE) {
           currentFlySpeed = SPEED_FAST;
           rngFlySpeed.value = SPEED_FAST;
           lblFlySpeed.textContent = `${SPEED_FAST}px/s`;
           targetVargostX = Math.max(mapX + 100, vargostX - (300 - distInPx) * (mapScale / 2.625));
-          locomotionState = 'FLY_BACKWARD';
-          hudLocomotion.textContent = isFlying
-            ? `AI: TĂNG TỐC BAY LÙI GIỮ CỰ LY (400px/s, Nghiêng -25°)`
-            : `AI: LÙI GIỮ CỰ LY TRÊN BỆ ĐÁ (400px/s, Nghiêng -25°)`;
+          if (isFlying) {
+            const preferUp = (vargostY > (skyCeilingY + skyLowY) / 2);
+            targetVargostY = preferUp
+              ? Math.max(skyCeilingY, vargostY - 40 * mapScale)
+              : Math.min(skyLowY, vargostY + 40 * mapScale);
+            const clockStr = preferUp ? '10h (Lùi-Vút Lên)' : '8h (Lùi-Sà Xuống)';
+            hudLocomotion.textContent = `AI: TĂNG TỐC BAY XÉO LÙI NÉ ĐÒN @ 400px/s (Hướng ${clockStr}, Nghiêng -25°)`;
+          } else {
+            targetVargostY = groundY;
+            hudLocomotion.textContent = `AI: LÙI GIỮ CỰ LY TRÊN BỆ ĐÁ (400px/s, Nghiêng -25°)`;
+          }
+          locomotionState = 'FLY_VECTOR';
           hudLocomotion.className = 'badge warning';
         }
         // 3. Đã vào cự ly tối ưu [150, 550]:
@@ -603,20 +661,26 @@ function update(timestamp) {
             // Sẵn sàng xuất chiêu Blazing Halo (Tung chiêu trực tiếp ở cả trên không lẫn trên bệ đá)
             orderBlazingHalo();
           } else {
-            // Skill đang hồi: Tuần tra bay chậm / đi chậm hoặc đổi độ cao khi hết altitudeCooldown
+            // Skill đang hồi: Tuần tra bay xéo 2D chậm 100px/s hoặc đổi độ cao khi hết altitudeCooldown
             if (isFlying) {
               if (altitudeCooldown <= 0 && Math.random() < 0.08) {
                 // Đã bay trên không đủ lâu (>= 15s), thi thoảng hạ cánh bệ đá nghỉ ngơi
                 land();
-              } else if (locomotionState === 'IDLE_FLY' && Math.random() < 0.25) {
-                // Tuần tra bay chậm 100px/s giữ vị trí lơ lửng
+              } else if (locomotionState === 'IDLE_FLY' && Math.random() < 0.28) {
+                // Tuần tra bay xéo 2D chậm 100px/s (ngẫu nhiên 10h, 2h, 4h, 8h)
                 currentFlySpeed = SPEED_SLOW;
                 rngFlySpeed.value = SPEED_SLOW;
                 lblFlySpeed.textContent = `${SPEED_SLOW}px/s`;
-                const driftDir = (vargostX < mapX + 300) ? 1 : ((vargostX > mapX + 650) ? -1 : (Math.random() > 0.5 ? 1 : -1));
-                targetVargostX = vargostX + driftDir * 40 * (mapScale / 2.625);
-                locomotionState = (driftDir > 0) ? 'FLY_FORWARD' : 'FLY_BACKWARD';
-                hudLocomotion.textContent = `AI: TUẦN TRA BAY CHẬM (${SPEED_SLOW}px/s)`;
+
+                const driftDirX = (vargostX < mapX + 300) ? 1 : ((vargostX > mapX + 650) ? -1 : (Math.random() > 0.5 ? 1 : -1));
+                const driftDirY = (vargostY < skyCeilingY + 25) ? 1 : ((vargostY > skyLowY - 25) ? -1 : (Math.random() > 0.5 ? 1 : -1));
+
+                targetVargostX = vargostX + driftDirX * 45 * (mapScale / 2.625);
+                targetVargostY = Math.max(skyCeilingY, Math.min(skyLowY, vargostY + driftDirY * 25 * (mapScale / 2.625)));
+
+                let clockStr = (driftDirX > 0) ? (driftDirY < 0 ? '2h (Tiến-Lên)' : '4h (Tiến-Xuống)') : (driftDirY < 0 ? '10h (Lùi-Lên)' : '8h (Lùi-Xuống)');
+                locomotionState = 'FLY_VECTOR';
+                hudLocomotion.textContent = `AI: TUẦN TRA BAY XÉO ${clockStr} (${SPEED_SLOW}px/s)`;
                 hudLocomotion.className = 'badge';
               }
             } else {
@@ -630,7 +694,8 @@ function update(timestamp) {
                 lblFlySpeed.textContent = `${SPEED_SLOW}px/s`;
                 const driftDir = (vargostX < mapX + 300) ? 1 : ((vargostX > mapX + 550) ? -1 : (Math.random() > 0.5 ? 1 : -1));
                 targetVargostX = vargostX + driftDir * 30 * (mapScale / 2.625);
-                locomotionState = (driftDir > 0) ? 'FLY_FORWARD' : 'FLY_BACKWARD';
+                targetVargostY = groundY;
+                locomotionState = 'FLY_VECTOR';
                 hudLocomotion.textContent = `AI: TUẦN TRA TRÊN BỆ ĐÁ (${SPEED_SLOW}px/s)`;
                 hudLocomotion.className = 'badge ground';
               }
@@ -648,15 +713,17 @@ function update(timestamp) {
     if (distInPx < MIN_ATTACK_RANGE) {
       aiState = 'REPOSITIONING';
       currentFlySpeed = SPEED_FAST;
-      locomotionState = 'FLY_BACKWARD';
       targetVargostX = Math.max(mapX + 100, vargostX - (300 - distInPx) * (mapScale / 2.625));
+      targetVargostY = isFlying ? Math.max(skyCeilingY, vargostY - 30 * mapScale) : groundY;
+      locomotionState = 'FLY_VECTOR';
       hudAi.textContent = 'AI: Quá gần! Lùi giữ cự ly @ 400px/s (Nghiêng -25°)';
       hudAi.className = 'badge warning';
     } else if (distInPx > MAX_ATTACK_RANGE) {
       aiState = 'REPOSITIONING';
       currentFlySpeed = SPEED_FAST;
-      locomotionState = 'FLY_FORWARD';
       targetVargostX = Math.min(W - 400, vargostX + (distInPx - 360) * (mapScale / 2.625));
+      targetVargostY = isFlying ? Math.min(skyLowY, vargostY + 25 * mapScale) : groundY;
+      locomotionState = 'FLY_VECTOR';
       hudAi.textContent = 'AI: Quá xa! Tiến áp sát @ 400px/s (Nghiêng +25°)';
       hudAi.className = 'badge flying';
     } else {
@@ -671,67 +738,64 @@ function update(timestamp) {
   }
 
   // -------------------------------------------------------------
-  // Locomotion Execution (4 Orthogonal Directions)
+  // Locomotion Execution (Vector 2D: Orthogonal 4 + Diagonal 4 Directions)
   // -------------------------------------------------------------
-  // 1. FORWARD (Ngang phải, Nghiêng +25°, Có bóng mờ)
-  if (locomotionState === 'FLY_FORWARD') {
-    const rad = (25 * Math.PI) / 180; // 25 độ chốt
-    currentTilt += (rad - currentTilt) * Math.min(dt * 8, 1);
-    currentScaleX = 1.05;
-    currentScaleY = 0.95;
+  if (locomotionState === 'FLY_FORWARD' || locomotionState === 'FLY_BACKWARD' || locomotionState === 'FLY_VECTOR') {
+    const dx = targetVargostX - vargostX;
+    const dy = isFlying ? (targetVargostY - vargostY) : 0;
+    const dist = Math.hypot(dx, dy);
 
-    if (Math.abs(vargostX - targetVargostX) > 2) {
-      const dir = Math.sign(targetVargostX - vargostX);
-      vargostX += dir * flySpeed * dt;
-      if ((dir > 0 && vargostX >= targetVargostX) || (dir < 0 && vargostX <= targetVargostX)) {
-        vargostX = targetVargostX;
-        locomotionState = isFlying ? 'IDLE_FLY' : 'IDLE_GROUND';
-        hudLocomotion.textContent = isFlying ? 'Di chuyển: LƠ LỬNG TRÊN KHÔNG (Đứng thẳng 0°)' : 'Di chuyển: ĐỨNG TRÊN BỆ ĐÁ (Y=194)';
-        hudLocomotion.className = isFlying ? 'badge' : 'badge ground';
+    if (dist > 2) {
+      const dirX = dx / dist;
+      const dirY = dy / dist;
+      const step = Math.min(dist, flySpeed * dt);
+      vargostX += dirX * step;
+      if (isFlying) {
+        vargostY += dirY * step;
+      }
+
+      // Góc nghiêng thân tự động theo trục X (25 độ chốt)
+      let targetTilt = 0;
+      if (Math.abs(dirX) > 0.05) {
+        targetTilt = Math.sign(dirX) * (25 * Math.PI / 180);
+      }
+      currentTilt += (targetTilt - currentTilt) * Math.min(dt * 8, 1);
+
+      // Co giãn quán tính (Squash & Stretch theo vector)
+      if (dirY < -0.2) {
+        // Vút lên (10h, 12h, 2h): Dãn thân
+        currentScaleX = 0.95;
+        currentScaleY = 1.06;
+      } else if (dirY > 0.2) {
+        // Sà xuống / bổ nhào (4h, 6h, 8h): Hơi dẹt
+        currentScaleX = 1.05;
+        currentScaleY = 0.95;
+      } else if (dirX > 0.1) {
+        currentScaleX = 1.05;
+        currentScaleY = 0.95;
+      } else {
+        currentScaleX = 0.96;
+        currentScaleY = 1.04;
+      }
+
+      // Bóng mờ chuyển động 2D (Motion Ghosts)
+      if (Math.random() < 0.45) {
+        motionGhosts.push({ x: vargostX, y: vargostY, alpha: 0.45, tilt: currentTilt });
       }
     } else {
+      vargostX = targetVargostX;
+      if (isFlying) vargostY = targetVargostY;
       locomotionState = isFlying ? 'IDLE_FLY' : 'IDLE_GROUND';
       hudLocomotion.textContent = isFlying ? 'Di chuyển: LƠ LỬNG TRÊN KHÔNG (Đứng thẳng 0°)' : 'Di chuyển: ĐỨNG TRÊN BỆ ĐÁ (Y=194)';
       hudLocomotion.className = isFlying ? 'badge' : 'badge ground';
     }
-
-    if (Math.random() < 0.4) {
-      motionGhosts.push({ x: vargostX, y: vargostY, alpha: 0.45, tilt: currentTilt });
-    }
   }
-  // 2. BACKWARD (Ngang trái, Nghiêng -25°, Có bóng mờ, Trở về thẳng khi dừng)
-  else if (locomotionState === 'FLY_BACKWARD') {
-    const rad = (-25 * Math.PI) / 180; // -25 độ chốt
-    currentTilt += (rad - currentTilt) * Math.min(dt * 8, 1);
-    currentScaleX = 0.96;
-    currentScaleY = 1.04;
-
-    if (Math.abs(vargostX - targetVargostX) > 2) {
-      const dir = Math.sign(targetVargostX - vargostX);
-      vargostX += dir * flySpeed * dt;
-      if ((dir > 0 && vargostX >= targetVargostX) || (dir < 0 && vargostX <= targetVargostX)) {
-        vargostX = targetVargostX;
-        locomotionState = isFlying ? 'IDLE_FLY' : 'IDLE_GROUND';
-        hudLocomotion.textContent = isFlying ? 'Di chuyển: LƠ LỬNG TRÊN KHÔNG (Đứng thẳng 0°)' : 'Di chuyển: ĐỨNG TRÊN BỆ ĐÁ (Y=194)';
-        hudLocomotion.className = isFlying ? 'badge' : 'badge ground';
-      }
-    } else {
-      locomotionState = isFlying ? 'IDLE_FLY' : 'IDLE_GROUND';
-      hudLocomotion.textContent = isFlying ? 'Di chuyển: LƠ LỬNG TRÊN KHÔNG (Đứng thẳng 0°)' : 'Di chuyển: ĐỨNG TRÊN BỆ ĐÁ (Y=194)';
-      hudLocomotion.className = isFlying ? 'badge' : 'badge ground';
-    }
-
-    // Fix: Bổ sung bóng mờ cho chuyển động lùi
-    if (Math.random() < 0.4) {
-      motionGhosts.push({ x: vargostX, y: vargostY, alpha: 0.45, tilt: currentTilt });
-    }
-  }
-  // 3. LANDING (Dọc xuống Y=194, Giữ thẳng 0°, Mượt mà dễ nhìn)
+  // LANDING (Dọc xuống Y=194, Giữ thẳng 0°, Mượt mà dễ nhìn từ mọi độ cao)
   else if (locomotionState === 'LANDING') {
     transitionProgress += dt * 1.5;
     const t = Math.min(1, transitionProgress);
     const ease = 1 - Math.pow(1 - t, 3);
-    vargostY = baseFlyY + (groundY - baseFlyY) * ease;
+    vargostY = transitionStartY + (groundY - transitionStartY) * ease;
     currentTilt += (0 - currentTilt) * Math.min(dt * 10, 1);
 
     if (t >= 1) {

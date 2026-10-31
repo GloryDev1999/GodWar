@@ -515,13 +515,17 @@
     <!-- Movement & Locomotion Toolbar -->
     <div class="panel-controls">
       <div class="controls-row">
-        <span style="font-weight: bold; font-size: 13px; color: #58a6ff;">🚀 DI CHUYỂN 4 HƯỚNG TRỰC GIAO (GIỚI HẠN 400PX/S):</span>
-        <button class="btn-move" id="btn-fly-forward">⏩ Bay Tới (+120px, Nghiêng +25° + Bóng Mờ)</button>
-        <button class="btn-move" id="btn-fly-backward">⏪ Bay Lùi (-120px, Nghiêng -25° + Bóng Mờ)</button>
-        <button class="btn-land" id="btn-land">🛬 Hạ Cánh (Đáp Nền Đá Y=194)</button>
-        <button class="secondary" id="btn-takeoff">🛫 Cất Cánh (Bay Lên Bầu Trời Y=65)</button>
-        <button class="secondary small" id="btn-speed-slow" title="Chế độ bay chậm tuần tra 100px/s">🐢 Bay Chậm (100px/s)</button>
-        <button class="secondary small" id="btn-speed-fast" title="Chế độ tăng tốc cơ động 400px/s">⚡ Tăng Tốc (400px/s)</button>
+        <span style="font-weight: bold; font-size: 13px; color: #58a6ff;">🚀 DI CHUYỂN TRỰC GIAO & BAY XÉO (10h, 2h, 4h, 8h,...):</span>
+        <button class="btn-move" id="btn-fly-forward" title="Phím D hoặc ->">⏩ Bay Tới 3h</button>
+        <button class="btn-move" id="btn-fly-backward" title="Phím A hoặc <-">⏪ Bay Lùi 9h</button>
+        <button class="secondary" id="btn-takeoff" title="Phím W hoặc Up">🛫 Cất Cánh 12h</button>
+        <button class="btn-land" id="btn-land" title="Phím S hoặc Down">🛬 Hạ Cánh 6h</button>
+        <button class="btn-move" id="btn-fly-10h" style="border-color: #a371f7; color: #d2a8ff;" title="Phím Q">↖️ Bay Xéo 10h (Lùi-Lên)</button>
+        <button class="btn-move" id="btn-fly-2h" style="border-color: #a371f7; color: #d2a8ff;" title="Phím E">↗️ Bay Xéo 2h (Tiến-Lên)</button>
+        <button class="btn-move" id="btn-fly-8h" style="border-color: #a371f7; color: #d2a8ff;" title="Phím Z">↙️ Bay Xéo 8h (Lùi-Xuống)</button>
+        <button class="btn-move" id="btn-fly-4h" style="border-color: #a371f7; color: #d2a8ff;" title="Phím C">↘️ Bay Xéo 4h (Tiến-Xuống)</button>
+        <button class="secondary small" id="btn-speed-slow" title="Chế độ bay chậm tuần tra 100px/s">🐢 100px/s</button>
+        <button class="secondary small" id="btn-speed-fast" title="Chế độ tăng tốc cơ động 400px/s">⚡ 400px/s</button>
       </div>
 
       <div class="controls-row" style="margin-top: 4px;">
