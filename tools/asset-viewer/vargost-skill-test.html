@@ -32,19 +32,33 @@
     }
 
     header {
-      padding: 12px 16px;
+      padding: 10px 16px;
       background: var(--card-bg);
       border-bottom: 1px solid var(--border);
+      height: 64px;
+      min-height: 64px;
+      max-height: 64px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
     }
     h1 {
-      margin: 0 0 4px 0;
-      font-size: 20px;
+      margin: 0;
+      font-size: 19px;
       color: var(--primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     header p {
-      margin: 2px 0;
-      font-size: 13px;
+      margin: 3px 0 0 0;
+      font-size: 12px;
       color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     main {
@@ -53,23 +67,47 @@
       padding: 8px 14px 24px;
     }
 
-    /* Status HUD Bar */
+    /* Status HUD Bar - Fixed Height & Zero Layout Shift (Anti-Jitter) */
     .status-hud {
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      margin: 6px 0;
+      flex-direction: column;
+      gap: 6px;
+      margin: 6px auto;
+      height: 66px;
+      min-height: 66px;
+      max-height: 66px;
+      overflow: hidden;
+      width: 100%;
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+    }
+    .hud-row {
+      display: flex;
+      gap: 8px;
+      height: 30px;
+      min-height: 30px;
+      max-height: 30px;
+      align-items: center;
+      justify-content: stretch;
+      width: 100%;
+    }
+    .hud-row .badge {
+      height: 30px;
+      line-height: 28px;
+      padding: 0 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: center;
+      flex: 1;
+      min-width: 0;
     }
     .badge {
-      padding: 4px 9px;
       border-radius: 5px;
       background: #21262d;
       border: 1px solid var(--border);
       color: var(--text);
+      display: inline-block;
     }
     .badge.active {
       background: #bd561d;
@@ -182,6 +220,7 @@
       border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+      contain: paint layout;
     }
     canvas#stage {
       width: 100%;
@@ -410,19 +449,23 @@
 <body>
   <header>
     <h1>GodWar · Bộ Công Cụ Tinh Chỉnh & Đo Pixel Vargost Combat</h1>
-    <p>Utility AI [150–550px] · Bay Tới/Bay Lùi/Hạ Cánh/Cất Cánh @ 900px/s · Vòng Lửa Xoay 8 Frame · Kính Lúp Pixel 10× & Tọa Độ Tay Phóng Chuẩn</p>
+    <p>Utility AI [150–550px] · Bay 8 Hướng Trực Giao & Bay Xéo (10h, 2h, 4h, 8h) @ 400px/s & 100px/s · Vòng Lửa Xoay 8 Frame · Blazing Halo 1100px/s</p>
   </header>
 
   <main>
-    <!-- Status Badges -->
+    <!-- Status Badges - Fixed 2-Row Structured Grid (Zero Jitter) -->
     <div class="status-hud">
-      <span class="badge" id="hud-locomotion">Di chuyển: LƠ LỬNG TRÊN KHÔNG</span>
-      <span class="badge" id="hud-ai">AI: Tuần tra trên không</span>
-      <span class="badge" id="hud-range">Cự ly: 350px</span>
-      <span class="badge" id="hud-state">Trạng thái: Đang nạp...</span>
-      <span class="badge" id="hud-frame">Frame: 0/94</span>
-      <span class="badge" id="hud-projectile">Đạn: Sẵn sàng</span>
-      <span class="badge" id="hud-coords">Con trỏ: (0, 0)</span>
+      <div class="hud-row">
+        <span class="badge" id="hud-locomotion" style="flex: 1.4;" title="Trạng thái cơ động">Di chuyển: LƠ LỬNG TRÊN KHÔNG</span>
+        <span class="badge" id="hud-ai" style="flex: 1.1;" title="Trạng thái bộ não Utility AI">AI: Tuần tra chiến thuật</span>
+        <span class="badge" id="hud-state" style="flex: 1.5;" title="Trạng thái hành động & kỹ năng">Trạng thái: SẴN SÀNG</span>
+      </div>
+      <div class="hud-row metrics-row">
+        <span class="badge" id="hud-range" style="flex: 1.1;" title="Khoảng cách tới mục tiêu">Cự ly: 350px (Tối ưu: 150-550)</span>
+        <span class="badge" id="hud-frame" style="flex: 0.8;" title="Khung hình hoạt ảnh">Frame: 0/82</span>
+        <span class="badge" id="hud-projectile" style="flex: 1.3;" title="Trạng thái đường đạn">Đạn: Sẵn sàng</span>
+        <span class="badge" id="hud-coords" style="flex: 0.8;" title="Tọa độ chuột trên canvas">Con trỏ: (0, 0)</span>
+      </div>
     </div>
 
     <!-- Stage & Pixel Inspector Layout -->
