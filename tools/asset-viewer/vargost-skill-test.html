@@ -559,14 +559,14 @@
     <div class="panel-controls">
       <div class="controls-row">
         <span style="font-weight: bold; font-size: 13px; color: #58a6ff;">🚀 DI CHUYỂN TRỰC GIAO & BAY XÉO (10h, 2h, 4h, 8h,...):</span>
-        <button class="btn-move" id="btn-fly-forward" title="Phím D hoặc ->">⏩ Bay Tới 3h</button>
-        <button class="btn-move" id="btn-fly-backward" title="Phím A hoặc <-">⏪ Bay Lùi 9h</button>
+        <button class="btn-move" id="btn-fly-forward" title="Phím D hoặc ->">⏩ Bay Tiến 3h (+25°)</button>
+        <button class="btn-move" id="btn-fly-backward" style="border-color: #a371f7; color: #d2a8ff;" title="Phím A hoặc <-">⚡ Teleport Lùi 9h (0°)</button>
         <button class="secondary" id="btn-takeoff" title="Phím W hoặc Up">🛫 Cất Cánh 12h</button>
         <button class="btn-land" id="btn-land" title="Phím S hoặc Down">🛬 Hạ Cánh 6h</button>
-        <button class="btn-move" id="btn-fly-10h" style="border-color: #a371f7; color: #d2a8ff;" title="Phím Q">↖️ Bay Xéo 10h (Lùi-Lên)</button>
-        <button class="btn-move" id="btn-fly-2h" style="border-color: #a371f7; color: #d2a8ff;" title="Phím E">↗️ Bay Xéo 2h (Tiến-Lên)</button>
-        <button class="btn-move" id="btn-fly-8h" style="border-color: #a371f7; color: #d2a8ff;" title="Phím Z">↙️ Bay Xéo 8h (Lùi-Xuống)</button>
-        <button class="btn-move" id="btn-fly-4h" style="border-color: #a371f7; color: #d2a8ff;" title="Phím C">↘️ Bay Xéo 4h (Tiến-Xuống)</button>
+        <button class="btn-move" id="btn-fly-10h" style="border-color: #a371f7; color: #d2a8ff;" title="Phím Q">⚡ Teleport 10h (Lùi-Lên, 0°)</button>
+        <button class="btn-move" id="btn-fly-2h" style="border-color: #58a6ff; color: #58a6ff;" title="Phím E">↗️ Bay Xéo Tiến 2h (+25°)</button>
+        <button class="btn-move" id="btn-fly-8h" style="border-color: #a371f7; color: #d2a8ff;" title="Phím Z">⚡ Teleport 8h (Lùi-Xuống, 0°)</button>
+        <button class="btn-move" id="btn-fly-4h" style="border-color: #58a6ff; color: #58a6ff;" title="Phím C">↘️ Bay Xéo Tiến 4h (+25°)</button>
         <button class="secondary small" id="btn-speed-slow" title="Chế độ bay chậm tuần tra 100px/s">🐢 100px/s</button>
         <button class="secondary small" id="btn-speed-fast" title="Chế độ tăng tốc cơ động 400px/s">⚡ 400px/s</button>
       </div>
@@ -574,24 +574,37 @@
       <div class="controls-row" style="margin-top: 4px;">
         <span style="font-weight: bold; font-size: 13px; color: var(--primary);">⚔️ CHIẾN ĐẤU & UTILITY AI (TỰ ĐỘNG DI CHUYỂN & TẤN CÔNG):</span>
         <button id="btn-blazing-halo" style="background: #bd561d; border: 1px solid #ff9b53; font-weight: bold;">🔥 BLAZING HALO (1100 px/s)</button>
+        <button id="btn-toggle-direction" class="secondary" style="border-color: #3fb950; color: #3fb950; font-weight: bold;" title="Chuyển đổi vị trí và hướng: Đội Trái (Trái ➔ Phải) hoặc Đội Phải (Phải ➔ Trái)">🔄 Hướng: Đội Trái (Trái ➔ Phải)</button>
         <label style="background: #161b22; padding: 4px 8px; border-radius: 4px; border: 1px solid #30363d; cursor: pointer;">
           <input type="checkbox" id="chk-auto" checked> <b>Utility AI Tự Động Di Chuyển & Tấn Công</b>
         </label>
+        <label style="background: #161b22; padding: 4px 8px; border-radius: 4px; border: 1px solid #388bfd; cursor: pointer;" title="Kẻ địch di chuyển qua lại trên bệ đá với tốc độ 300 - 1000 px/s">
+          <input type="checkbox" id="chk-moving-target" checked> <b style="color: #58a6ff;">🎯 Mục Tiêu Di Động (300-1000px/s)</b>
+        </label>
+        <button class="secondary small" id="btn-enemy-dash" style="border-color: #f0883e; color: #f0883e; font-weight: bold;" title="Kẻ địch đột ngột tăng tốc 850px/s lướt vụt qua mặt Vargost sang sau lưng">🏃 Địch Lướt Né Đòn (850px/s)</button>
+        <button class="secondary small" id="btn-enemy-attack" style="border-color: #a371f7; color: #d2a8ff; font-weight: bold;" title="Kẻ địch bắn Ám Tiễn Hắc Ám phản công Vargost để kiểm tra hoạt ảnh Vargost trúng đòn">⚔️ Địch Phản Công Vargost</button>
+        <button class="secondary small" id="btn-test-death" style="border-color: #f85149; color: #ff7b72; font-weight: bold;" title="Giả lập Vargost hết máu và gục ngã (Đứng hình 0.3s -> Bốc hơi pixel 1.6s bay lên 30px)">💀 Test Vargost Gục Ngã (KO)</button>
         <label>
-          Cự ly mục tiêu:
+          Cự ly cơ sở:
           <input type="range" id="rng-distance" min="50" max="750" value="350">
           <span id="lbl-distance" style="font-family: monospace; font-weight: bold;">350px</span>
         </label>
         <button class="secondary small" id="btn-test-near">Thử Quá Gần (80px)</button>
         <button class="secondary small" id="btn-test-far">Thử Quá Xa (680px)</button>
+        <button class="secondary small" id="btn-test-overshoot" style="border-color: #a371f7; color: #d2a8ff;" title="Giả lập Vargost bay lố qua người địch, kích hoạt tan rã pixel xoay người 2.5D">✨ Thử Tan Rã Pixel (Xoay 2.5D)</button>
       </div>
 
       <!-- Fine-Tuning Sliders -->
       <div class="controls-row" style="margin-top: 4px; font-size: 12px; background: #0d1117; padding: 8px 12px; border-radius: 6px;">
-        <label>
+        <label title="Tốc độ bay ngang X (100 - 400 px/s)">
           Tốc độ bay:
           <input type="range" id="rng-fly-speed" min="100" max="400" value="400" step="50">
           <span id="lbl-fly-speed" style="font-family: monospace;">400px/s</span>
+        </label>
+        <label title="Tốc độ bay lên / bay xuống / hạ cánh / cất cánh trục Y (Giới hạn 100 - 300 px/s)">
+          Tốc độ trục Y (Lên/Xuống):
+          <input type="range" id="rng-vertical-speed" min="100" max="300" value="180" step="20">
+          <span id="lbl-vertical-speed" style="font-family: monospace; font-weight: bold; color: #58a6ff;">180px/s</span>
         </label>
         <label>
           Góc nghiêng bay tới:

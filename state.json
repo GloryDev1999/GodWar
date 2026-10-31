@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-10-31T10:05:00Z",
+  "updated_at_utc": "2026-10-31T15:10:00Z",
   "purpose": "Bộ nhớ bàn giao ngắn gọn cho agent; đối chiếu với mã, tài liệu và git status khi bắt đầu phiên.",
   "product_goal": {
-    "source": "Yêu cầu của người dùng ngày 2026-10-31 (cập nhật lúc 10:00 UTC)",
-    "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mỗi model/class được đào tạo tư duy chiến đấu riêng biệt (Utility AI: di chuyển, bay, chọn mục tiêu, kích hoạt skill theo thời gian tối ưu, Tanker che chắn skill hiểm, Healer hồi máu đồng đội nguy cấp). 2 đội tranh giành 1 vật phẩm ở giữa map bằng cách đứng chiếm giữ liên tục trong 15s để chiến thắng. Vargost là nhân vật ĐẦU TIÊN ĐÃ ĐƯỢC NGƯỜI DÙNG PHÊ DUYỆT CHỐT HOÀN TOÀN (user_approved): Chuỗi hoạt ảnh 83 frame mượt mà, Chiêu Tối Thượng Blazing Halo (1100px/s), nổ diện rộng 91 frame, hệ thống di chuyển 2D Vector đa hướng (trực giao và bay xéo 10h, 2h, 4h, 8h @ 400px/s cơ động, 100px/s tuần tra, nghiêng +-25°, squash & stretch, bóng mờ 2D, dừng đứng thẳng 0°), đóng gói hoàn chỉnh thành Character Scene trong Godot 4 (vargost_character.tscn) và cấu hình xuất xưởng Android. Chuẩn bị tiếp nhận nhân vật thứ 2.",
+    "source": "Yêu cầu của người dùng ngày 2026-10-31 (cập nhật lúc 15:10 UTC)",
+    "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mỗi model/class được đào tạo tư duy chiến đấu riêng biệt (Utility AI: di chuyển, bay, chọn mục tiêu, kích hoạt skill theo thời gian tối ưu, Tanker che chắn skill hiểm, Healer hồi máu đồng đội nguy cấp). 2 đội tranh giành 1 vật phẩm ở giữa map bằng cách đứng chiếm giữ liên tục trong 15s để chiến thắng. Vargost là nhân vật ĐẦU TIÊN ĐÃ ĐƯỢC NGƯỜI DÙNG PHÊ DUYỆT CHỐT HOÀN TOÀN (user_approved): Chuỗi hoạt ảnh 83 frame mượt mà, Chiêu Tối Thượng Blazing Halo (1100px/s), nổ diện rộng 91 frame, hệ thống di chuyển 2D Vector đa hướng, teleport đứng thẳng 0° khi lùi, Ống máu Gothic RPG phân màu chuẩn chiến thuật (Xanh lá tươi cho Đồng minh/Vargost, Đỏ ruby cho Kẻ địch, tăng tươi 15%, giảm 15% độ dày, cách đỉnh đầu 10px), Hoạt ảnh gục ngã KO tan biến đồng bộ cả thân thể lẫn thanh máu (0.3s Freeze -> Evaporating Dissolve bốc hơi 1.6s bay lên 30px và mờ dần -> 3.4s hồi sinh), Full-Body Whiteout Hit Flash lóe sáng toàn thân khi trúng đòn và Hit Impact VFX cải tiến rực rỡ.",
     "open_questions": [
       "Người dùng chọn nhân vật thứ 2 (Tanker, Healer, hay Melee Assassin trong 177 nhân vật) để tiến hành dựng hoạt ảnh, hitbox và bộ não Utility AI theo chuẩn tương tự Vargost",
       "Tọa độ và bán kính chính xác của vùng chứa vật phẩm 15s ở giữa map ngang",
@@ -45,12 +45,22 @@
       "source": "Asset/Character/characters/vargost_combat/vargost_character.tscn"
     },
     {
-      "fact": "Trang mô phỏng chuỗi tấn công Vargost chạy tại http://localhost:4173/vargost-skill-test.html tích hợp Kính Lúp Đo Pixel 10x, thanh Nộ Khí (Rage Bar), cụm nút điều khiển bay xéo 10h/2h/4h/8h (phím Q/E/Z/C), cấu trúc HUD 2 tầng cố định triệt tiêu 100% layout shift, và liên kết liên tục khi scrub timeline.",
+      "fact": "Hệ thống hỗ trợ 100% cơ chế lật đối xứng ngang (Symmetrical Horizontal Flip) cho cả 2 phe Đội Trái (Trái ➔ Phải) và Đội Phải (Phải ➔ Trái): Thân nhân vật, điểm phát đạn SpawnMarker2D, vector bay đạn 1100px/s, góc nghiêng thân và bộ não Utility AI.",
+      "source": "Asset/Character/characters/vargost_combat/vargost_character.gd"
+    },
+    {
+      "fact": "Trang mô phỏng chuỗi tấn công Vargost chạy tại http://localhost:4173/vargost-skill-test.html tích hợp nút bấm '🔄 Hướng: Đội Trái (Trái ➔ Phải) / Đội Phải (Phải ➔ Trái)', nút '⚠️ Thử Bay Lố (Địch sau lưng)', thanh trượt 'Tốc độ trục Y (Lên/Xuống): 100 - 300 px/s', Kính Lúp Đo Pixel 10x, thanh Nộ Khí, cụm nút điều khiển bay xéo 10h/2h/4h/8h.",
       "source": "tools/asset-viewer/vargost-skill-test.html"
+    },
+    {
+      "fact": "Đã thiết lập skill chuẩn hóa godwar-combat-character tại .agents/skills/godwar-combat-character/SKILL.md (tự động liên kết ~/.codex/skills) và cập nhật Hiến pháp AGENTS.md, godwar-add-character/SKILL.md: Mọi nhân vật chiến đấu tiếp theo bắt buộc tự động xây dựng hỗ trợ cả 2 hướng Trái ⇋ Phải đối xứng qua pivot neo, giới hạn tốc độ Y [100, 300] px/s, nội suy lật mặt 2.5D mượt mà và AI hạn chế đánh sau lưng.",
+      "source": ".agents/skills/godwar-combat-character/SKILL.md"
     }
   ],
   "tracking_documents": [
     "AGENTS.md",
+    ".agents/skills/godwar-combat-character/SKILL.md",
+    ".agents/skills/godwar-add-character/SKILL.md",
     "docs/approved-animations-20261031.md",
     "docs/approved-animations-20261030.md",
     "docs/approved-animations-20261029.md",
@@ -60,35 +70,93 @@
     "Asset/Scenes/amore_scale_test/README.md"
   ],
   "current_task": {
-    "title": "Chính Thức Chốt Hoạt Ảnh & Chiêu Thức Vargost, Hệ Thống Hóa Toàn Diện Chạy Trên Godot 4 & Android, và Push Lên Main",
+    "title": "Chính Thức Chốt Toàn Bộ Asset & Logic Vargost, Đầy Đủ Chiến Đấu 2 Hướng, Ống Máu Gothic RPG 2 Phe & Chuẩn Bị Cho Nhân Vật Tiếp Theo",
     "status": "completed",
     "changes": [
-      "1. Người dùng chính thức chốt hoạt ảnh và chiêu thức Vargost: Cập nhật candidate.json sang status: user_approved, approval_date: 2026-10-31, ghi nhận mốc phê duyệt chính thức.",
-      "2. Cập nhật đồng bộ manifest snapshot Asset/Character/characters/approved-animations-20261031-v9.json với SHA-256 mới của candidate.json (8f3d5b3e199ba1bebbb3e26c5933ea659e3e013f9e505507fafff805873f7c82) và status user_approved.",
-      "3. Xây dựng Character Scene và Script hoàn chỉnh trong Godot 4: Asset/Character/characters/vargost_combat/vargost_character.tscn và vargost_character.gd với CharacterBody2D, AnimatedSprite2D, CapsuleShape2D và SpawnMarker2D, hỗ trợ đầy đủ 2D vector flight và Utility AI.",
-      "4. Nâng cấp thư viện động scripts/animation/gif_atlas_library.gd: bổ sung create_vargost_combat() tạo tự động SpriteFrames (idle 22, blazing_halo 39, windup 24, recovery 14, projectile 8, explosion 91) và _load_texture_safe() tải texture độc lập tương thích cả headless CLI lẫn export runtime.",
-      "5. Cập nhật export_presets.cfg cho Android: bổ sung filter include_filter đóng gói toàn bộ manifest JSON chiến đấu và measured atlas vào APK/PCK.",
-      "6. Cập nhật README.md và docs/approved-animations-20261031.md ghi nhận Vargost là nhân vật chính thức đầu tiên hoàn tất quy trình chuẩn hóa."
+      "1. Người dùng chính thức nghiệm thu và chốt phiên Vargost: Toàn bộ asset, hoạt ảnh 83 frame (Idle + Blazing Halo), chuỗi kỹ năng bay đa hướng 2D vector, thân pháp biến ảnh pixel 3 nhịp xoay mặt 2.5D, cơ chế lật đối xứng 2 phe (Trái ⇋ Phải), ống máu Gothic RPG 2 màu phân định đồng minh/kẻ địch và hoạt ảnh gục ngã KO tan biến đồng bộ.",
+      "2. Hoàn thiện hệ thống ống máu Gothic RPG: Đầy đủ 2 bộ asset phân biệt phe Đồng Minh (Xanh Lá Ngọc Bảo tươi hơn 15%) và phe Kẻ Địch (Đỏ Ruby tươi hơn 15%), bảo tồn lõi ống thủy tinh rỗng khi trúng đòn, cơ chế Damage Ghost chớp sáng và dither pixel rụng tàn tro, cách đỉnh đầu và chóp sừng 10px, giảm 15% độ dày chuẩn tỷ lệ vàng mobile.",
+      "3. Hoàn thiện vòng đời KO và gục ngã: Đồng bộ tuyệt đối cả thân thể Vargost lẫn thanh máu trong 3 pha (Pha 1: Freeze 0.3s rung chấn -> Pha 2: Bốc hơi pixel 1.6s bay lên 30px và mờ dần -> Pha 3: Hư không hoàn toàn và hồi sinh ở 3.4s).",
+      "4. Đồng bộ mã nguồn Godot 4: vargost_character.gd và vargost_character.tscn hỗ trợ set_facing(dir), SpawnMarker2D đồng bộ, giới hạn tốc độ Y [100, 300]px/s, shader pixel_dissolve.gdshader.",
+      "5. Bộ unit test tự động hoàn chỉnh: tools/asset-viewer/vargost-combat-logic.test.mjs bao phủ 5 kịch bản chiến đấu (Teleport lùi, Đạn né trượt, Phản công giật lùi, Ống máu Gothic pixel dissolve, KO & Hồi sinh), đạt 8/8 tests pass 100%."
     ],
     "verification": [
-      "Godot 4.3 Headless CLI: PASS check_vargost_godot.gd (load vargost combat package: 22 idle frames, 39 blazing halo frames, 8 projectile frames, 91 explosion frames, scale 0.872, anchor [105, 162]).",
-      "Godot 4.3 Headless CLI: PASS test_instantiate_vargost_scene.gd (instantiate vargost_character.tscn into scene tree).",
-      "Godot 4.3 Headless CLI: PASS check_vargost_combat.gd.",
-      "npm test: 7/7 bài kiểm thử pass.",
-      "python3 -m unittest discover tests: 2/2 bài kiểm thử pass.",
-      "curl -s -I http://localhost:4173/vargost-skill-test.html trả về HTTP 200 OK."
+      "npm test: 8/8 bài kiểm thử unit test pass 100% trong 8.6s.",
+      "Godot 4.3 Headless CLI: PASS test_instantiate_vargost_scene.gd (kiểm tra instantiation, AnimatedSprite2D, SpawnMarker2D, set_facing cả 2 hướng -1 và +1).",
+      "node --check tools/asset-viewer/vargost-skill-test.js: PASS zero error.",
+      "HTTP Server 4173: Cung cấp đầy đủ asset UI health_bar_green.png, health_bar_blood.png, health_bar_empty.png, health_bar_glass.png (HTTP 200 OK)."
     ],
     "remaining": [],
     "limitations": [
-      "Vargost đã hoàn thiện 100% và sẵn sàng cho room chiến đấu 3v3 trên Godot 4 và Android mobile."
+      "Vargost đã hoàn thiện trọn vẹn 100% về mọi mặt hoạt ảnh, động học, UI máu và logic Utility AI, sẵn sàng đưa vào sàn đấu 3v3."
     ],
     "next_steps": [
-      "Người dùng chọn nhân vật tiếp theo (Tanker, Healer, hay Melee Assassin trong 177 nhân vật) để tiến hành dựng hoạt ảnh, hitbox và bộ não Utility AI theo chuẩn tương tự Vargost.",
-      "Tích hợp các nhân vật vào sàn đấu 3v3 tranh vật phẩm 15s ở giữa map."
+      "Người dùng chọn nhân vật chiến đấu thứ 2 (Tanker, Healer, hay Melee Assassin trong 177 nhân vật) để tiến hành dựng hoạt ảnh, hitbox và bộ não Utility AI theo chuẩn tương tự Vargost.",
+      "Thiết lập sàn đấu 3v3 tranh vật phẩm 15s ở giữa map."
     ]
   },
-  "working_tree_note": "Vargost đã chính thức chốt và đóng gói hoàn chỉnh cho Godot 4 & Android, server cổng 4173 đang chạy nền ổn định.",
+  "working_tree_note": "Chốt toàn diện Vargost, hoàn tất kiểm thử 8/8 tests, sẵn sàng chọn nhân vật chiến đấu tiếp theo cho GodWar 3v3.",
   "history": [
+    {
+      "title": "Khắc Phục Lỗi Mất Nhân Vật/Mục Tiêu Sau 1s & Tách Biệt Physics Update Ra Khỏi drawScene",
+      "status": "completed",
+      "changes": [
+        "1. Truy vết chính xác nguyên nhân mất hình sau 1s: ReferenceError: dt is not defined trong drawScene khi có tàn tro/damage number đầu tiên xuất hiện.",
+        "2. Tách bạch 100% giữa Logic/Physics Update và Render: Đưa toàn bộ việc cập nhật vị trí/alpha của enemyHitFlash, enemyDamageNumbers và emberParticles vào trong update(dt).",
+        "3. Đồng bộ hóa tham số drawScene(targetX, targetY, dt) và đưa việc render emberParticles ra ngoài không gian toàn cục."
+      ]
+    },
+    {
+      "title": "Tạo Skill Chuẩn Hóa Nhân Vật Chiến Đấu 2 Hướng (godwar-combat-character) và Cập Nhật Hiến Pháp AGENTS.md",
+      "status": "completed",
+      "changes": [
+        "1. Tạo mới skill chuẩn hóa .agents/skills/godwar-combat-character/SKILL.md quy định toàn diện tiêu chuẩn xây dựng nhân vật chiến đấu 3v3 Auto-battler: bắt buộc hỗ trợ 2 hướng xuất phát (Đội Trái và Đội Phải) bằng lật đối xứng ngang quanh pivot neo chân, hàm set_facing(dir), đồng bộ SpawnMarker2D, đạn vector 2D, góc nghiêng thân và Utility AI.",
+        "2. Cập nhật Hiến pháp AGENTS.md tại mục 'Mục tiêu sản phẩm': ghi nhận quy chuẩn bắt buộc mọi nhân vật tiếp theo phải tuân thủ skill godwar-combat-character.",
+        "3. Cập nhật .agents/skills/godwar-add-character/SKILL.md tại điều 8: liên kết trực tiếp quy trình nhập nhân vật với skill godwar-combat-character.",
+        "4. Xác nhận tự động đồng bộ hóa sang môi trường Codex CLI thông qua symlink ~/.codex/skills/godwar-combat-character/SKILL.md."
+      ],
+      "verification": [
+        "Kiểm tra symlink: ls -la ~/.codex/skills/godwar-combat-character/SKILL.md xác nhận tệp tồn tại và đồng bộ 100%.",
+        "Godot 4.3 Headless CLI: PASS test_instantiate_vargost_scene.gd (xác nhận sprite.scale.x = -0.872, spawn.x = -17.44 khi nhìn trái, và +0.872, +17.44 khi nhìn phải).",
+        "npm test: 7/7 bài kiểm thử pass.",
+        "python3 -m unittest discover tests: 2/2 bài kiểm thử pass.",
+        "curl -s -I http://localhost:4173/vargost-skill-test.html trả về HTTP 200 OK."
+      ],
+      "remaining": [],
+      "limitations": [
+        "Mọi agent tiếp theo (cả Antigravity CLI và Codex CLI) khi nhận lệnh dựng nhân vật mới đều sẽ tự động đọc skill này và xây dựng chuẩn chỉnh 2 hướng từ đầu."
+      ],
+      "next_steps": [
+        "Người dùng chọn nhân vật thứ 2 (Tanker, Healer, hay Melee Assassin trong 177 nhân vật) để tiến hành dựng hoạt ảnh, hitbox và bộ não Utility AI 2 hướng theo đúng skill godwar-combat-character."
+      ]
+    },
+    {
+      "title": "Chính Thức Chốt Hoạt Ảnh & Chiêu Thức Vargost, Hệ Thống Hóa Toàn Diện Chạy Trên Godot 4 & Android, và Push Lên Main",
+      "status": "completed",
+      "changes": [
+        "1. Người dùng chính thức chốt hoạt ảnh và chiêu thức Vargost: Cập nhật candidate.json sang status: user_approved, approval_date: 2026-10-31, ghi nhận mốc phê duyệt chính thức.",
+        "2. Cập nhật đồng bộ manifest snapshot Asset/Character/characters/approved-animations-20261031-v9.json với SHA-256 mới của candidate.json (8f3d5b3e199ba1bebbb3e26c5933ea659e3e013f9e505507fafff805873f7c82) và status user_approved.",
+        "3. Xây dựng Character Scene và Script hoàn chỉnh trong Godot 4: Asset/Character/characters/vargost_combat/vargost_character.tscn và vargost_character.gd với CharacterBody2D, AnimatedSprite2D, CapsuleShape2D và SpawnMarker2D, hỗ trợ đầy đủ 2D vector flight và Utility AI.",
+        "4. Nâng cấp thư viện động scripts/animation/gif_atlas_library.gd: bổ sung create_vargost_combat() tạo tự động SpriteFrames (idle 22, blazing_halo 39, windup 24, recovery 14, projectile 8, explosion 91) và _load_texture_safe() tải texture độc lập tương thích cả headless CLI lẫn export runtime.",
+        "5. Cập nhật export_presets.cfg cho Android: bổ sung filter include_filter đóng gói toàn bộ manifest JSON chiến đấu và measured atlas vào APK/PCK.",
+        "6. Cập nhật README.md và docs/approved-animations-20261031.md ghi nhận Vargost là nhân vật chính thức đầu tiên hoàn tất quy trình chuẩn hóa."
+      ],
+      "verification": [
+        "Godot 4.3 Headless CLI: PASS check_vargost_godot.gd (load vargost combat package: 22 idle frames, 39 blazing halo frames, 8 projectile frames, 91 explosion frames, scale 0.872, anchor [105, 162]).",
+        "Godot 4.3 Headless CLI: PASS test_instantiate_vargost_scene.gd (instantiate vargost_character.tscn into scene tree).",
+        "Godot 4.3 Headless CLI: PASS check_vargost_combat.gd.",
+        "npm test: 7/7 bài kiểm thử pass.",
+        "python3 -m unittest discover tests: 2/2 bài kiểm thử pass.",
+        "curl -s -I http://localhost:4173/vargost-skill-test.html trả về HTTP 200 OK."
+      ],
+      "remaining": [],
+      "limitations": [
+        "Vargost đã hoàn thiện 100% và sẵn sàng cho room chiến đấu 3v3 trên Godot 4 và Android mobile."
+      ],
+      "next_steps": [
+        "Người dùng chọn nhân vật tiếp theo (Tanker, Healer, hay Melee Assassin trong 177 nhân vật) để tiến hành dựng hoạt ảnh, hitbox và bộ não Utility AI theo chuẩn tương tự Vargost.",
+        "Tích hợp các nhân vật vào sàn đấu 3v3 tranh vật phẩm 15s ở giữa map."
+      ]
+    },
     {
       "title": "Cố Định Giao Diện UI & Khóa Chiều Cao HUD Triệt Tiêu Hoàn Toàn Hiện Tượng Nhảy Khung Viewport",
       "status": "completed",
