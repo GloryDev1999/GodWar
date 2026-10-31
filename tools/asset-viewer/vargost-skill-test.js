@@ -267,7 +267,7 @@ kfIdle.addEventListener('click', () => selectFrame(0));
 kfWindup.addEventListener('click', () => selectFrame(44));
 kfCharged.addEventListener('click', () => selectFrame(63));
 kfRelease.addEventListener('click', () => selectFrame(68));
-kfReignite.addEventListener('click', () => selectFrame(72));
+kfReignite.addEventListener('click', () => selectFrame(74));
 kfBa1Fold.addEventListener('click', () => selectFrame(83));
 kfBa1Throw.addEventListener('click', () => selectFrame(85));
 kfBa2Fold.addEventListener('click', () => selectFrame(89));
@@ -512,9 +512,9 @@ function startBasicAttack1() {
   pendingCombatAction = null;
   currentFrameIndex = 83;
   frameTimeAccumulator = 0;
-  hudState.textContent = 'Đòn 1: TAY PHẢI GẬP BỤNG (dx=+16, dy=-45)';
+  hudState.textContent = 'Đòn 1: TAY TRÁI NÉM (dx=-15, dy=-48) - Mất vòng lửa tay trái';
   hudState.className = 'badge active';
-  hudAi.textContent = 'AI: Đánh thường Đòn 1';
+  hudAi.textContent = 'AI: Đánh thường Đòn 1 (Tay trái ném)';
   hudAi.className = 'badge active';
 }
 
@@ -522,19 +522,19 @@ function startBasicAttack2() {
   aiState = 'BA2_WINDUP';
   currentFrameIndex = 89;
   frameTimeAccumulator = 0;
-  hudState.textContent = 'Đòn 2: TAY TRÁI GẬP NGỰC/BỤNG';
+  hudState.textContent = 'Đòn 2: TAY PHẢI NÉM (dx=+24, dy=-48) - 2 tay đều rỗng';
   hudState.className = 'badge active';
-  hudAi.textContent = 'AI: Đánh thường Đòn 2';
+  hudAi.textContent = 'AI: Đánh thường Đòn 2 (Tay phải ném)';
   hudAi.className = 'badge active';
 }
 
 function startReignite() {
   aiState = 'BA_REIGNITE';
-  currentFrameIndex = 72;
+  currentFrameIndex = 74;
   frameTimeAccumulator = 0;
-  hudState.textContent = 'Hồi chiêu: TỤ LẠI 2 VÒNG LỬA (Frame 72-77)';
+  hudState.textContent = 'Hồi chiêu: TỤ LẠI 2 VÒNG LỬA (Frame 74-77)';
   hudState.className = 'badge';
-  hudAi.textContent = 'AI: Gọi lại vòng lửa';
+  hudAi.textContent = 'AI: Gọi lại 2 vòng lửa';
   hudAi.className = 'badge';
 }
 
@@ -824,32 +824,32 @@ function update(dt) {
       else if (aiState === 'BA1_WINDUP') {
         currentFrameIndex++;
         if (currentFrameIndex === 85) {
-          spawnSmallProjectile(targetX, targetY, false);
+          spawnSmallProjectile(targetX, targetY, true);
           aiState = 'BA1_RECOVERY';
-          hudState.textContent = 'Đòn 1: PHÓNG VÒNG LỬA NHỎ 1 (FRAME 85)';
+          hudState.textContent = 'Đòn 1: PHÓNG VÒNG LỬA TAY TRÁI (FRAME 85)';
         }
       } else if (aiState === 'BA1_RECOVERY') {
         currentFrameIndex++;
         if (currentFrameIndex >= 88) {
           currentFrameIndex = 88;
           aiState = 'BA1_WAIT_HIT';
-          hudState.textContent = 'Đòn 1: THU TAY TRỐNG - ĐỢI ĐẠN CHẠM ĐÍCH';
+          hudState.textContent = 'Đòn 1: TAY TRÁI THU VỀ RỖNG - ĐỢI ĐẠN CHẠM ĐÍCH';
         }
       }
       // Basic Attack 2 (89 -> 90 -> 91 -> 92 -> 93 -> 94)
       else if (aiState === 'BA2_WINDUP') {
         currentFrameIndex++;
         if (currentFrameIndex === 91) {
-          spawnSmallProjectile(targetX, targetY, true);
+          spawnSmallProjectile(targetX, targetY, false);
           aiState = 'BA2_RECOVERY';
-          hudState.textContent = 'Đòn 2: PHÓNG VÒNG LỬA NHỎ 2 (FRAME 91)';
+          hudState.textContent = 'Đòn 2: PHÓNG VÒNG LỬA TAY PHẢI (FRAME 91)';
         }
       } else if (aiState === 'BA2_RECOVERY') {
         currentFrameIndex++;
         if (currentFrameIndex >= 94) {
           currentFrameIndex = 94;
           aiState = 'BA2_WAIT_HIT';
-          hudState.textContent = 'Đòn 2: 2 TAY ĐỀU TRỐNG - ĐỢI ĐẠN CHẠM ĐÍCH';
+          hudState.textContent = 'Đòn 2: 2 TAY ĐỀU RỖNG - ĐỢI ĐẠN CHẠM ĐÍCH';
         }
       }
       // Reignite Sequence (72 -> 77 -> 82 -> loop to 0)
@@ -1112,20 +1112,20 @@ function render() {
       renderProjSize = 80 * spriteScale;
       renderSpinFrame = (currentFrameIndex * 2) % 8;
     }
-    // Basic Attack 1 Throw Flight (Frames 85 to 88)
+    // Basic Attack 1 Throw Flight (Frames 85 to 88) - Left Hand Throw
     else if (currentFrameIndex >= 85 && currentFrameIndex <= 88) {
       const t = (currentFrameIndex - 85) / 3.0;
-      const startX = vargostX + 24 * spriteScale;
+      const startX = vargostX - 15 * spriteScale;
       const startY = (vargostY + hoverOffset) - 48 * spriteScale;
       renderProjX = startX + (targetX - startX) * t;
       renderProjY = startY + (targetY - startY) * t;
       renderProjSize = 56 * spriteScale;
       renderSpinFrame = (currentFrameIndex * 2) % 8;
     }
-    // Basic Attack 2 Throw Flight (Frames 91 to 94)
+    // Basic Attack 2 Throw Flight (Frames 91 to 94) - Right Hand Throw
     else if (currentFrameIndex >= 91 && currentFrameIndex <= 94) {
       const t = (currentFrameIndex - 91) / 3.0;
-      const startX = vargostX - 15 * spriteScale;
+      const startX = vargostX + 24 * spriteScale;
       const startY = (vargostY + hoverOffset) - 48 * spriteScale;
       renderProjX = startX + (targetX - startX) * t;
       renderProjY = startY + (targetY - startY) * t;

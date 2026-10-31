@@ -34,11 +34,11 @@
       "loop": true
     },
     "basic_attack": {
-      "description": "Đòn đánh thường Twin Fire Strike: combo 2 đòn ném vòng lửa nhỏ tích nộ; đòn 1 từ tay phải, đòn 2 từ tay trái, hồi phục 2 vòng lửa ở cuối combo",
+      "description": "Đòn đánh thường Twin Fire Strike: combo 2 đòn ném vòng lửa nhỏ tích nộ; đòn 1 từ tay trái, đòn 2 từ tay phải, hồi phục 2 vòng lửa ở cuối combo",
       "rage_gain_per_hit": 25,
       "total_rage_gain": 50,
       "attack_1": {
-        "description": "Đòn 1: Tay phải gập về bụng, phóng vòng lửa nhỏ 1, thu tay về trống",
+        "description": "Đòn 1: Tay trái ném theo mẫu chuẩn (mirrored từ frame 62..73), phóng vòng lửa nhỏ 1, mất vòng lửa tay trái, tay phải giữ thế tĩnh có vòng lửa",
         "windup": {
           "start_frame": 83,
           "end_frame": 84,
@@ -47,7 +47,7 @@
         "release": {
           "frame": 85,
           "offset_from_anchor_px": [
-            24,
+            -15,
             -48
           ],
           "projectile_speed_px_per_sec": 1100,
@@ -65,7 +65,7 @@
         }
       },
       "attack_2": {
-        "description": "Đòn 2: Tay trái gập về ngực/bụng, phóng vòng lửa nhỏ 2, thu tay về trống",
+        "description": "Đòn 2: Tay phải ném theo mẫu chuẩn (frame 62..73 với vai/tay frame 67 tái tạo mượt mà), phóng vòng lửa nhỏ 2, mất vòng lửa tay phải (cả 2 tay đều rỗng), tay trái giữ thế tĩnh rỗng",
         "windup": {
           "start_frame": 89,
           "end_frame": 90,
@@ -74,7 +74,7 @@
         "release": {
           "frame": 91,
           "offset_from_anchor_px": [
-            -15,
+            24,
             -48
           ],
           "projectile_speed_px_per_sec": 1100,
@@ -92,8 +92,8 @@
         }
       },
       "reignite": {
-        "description": "Tụ lại 2 vòng lửa ở 2 bàn tay trống tương tự frame 73-77",
-        "start_frame": 72,
+        "description": "Tụ lại 2 vòng lửa ở 2 bàn tay rỗng từ frame 74 đến 77",
+        "start_frame": 74,
         "end_frame": 77,
         "duration_per_frame_ms": 60
       }

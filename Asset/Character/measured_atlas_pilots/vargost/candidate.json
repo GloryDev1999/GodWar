@@ -4,7 +4,7 @@
   "source_sha256": "fbd1eec8544ab241c9d5bede17d181f5f458da5495907815b692f87cab81b62e",
   "input_candidate": "vargost_combat",
   "input_sha256": {
-    "Asset/Character/characters/vargost_combat/vargost_body_atlas.png": "b78a397ebb05985f9690972780b6c071f7d93f1c8b74546e97d6382007b6f2f6"
+    "Asset/Character/characters/vargost_combat/vargost_body_atlas.png": "28d2f614cd73f02d7544645c799bc4b2e5f2c193727254feccb3e931afe3cf56"
   },
   "art_source": "existing",
   "frame_count": 95,

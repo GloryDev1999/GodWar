@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-10-31T07:44:00Z",
+  "updated_at_utc": "2026-10-31T08:35:00Z",
   "purpose": "Bộ nhớ bàn giao ngắn gọn cho agent; đối chiếu với mã, tài liệu và git status khi bắt đầu phiên.",
   "product_goal": {
     "source": "Yêu cầu của người dùng ngày 2026-10-31 (cập nhật lúc 07:25 UTC)",
@@ -38,7 +38,7 @@
       "source": "AGENTS.md"
     },
     {
-      "fact": "Vargost có 95 frame hoàn chỉnh gồm Idle (0..21), Blazing Halo (44..82), Basic Attack Đòn 1 (83..88), Basic Attack Đòn 2 (89..94) và Re-ignite (72..77).",
+      "fact": "Vargost có 95 frame hoàn chỉnh gồm Idle (0..21), Blazing Halo (44..82), Basic Attack Đòn 1 Tay Trái (83..88), Basic Attack Đòn 2 Tay Phải (89..94) và Re-ignite (74..77).",
       "source": "Asset/Character/characters/vargost_combat/vargost_actions.json"
     },
     {
@@ -57,34 +57,32 @@
     "Asset/Scenes/amore_scale_test/README.md"
   ],
   "current_task": {
-    "title": "Thiết Kế Hoạt Ảnh Đánh Thường 2 Đòn (Twin Fire Strike), Tụ Lửa, Tích Nộ & Chốt Blazing Halo Cho Vargost",
+    "title": "Chuẩn Hóa Hoạt Ảnh Đánh Thường Vargost Theo Mẫu Ném Frame 62-73, Tái Tạo Vai/Tay Frame 67, Đổi Đòn 1 Tay Trái -> Đòn 2 Tay Phải -> Tụ Lửa",
     "status": "completed",
     "changes": [
-      "1. Dựng 12 frame pixel art hoàn chỉnh cho Đánh Thường (Twin Fire Strike) từ nguyên bản Vargost:",
-      "   - Đòn 1 (Frame 83..88): Tay phải gập về bụng (dx=+16, dy=-45), phóng vòng lửa nhỏ 1 (56px) @ 1100px/s, tay thu về mượt mà không nhảy cóc (tay phải trống, tay trái giữ lửa).",
-      "   - Đòn 2 (Frame 89..94): Khi đòn 1 trúng đích, tay trái gập vào ngực/bụng, phóng tiếp vòng lửa nhỏ 2 @ 1100px/s, tay thu về mượt mà (cả 2 tay trống).",
-      "   - Tụ Lại 2 Vòng Lửa (Frame 72..77): Lửa nhen nhóm và bùng lên tại 2 tay, tái lập 2 vòng xoay, loop về frame 0, nạp +50% Nộ.",
-      "2. Chốt Chiêu Tối Thượng Blazing Halo: Yêu cầu 100% Nộ khí. Vận công gom 2 vòng nhỏ thành 1 vòng lớn ở Frame 63, phóng ở Frame 68 (@ 900px/s), nổ diện rộng 91 frame và thu tay hồi thế sạch (Frame 69..82).",
-      "3. Khắc phục thanh tua Frame (Timeline Scrubber): Liên kết hiển thị vòng đạn liên tục theo quỹ đạo trong các frame phóng (Frame 68..74, 85..88, 91..94), giải quyết triệt để lỗi biến mất vòng tròn khi kéo tay.",
-      "4. Đóng gói unified atlas 95 frame (2000x2000 px), ghi đè trực tiếp lên vargost_body_atlas.png và atlas_000.png, cập nhật vargost_actions.json, candidate.json, approved-animations-20261031-v9.json.",
-      "5. Cập nhật giao diện vargost-skill-test.html và vargost-skill-test.js: Thêm thanh Nộ Khí (Rage Bar) rực sáng khi 100%, 2 nút kỹ năng riêng biệt, 9 bookmark keyframe."
+      "1. Tái tạo cánh tay & vai Frame 67: Bù 746 pixel bị khuyết giải phẫu do xóa vòng Blazing Halo cũ bằng cách nội suy từ Frame 66 và 68, giúp chuyển động vung tay mượt mà không bị thủng hình.",
+      "2. Đòn 1 (Frame 83..88): Tay trái ném theo mẫu ném chuẩn (mirrored từ chuỗi Frame 62..73), tay phải giữ nguyên tư thế tĩnh Idle có vòng lửa; phóng đạn nhỏ 1 ở Frame 85 (dx=-15, dy=-48); thu tay về tư thế tĩnh rỗng (mất vòng lửa tay trái).",
+      "3. Đòn 2 (Frame 89..94): Tay phải ném theo mẫu chuẩn chuỗi Frame 62..73 (với Frame 67 đã được vá hoàn chỉnh), tay trái giữ nguyên tư thế tĩnh rỗng; phóng đạn nhỏ 2 ở Frame 91 (dx=+24, dy=-48); thu tay về tư thế tĩnh rỗng ở Frame 94 (cả 2 tay đều rỗng vòng lửa).",
+      "4. Tụ Lại Vòng Lửa (Frame 74..77): Nối liền từ tư thế 2 tay rỗng vào chuỗi gọi lại 2 vòng lửa bùng lên và định hình lại như cũ, sau đó loop về Frame 0 (Idle).",
+      "5. Đóng gói lại atlas 95 frame (2000x2000 px), ghi đè trực tiếp lên body_frames, vargost_body_atlas.png và atlas_000.png theo hiến pháp AGENTS.md, cập nhật SHA-256 trong candidate.json, approved-animations-20261031-v9.json, vargost_actions.json.",
+      "6. Cập nhật vargost-skill-test.js & vargost-skill-test.html: Chuẩn hóa scrubber preview, bookmark và logic bắn đạn theo đúng thứ tự: Đòn 1 Tay Trái -> Đòn 2 Tay Phải -> Tụ Lại 2 Vòng Lửa."
     ],
     "verification": [
       "Godot 4.3 Headless CLI: PASS Vargost combat chain: 95 frames (idle 0..21, basic attack 83..94, blazing halo 44..82), dual skill combo, rage bar, 8-frame projectile @ 900-1100px/s, range [150, 550], explosion 91 frames.",
       "npm test: 7/7 bài kiểm thử pass.",
       "python3 -m unittest discover tests: 2/2 bài kiểm thử pass.",
-      "curl -s -I http://localhost:4173/vargost-skill-test.html và vargost-skill-test.js trả về HTTP 200 OK."
+      "curl -s -I http://localhost:4173/vargost-skill-test.html trả về HTTP 200 OK."
     ],
     "remaining": [],
     "limitations": [
-      "Vargost đã hoàn thiện 2 bộ kỹ năng và cơ chế nộ trên localhost; sẵn sàng tiếp nhận phản hồi kiểm thử của người dùng."
+      "Vargost đã hoàn thiện toàn diện 2 bộ kỹ năng và cơ chế nộ trên localhost; sẵn sàng để người dùng kiểm tra trực quan trên trình duyệt."
     ],
     "next_steps": [
-      "Người dùng mở http://localhost:4173/vargost-skill-test.html để kiểm tra combo đánh thường 2 đòn, tích nộ, tụ lửa và chiêu Blazing Halo.",
-      "Sau khi người dùng ưng ý chốt Vargost, chọn tiếp 5 nhân vật để hoàn thiện 2 team 3v3."
+      "Người dùng mở http://localhost:4173/vargost-skill-test.html để kiểm tra hoạt ảnh ném mượt mà mới của Vargost.",
+      "Sau khi người dùng ưng ý chốt Vargost, chọn tiếp 5 nhân vật tiếp theo để hoàn thiện 2 team 3v3."
     ]
   },
-  "working_tree_note": "Atlas và manifest đã nâng cấp lên 95 frame, server cổng 4173 đang chạy nền ổn định.",
+  "working_tree_note": "Atlas và manifest đã nâng cấp lên 95 frame hoàn thiện, server cổng 4173 đang chạy nền ổn định.",
   "history": [
     {
       "title": "Khởi Chạy Localhost Asset Viewer (Cổng 4173) Phục Vụ Kiểm Thử Hoạt Ảnh Vargost",
