@@ -1,13 +1,12 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-11-01T08:59:00Z",
+  "updated_at_utc": "2026-11-01T14:54:00Z",
   "purpose": "Bộ nhớ bàn giao ngắn gọn cho agent; đối chiếu với mã, tài liệu và git status khi bắt đầu phiên.",
   "product_goal": {
-    "source": "Yêu cầu của người dùng ngày 2026-10-31 (cập nhật lúc 15:10 UTC)",
-    "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mỗi model/class được đào tạo tư duy chiến đấu riêng biệt (Utility AI: di chuyển, bay, chọn mục tiêu, kích hoạt skill theo thời gian tối ưu, Tanker che chắn skill hiểm, Healer hồi máu đồng đội nguy cấp). 2 đội tranh giành 1 vật phẩm ở giữa map bằng cách đứng chiếm giữ liên tục trong 15s để chiến thắng. Vargost là nhân vật ĐẦU TIÊN ĐÃ ĐƯỢC NGƯỜI DÙNG PHÊ DUYỆT CHỐT HOÀN TOÀN (user_approved): Chuỗi hoạt ảnh 83 frame mượt mà, Chiêu Tối Thượng Blazing Halo (1100px/s), nổ diện rộng 91 frame, hệ thống di chuyển 2D Vector đa hướng, teleport đứng thẳng 0° khi lùi, Ống máu Gothic RPG phân màu chuẩn chiến thuật (Xanh lá tươi cho Đồng minh/Vargost, Đỏ ruby cho Kẻ địch, tăng tươi 15%, giảm 15% độ dày, cách đỉnh đầu 10px), Hoạt ảnh gục ngã KO tan biến đồng bộ cả thân thể lẫn thanh máu (0.3s Freeze -> Evaporating Dissolve bốc hơi 1.6s bay lên 30px và mờ dần -> 3.4s hồi sinh), Full-Body Whiteout Hit Flash lóe sáng toàn thân khi trúng đòn và Hit Impact VFX cải tiến rực rỡ. Aoda là nhân vật thứ 2 (bộ binh 90px thuộc Team 2 · Kẻ Địch của Vargost) trang bị ống máu Đỏ Ruby, 2 kỹ năng: Chiêu 1 Tornado (85px, quét 50px/s đất, root & silence diện rộng, CD 5s, miễn nhiễm với mục tiêu bay) và Chiêu 2 FireOrb (cầu lửa 80px rơi từ đầu mục tiêu 20px xuống nổ Starburst 20px, choáng 0.5s có VFX ngôi sao xoay quanh đầu, CD 5s), Utility AI tự động nhắm mục tiêu gần nhất và chọn skill chuẩn theo mục tiêu trên không vs mặt đất, cơ chế nhảy bậc Parabol (Ledge Jumping) hạn chế chỉ nhảy khi mục tiêu ngoài tầm đánh > 420px và lật mặt tức thì không méo hình.",
+    "source": "Yêu cầu của người dùng ngày 2026-10-31 và 2026-11-01 (cập nhật lúc 14:50 UTC)",
+    "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mục tiêu cốt lõi của trận đấu là chiếm giữ Cứ Điểm Thánh Kiếm (Asset/Character/vfx/sword.mp4) tại Bệ Giữa Platform 2 với kích thước chiều cao chuẩn hóa 90px: Đội nào đứng trong vùng tròn bán kính 135px liên tục trong 20s sẽ chiến thắng. Nếu cả 2 đội cùng trong vùng thì Tranh Chấp và tạm dừng đếm giờ; nếu không còn ai trong vùng thì thời gian lập tức reset về 0.0s. Trận đấu vận hành thuần túy giữa các tướng (đã xóa bỏ toàn bộ hình nhân tập luyện). Toàn bộ Utility AI vận hành xoay vòng: Ngoài vùng kiếm -> Tấn công tiến về kiếm; Trong vùng kiếm -> Phòng thủ cứ điểm. Sau khi tử trận, nhân vật hồi sinh tại căn cứ đội (Team 1 trên không bên trái, Team 2 tại Platform 1A) và xuất kích tiến về kiếm. Vargost là tướng Team 1 (user_approved): Trang bị cơ chế Vertical Upward Escape thoát kẹt địa hình lên không trung, Chiêu Tối Thượng Blazing Halo (1100px/s), di chuyển 2D Vector đa hướng, teleport đứng 0° khi lùi. Aoda là tướng Team 2: Chiêu 1 Tornado đất 85px (tồn tại xoay đúng 2.0s tại chỗ, CD 5s, miễn nhiễm mục tiêu bay), FireOrb đã xóa hoàn toàn; Utility AI tự động nhảy vượt bệ và tiến về chiếm Thánh Kiếm.",
     "open_questions": [
-      "Tọa độ và bán kính chính xác của vùng chứa vật phẩm 15s ở giữa map ngang",
-      "Các chỉ số cơ bản cho Vargost và các nhân vật (HP, tầm đánh, cooldown skill, DPS)"
+      "Kỹ năng mới thay thế cho FireOrb của Aoda (người dùng đang tìm kiếm)"
     ]
   },
   "verified_context": [
@@ -69,36 +68,50 @@
     "Asset/Scenes/amore_scale_test/README.md"
   ],
   "current_task": {
-    "title": "Chuẩn Hóa Kích Thước FireOrb 80px, Nổ Starburst 20px, Khắc Phục Lỗi Hiển Thị Rơi & Giới Hạn Nhảy Bậc Cho Aoda (Lưu Tiến Độ Tạm Thời)",
-    "status": "in_progress_interim_push",
+    "title": "Xóa Bỏ 2 Hình Nhân Tập Luyện, Chuẩn Hóa Thánh Kiếm (sword.mp4) Chiều Cao 90px Tại Trung Tâm Platform 2",
+    "status": "completed",
     "changes": [
-      "1. Hạn chế nhảy bậc (Ledge Jumping): Aoda chỉ nhảy qua bệ khác khi mục tiêu ở xa hơn tầm đánh (hDistTarget > AODA_ATTACK_RANGE = 420px). Nếu mục tiêu trong tầm đánh (<= 420px), Aoda dừng lại ở mép bệ và chuyển sang IDLE để đứng thế thủ chiến đấu từ trên bệ chứ không nhảy bừa bãi.",
-      "2. Ép buộc logic Tornado đất: Chiêu 1 Tornado chỉ dùng cho kẻ địch mặt đất (!isFlying); khi kẻ địch đang bay (isFlying = true), Utility AI tự động đổi sang dùng FireOrb.",
-      "3. Tăng kích thước FireOrb lên 80px: Đáy quả cầu lửa khóa cách đỉnh đầu mục tiêu 20px (tâm cầu Y = targetHeadY - 20 - 40px).",
-      "4. Khắc phục triệt để lỗi không thấy FireOrb rơi: Đặt điều kiện va chạm chỉ kiểm tra sau khi cầu rơi tối thiểu 12px (tránh nổ ngay frame 1 do tâm cầu đặt gần bán kính va chạm) và xét chuẩn va chạm đáy cầu (orbBottomY >= targetHeadY). Quả cầu 80px rơi vút xuống rõ ràng đẹp mắt.",
-      "5. Thu nhỏ hiệu ứng nổ Starburst còn 20px: Đổi từ scale 0.95x của Vargost sang kích thước cố định 20px chuẩn theo yêu cầu.",
-      "6. Khắc phục tầm ngắm Utility AI: Sử dụng khoảng cách ngang hDist = |target.x - aodaX| thay cho khoảng cách không gian 3D, khắc phục tình trạng độ cao bay của Vargost (~680px) khiến AI không kích hoạt chiêu thức.",
-      "7. Cập nhật giao diện nút bấm và tài liệu cấu hình aoda_actions.json đồng bộ kích thước FireOrb 80px và Starburst 20px.",
-      "8. Bổ sung và cập nhật Unit Tests tự động: 16/16 bài test pass 100% (npm test)."
+      "1. Xóa bỏ hoàn toàn 2 hình nhân tập luyện: Đã gỡ bỏ Ground Dummy (hình nhân gỗ Platform 2) và Moving Dummy (hình nhân di động pixel) khỏi canvas render, vòng lặp cập nhật, thanh máu và giao diện điều khiển (chk-moving-target, chk-ground-dummy, btn-enemy-dash, btn-enemy-attack).",
+      "2. Trận đấu chuyển sang thuần giao tranh 1v1 giữa các Tướng (Vargost Team 1 vs Aoda Team 2): Vargost nhắm thẳng Aoda (hoặc Thánh Kiếm khi Aoda tử trận); Aoda nhắm thẳng Vargost (khi Vargost hạ cánh) hoặc tiến về chiếm Thánh Kiếm.",
+      "3. Chuẩn hóa Cứ Điểm Thánh Kiếm (Asset/Character/vfx/sword.mp4): Xuất hiện tại trung tâm Bệ Giữa Platform 2 (SWORD_X = mapX + 226 * mapScale, SWORD_Y = mapY + 194 * mapScale) với kích thước chiều cao chuẩn hóa đúng 90px (targetSwordH = 90.0, swScale = 90.0/158.0, drawH = 90px * zoom/0.7), cập nhật frames.json target_height_px: 90.",
+      "4. Vùng chiếm đóng 135px ghi nhận thuần túy 2 phe: Team 1 (Vargost) vs Team 2 (Aoda) tranh đoạt liên tục 20s chiến thắng.",
+      "5. Bổ sung bài unit test số 21 xác nhận chuẩn hóa 90px và loại bỏ hình nhân; toàn bộ 21/21 unit tests pass 100%."
     ],
     "verification": [
-      "16/16 bài unit test pass 100% (npm test không còn bất kỳ lỗi runtime nào).",
-      "node --check tools/asset-viewer/vargost-skill-test.js xác nhận cú pháp JavaScript chuẩn 100%.",
-      "Curl check kiểm tra HTTP 200 OK trên http://127.0.0.1:4173/vargost-skill-test.html.",
-      "Kiểm tra thực tế logic: Aoda dừng ở mép bệ khi địch trong tầm 420px, chỉ nhảy khi địch > 420px; FireOrb 80px rơi rõ ràng từ trên cao xuống và nổ 20px Starburst gây choáng 0.5s."
+      "21/21 bài unit test tự động pass 100% (npm test).",
+      "node --check tools/asset-viewer/vargost-skill-test.js xác nhận cú pháp JavaScript hợp lệ 100%.",
+      "HTTP 200 OK trên http://127.0.0.1:4173/vargost-skill-test.html và asset Thánh Kiếm.",
+      "Server thử nghiệm cục bộ đang chạy tại http://127.0.0.1:4173/vargost-skill-test.html."
     ],
     "remaining": [
-      "Chờ chỉ đạo công việc tiếp theo từ người dùng; toàn bộ tính năng Aoda hiện tại là phiên bản thử nghiệm phục vụ kiểm thử, chưa chốt chính thức."
+      "Người dùng chưa chốt phiên bản phát hành cuối cùng; sẽ tiếp tục tinh chỉnh vào ngày mai.",
+      "Tìm và tích hợp 1 kỹ năng mới thay thế cho FireOrb của Aoda."
     ],
     "limitations": [
-      "Hoạt ảnh nhảy của Aoda hiện áp dụng động học Parabol kết hợp co giãn vật lý Squash & Stretch từ sprite frame chạy bộ; khi người dùng cung cấp riêng sprite pose nhảy sẽ nạp trực tiếp vào chuỗi."
+      "Chiêu 2 của Aoda hiện đang để trống theo yêu cầu người dùng để chuẩn bị tích hợp kỹ năng mới."
     ],
     "next_steps": [
-      "Chờ chỉ đạo công việc tiếp theo từ người dùng."
+      "Tiếp tục tinh chỉnh theo phản hồi của người dùng vào phiên làm việc ngày mai.",
+      "Hỗ trợ người dùng tích hợp kỹ năng mới thay thế cho FireOrb khi người dùng cung cấp ý tưởng/asset."
     ]
   },
-  "working_tree_note": "Lưu tiến độ phiên lên main theo yêu cầu người dùng; Aoda (Tornado đất, FireOrb 80px, nổ 20px, dừng mép bệ <=420px), 16/16 unit tests pass, chưa chốt chính thức.",
+  "working_tree_note": "Phiên làm việc tạm dừng theo yêu cầu của người dùng (chưa chốt cuối cùng, ngày mai sửa tiếp); toàn bộ mã nguồn, asset Thánh Kiếm 90px và 21/21 tests pass 100% đã được commit và push lên nhánh main.",
   "history": [
+    {
+      "title": "Khởi Chạy Localhost Asset Viewer (Cổng 4173) Phục Vụ Kiểm Thử Hoạt Ảnh & Giao Tranh",
+      "status": "completed",
+      "changes": [
+        "1. Khởi chạy daemon máy chủ Asset Viewer tại 0.0.0.0:4173 (tools/asset-viewer/server.mjs) trong chế độ nền IsDaemon.",
+        "2. Kiểm tra phản hồi HTTP 200 OK trên toàn bộ 3 trang giao diện test: http://localhost:4173/ (Asset Viewer tổng quan), http://localhost:4173/vargost-skill-test.html (Chuỗi hành động Vargost 83 frame & Aoda bộ binh, Utility AI, 2 hướng chiến đấu Trái ⇋ Phải, ống máu RPG Gothic, Kính lúp pixel 10x) và http://localhost:4173/amore-scene.html (Thử tỷ lệ Amore/Vargost trên map ngang 1920x1080).",
+        "3. Chạy 16/16 bài unit test tự động (npm test) đạt tỷ lệ pass 100%."
+      ],
+      "verification": [
+        "curl -s -I http://127.0.0.1:4173/ trả về HTTP 200 OK.",
+        "curl -s -I http://127.0.0.1:4173/vargost-skill-test.html trả về HTTP 200 OK.",
+        "curl -s -I http://127.0.0.1:4173/amore-scene.html trả về HTTP 200 OK.",
+        "npm test: 16/16 bài kiểm thử pass 100%."
+      ]
+    },
     {
       "title": "Khởi Chạy Localhost Asset Viewer Phục Vụ Kiểm Thử Hoạt Ảnh & Giao Tranh 2 Hướng",
       "status": "completed",

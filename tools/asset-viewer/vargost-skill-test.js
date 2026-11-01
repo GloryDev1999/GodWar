@@ -89,13 +89,18 @@ const hudAodaState = document.getElementById('hud-aoda-state');
 const hudAodaAi = document.getElementById('hud-aoda-ai');
 const hudEnvStatus = document.getElementById('hud-env-status');
 const btnAodaSkill1 = document.getElementById('btn-aoda-skill-1');
-const btnAodaSkill2 = document.getElementById('btn-aoda-skill-2');
 const btnAodaSwitchPlatform = document.getElementById('btn-aoda-switch-platform');
 const btnAodaTurn = document.getElementById('btn-aoda-turn');
 const btnAodaTestKo = document.getElementById('btn-aoda-test-ko');
 const chkAodaAi = document.getElementById('chk-aoda-ai');
 const chkShowEnv = document.getElementById('chk-show-env');
 const chkGroundDummy = document.getElementById('chk-ground-dummy');
+
+// Central Holy Sword Objective DOM Elements (Asset/Character/vfx/sword.mp4)
+const hudObjectiveStatus = document.getElementById('hud-objective-status');
+const hudVargostObjective = document.getElementById('hud-vargost-objective');
+const hudAodaObjective = document.getElementById('hud-aoda-objective');
+const btnResetMatch = document.getElementById('btn-reset-match');
 
 // System Constants
 const MIN_ATTACK_RANGE = 150;
@@ -258,9 +263,75 @@ function isPointInSolid(px, py) {
   return null;
 }
 
-function isVargostColliding(px, py) {
-  // Kiểm tra 3 điểm trọng tâm: Chân (px, py), Thân (px, py - 35), Đầu (px, py - 70)
-  return isPointInSolid(px, py) || isPointInSolid(px, py - 35) || isPointInSolid(px, py - 70);
+function isVargostColliding(px, py, extraMargin = 0) {
+  const scale = mapScale / 2.625;
+  const r = (24 + extraMargin) * scale;
+  const yPoints = [py, py - 6 * scale, py - 35 * scale, py - 65 * scale];
+  const xOffsets = [-r, 0, r];
+  for (const y of yPoints) {
+    for (const xOff of xOffsets) {
+      const zone = isPointInSolid(px + xOff, y);
+      if (zone) return zone;
+    }
+  }
+  return null;
+}
+
+// Giải tỏa va chạm an toàn tuyệt đối: Không để Vargost kẹt vào bất kỳ khối địa hình nào
+function resolveCollisionSafe(tx, ty, isFlyingMode) {
+  const scale = mapScale / 2.625;
+  const minX = mapX + 60 * mapScale;
+  const maxX = mapX + 490 * mapScale;
+  let cx = Math.max(minX, Math.min(maxX, tx));
+  let cy = isFlyingMode ? Math.max(skyCeilingY, Math.min(skyLowY, ty)) : groundY;
+
+  const arenaCenterX = mapX + 225 * mapScale;
+
+  if (isVargostColliding(cx, cy)) {
+    if (isFlyingMode) {
+      cy = skyCeilingY + 12 * scale;
+    }
+    if (isVargostColliding(cx, cy)) {
+      cx = (cx > arenaCenterX) ? (cx - 65 * scale) : (cx + 65 * scale);
+    }
+    if (isVargostColliding(cx, cy)) {
+      const zone3FaceX = mapX + 284 * mapScale;
+      cx = (cx >= zone3FaceX) ? (zone3FaceX - 50 * scale) : (mapX + 160 * mapScale);
+      cy = skyCeilingY + 10 * scale;
+    }
+  }
+  return { x: cx, y: cy };
+}
+
+// Tính toán điểm dịch chuyển lùi an toàn với cơ chế VERTICAL ESCAPE khi vướng địa hình
+function calculateSafeRetreat(fromX, fromY, retreatDir, desiredDistance) {
+  const scale = mapScale / 2.625;
+  const step = desiredDistance;
+  const candX = fromX + retreatDir * step;
+  const candY = fromY;
+
+  const coll = isVargostColliding(candX, candY, 6);
+  const minX = mapX + 75 * mapScale;
+  const maxX = mapX + 475 * mapScale;
+  const isOutOfBounds = (candX < minX || candX > maxX);
+
+  if (!coll && !isOutOfBounds) {
+    return { x: candX, y: candY, escapedVertically: false };
+  }
+
+  // NẾU BỊ VƯỚNG ĐỊA HÌNH HOẶC KHÔNG THỂ LÙI NGANG:
+  // TỰ ĐỘNG TELEPORT LÊN TRÊN VÀO KHÔNG PHẬN THOÁNG ĐÃNG ĐỂ THOÁT KẸT
+  const escapeY = skyCeilingY + 12 * scale;
+  let escapeX = fromX;
+  const zone3FaceX = mapX + 284 * mapScale;
+
+  if (Math.abs(escapeX - zone3FaceX) < 65 * scale) {
+    escapeX = zone3FaceX - 70 * scale;
+  }
+  escapeX = Math.max(mapX + 120 * mapScale, Math.min(mapX + 270 * mapScale, escapeX));
+
+  showToast('⚡ Vargost: Thoát kẹt địa hình! Teleport vút lên không trung an toàn');
+  return { x: escapeX, y: escapeY, escapedVertically: true };
 }
 
 // -------------------------------------------------------------
@@ -308,10 +379,22 @@ let aodaJumpTargetY = 0;
 let aodaJumpTargetPlatform = null;
 let aodaLandingTimer = 0;
 
+// Central Holy Sword Objective (Asset/Character/vfx/sword.mp4)
+let swordFrames = null;
+let swordFrameIndex = 0;
+let swordAnimAccum = 0.0;
+const SWORD_X = mapX + 226 * mapScale;
+const SWORD_Y = mapY + 194 * mapScale;
+const SWORD_CAPTURE_RADIUS = 135 * (mapScale / 2.625);
+const SWORD_CAPTURE_REQUIRED = 20.0; // 20.0s liên tục
+let swordCaptureTimer = 0.0;
+let swordControllingTeam = null; // 1: Vargost, 2: Aoda, null: Neutral
+let isSwordContested = false;
+let matchWinner = null;
+const swordCaptureParticles = [];
+
 // Active VFX Instances
 const activeTornadoes = [];
-const activeFireOrbs = [];
-const activeStarburstExplosions = [];
 const activeRedNovas = []; // Giữ mảng trống để tương thích ngược
 
 // Ground Training Dummy on Platform 2 (Bệ Giữa)
@@ -453,6 +536,13 @@ async function initAssets() {
         assets.aodaAtlases.push(at);
       }
       assets.vfxTornado = await loadImage('/Asset/Character/characters/aoda_combat/vfx_red_tornado/atlas.png').catch(() => null);
+  assets.swordObjective = await loadImage('/Asset/Character/characters/sword_objective/atlas.png').catch(() => null);
+  try {
+    const sRes = await fetch('/Asset/Character/characters/sword_objective/frames.json');
+    if (sRes.ok) swordFrames = await sRes.json();
+  } catch (err) {
+    swordFrames = null;
+  }
       assets.vfxFireOrb = await loadImage('/Asset/Character/characters/aoda_combat/vfx_fire_orb/atlas.png').catch(() => null);
       assets.vfxFireOrbExplosion = await loadImage('/Asset/Character/characters/aoda_combat/vfx_fire_orb_explosion/atlas.png').catch(() => null);
       assets.vfxRedNova = null; // Đã xóa bỏ Red Nova theo yêu cầu tối ưu bộ nhớ
@@ -601,11 +691,13 @@ btnFlyForward.addEventListener('click', () => {
 
 btnFlyBackward.addEventListener('click', () => {
   const retreatDist = 130 * (mapScale / 2.625);
-  const targetX = vargostX - facingDirection * retreatDist;
-  triggerTeleport(targetX, vargostY);
-  hudLocomotion.textContent = 'Di chuyển: TELEPORT LÙI 9h (Thân đứng 0°)';
+  const safeRet = calculateSafeRetreat(vargostX, vargostY, -facingDirection, retreatDist);
+  triggerTeleport(safeRet.x, safeRet.y);
+  hudLocomotion.textContent = safeRet.escapedVertically
+    ? 'Di chuyển: TELEPORT VÚT LÊN CAO (Thoát kẹt địa hình)'
+    : 'Di chuyển: TELEPORT LÙI 9h (Thân đứng 0°)';
   hudLocomotion.className = 'badge active';
-  showToast('⚡ Vargost Teleport lùi 9h (Thân đứng thẳng 0°)!');
+  showToast(safeRet.escapedVertically ? '⚡ Vargost: Thoát kẹt địa hình lên cao!' : '⚡ Vargost Teleport lùi 9h (Thân đứng 0°)!');
 });
 
 function flyDiagonal(dxRatio, dyRatio, label, clockName) {
@@ -616,11 +708,10 @@ function flyDiagonal(dxRatio, dyRatio, label, clockName) {
   }
   const effectiveDx = dxRatio * facingDirection;
   if (effectiveDx < 0) {
-    // HƯỚNG LÙI (10h, 8h): Sử dụng Teleport thay vì nghiêng lùi, thân đứng thẳng 0 độ uy nghiêm!
+    // HƯỚNG LÙI (10h, 8h): Sử dụng Teleport với calculateSafeRetreat chống kẹt
     const retreatDist = 125 * (mapScale / 2.625);
-    const targetX = vargostX + effectiveDx * retreatDist;
-    const targetY = vargostY + dyRatio * 45 * mapScale;
-    triggerTeleport(targetX, targetY);
+    const safeRet = calculateSafeRetreat(vargostX, vargostY, effectiveDx > 0 ? -1 : 1, retreatDist);
+    triggerTeleport(safeRet.x, safeRet.y);
     hudLocomotion.textContent = `Di chuyển: TELEPORT LÙI ${clockName} (${label}, Đứng 0°)`;
     hudLocomotion.className = 'badge active';
     showToast(`⚡ Vargost Teleport lùi ${clockName} (Thân đứng 0°)!`);
@@ -890,13 +981,8 @@ function triggerAodaSkill1(isManual = false) {
   // QUY TẮC BẮT BUỘC: Tornado CHỈ SỬ DỤNG CHO MỤC TIÊU MẶT ĐẤT!
   // Tuyệt đối không tung Tornado khi mục tiêu trước mặt đang bay (isFlying) mà không có địch mặt đất:
   if (!isManual) {
-    const hasGroundEnemy = (!isFlying && Math.abs(vargostX - aodaX) < 450) ||
-      (chkGroundDummy && chkGroundDummy.checked && Math.abs(groundDummyX - aodaX) < 450);
+    const hasGroundEnemy = (!isFlying && !isDead && Math.abs(vargostX - aodaX) < 450);
     if (!hasGroundEnemy) {
-      // Nếu mục tiêu trước mặt đang bay trên không -> Tự động chuyển sang FireOrb!
-      if (isFlying && Math.abs(vargostX - aodaX) < 600 && aodaFireOrbCooldown <= 0) {
-        triggerAodaSkill2();
-      }
       return;
     }
   }
@@ -976,45 +1062,6 @@ function getAdjacentPlatform(plat, facing) {
   return null;
 }
 
-function triggerAodaSkill2(isManual = false) {
-  if (aodaIsDead || aodaStunTimer > 0) return;
-  if (!isManual && aodaFireOrbCooldown > 0) {
-    showToast(`🔥 FireOrb đang hồi chiêu (${aodaFireOrbCooldown.toFixed(1)}s)`);
-    return;
-  }
-  aodaFireOrbCooldown = 5.0; // Cooldown 5s cho Chiêu 2 FireOrb
-  aodaNovaCooldown = 5.0;
-  aodaState = 'SKILL_2_WINDUP';
-  aodaLockedFacing = aodaFacing; // Khóa hướng tại frame 25
-  aodaFrameIndex = 24; // Frame 25 (0-based 24)
-  aodaAnimAccum = 0;
-  hudAodaState.textContent = 'Aoda: VẬN CÔNG FIRE ORB 80px (Khóa Trên Đầu 20px · CD 5s)';
-  hudAodaState.className = 'badge active';
-
-  // Khóa VỊ TRÍ NƠI MỤC TIÊU ĐANG ĐỨNG (trên đầu 20px) tại thời điểm bắt đầu vận công:
-  let targetX = vargostX;
-  const curHover = isFlying ? Math.sin(hoverTimer * 3.2) * 8 : 0;
-  let targetHeadY = (vargostY + curHover) - 58 * (zoom / 0.7);
-
-  // Nếu mục tiêu trên không Vargost đang bay -> Ưu tiên đánh Vargost
-  // Nếu Vargost hạ cánh và Ground Dummy gần hơn -> Đánh Ground Dummy
-  if (chkGroundDummy && chkGroundDummy.checked) {
-    const hDistDummy = Math.abs(groundDummyX - aodaX);
-    const hDistVargost = Math.abs(vargostX - aodaX);
-    if (!isFlying && hDistDummy < hDistVargost) {
-      targetX = groundDummyX;
-      targetHeadY = groundDummyY - 48 * (zoom / 0.7);
-    }
-  }
-
-  // Quả cầu lửa đường kính 80px (bán kính 40px)
-  // Đáy quả cầu cách đỉnh đầu mục tiêu đúng 20px -> Tâm quả cầu = targetHeadY - 20 - 40px
-  const lockedSpawnX = targetX;
-  const lockedSpawnY = targetHeadY - 20 - 40 * (zoom / 0.7);
-
-  spawnFireOrb(lockedSpawnX, lockedSpawnY, targetHeadY);
-  showToast('🔥 Aoda: Khóa tọa độ FireOrb 80px trên đầu mục tiêu 20px (Tụ lực -> Rơi nổ Starburst 20px)!');
-}
 
 function triggerAodaKo() {
   aodaIsDead = true;
@@ -1032,13 +1079,11 @@ function triggerAodaKo() {
 function spawnRedTornado(x, y, facing) {
   let spawnX = x + facing * 120;
   let spawnY = groundY;
-  // Aoda (Team 2) nhắm mục tiêu vào Kẻ Địch Team 1 trên mặt đất (Vargost khi hạ cánh, hoặc Ground Dummy)
-  if (!isFlying && Math.abs(vargostX - x) < 550) {
+  // Aoda (Team 2) nhắm mục tiêu vào Vargost khi hạ cánh trên mặt đất
+  if (!isFlying && !isDead && Math.abs(vargostX - x) < 550) {
     spawnX = vargostX;
-  } else if (chkGroundDummy && chkGroundDummy.checked && Math.abs(groundDummyX - x) < 550) {
-    spawnX = groundDummyX;
-    spawnY = groundDummyY;
   }
+
   activeTornadoes.push({
     originX: spawnX,
     x: spawnX,
@@ -1060,40 +1105,8 @@ function spawnRedTornado(x, y, facing) {
   showToast('🌪️ Aoda: Phóng Tornado đất (Hiện từ từ 0.8s -> Quét 50px/s trong 2.0s -> Tan biến 0.8s)!');
 }
 
-function spawnFireOrb(targetX, targetY, targetHeadY) {
-  activeFireOrbs.push({
-    x: targetX,
-    y: targetY,
-    originX: targetX,
-    originY: targetY,
-    targetHeadY: targetHeadY, // Điểm đỉnh đầu mục tiêu
-    state: 'WINDUP', // WINDUP trong lúc Aoda frame 24..29 -> FALLING
-    vy: 0,
-    diameter: 80, // Đường kính chuẩn 80px theo yêu cầu người dùng
-    frame: 0,
-    frameTimer: 0,
-    lifeTime: 0,
-    fallDistance: 0
-  });
-}
 
-function spawnStarburst(x, y) {
-  activeStarburstExplosions.push({
-    x: x,
-    y: y,
-    frame: 0,
-    frameTimer: 0,
-    totalFrames: 15,
-    fps: 20,
-    size: 20, // Kích thước nổ choáng chuẩn 20px theo yêu cầu người dùng
-    scale: (20.0 / 632.0) * (zoom / 0.7) // Nhỏ gọn đúng 20px
-  });
-}
 
-function spawnRedNova(targetX, targetY) {
-  // Alias giữ tương thích
-  spawnFireOrb(targetX, targetY);
-}
 
 if (btnAodaSkill1) {
   btnAodaSkill1.addEventListener('click', () => {
@@ -1102,12 +1115,6 @@ if (btnAodaSkill1) {
   });
 }
 
-if (btnAodaSkill2) {
-  btnAodaSkill2.addEventListener('click', () => {
-    triggerAodaSkill2(true); // isManual = true: reset cooldown để người dùng test ngay lập tức
-    if (!isPlaying) { isPlaying = true; btnPlayPause.textContent = '⏸ Tạm dừng'; }
-  });
-}
 
 if (btnAodaSwitchPlatform) {
   btnAodaSwitchPlatform.addEventListener('click', () => {
@@ -1135,6 +1142,79 @@ if (btnAodaTestKo) {
     triggerAodaKo();
     if (!isPlaying) { isPlaying = true; btnPlayPause.textContent = '⏸ Tạm dừng'; }
   });
+}
+
+function resetMatch() {
+  swordCaptureTimer = 0.0;
+  swordControllingTeam = null;
+  isSwordContested = false;
+  matchWinner = null;
+  swordFrameIndex = 0;
+  swordAnimAccum = 0.0;
+  swordCaptureParticles.length = 0;
+
+  // Hồi sinh Vargost (Team 1) tại Base trên không
+  isDead = false;
+  deathTimer = 0;
+  vargostHp = VARGOST_MAX_HP;
+  vargostHitFlash = 0;
+  vargostRecoilTimer = 0;
+  vargostDamageGhosts.length = 0;
+  vargostX = teamOriginDirection === 1 ? (mapX + 180.0 * mapScale) : (mapX + 380.0 * mapScale);
+  vargostY = baseFlyY;
+  targetVargostX = vargostX;
+  targetVargostY = vargostY;
+  facingDirection = teamOriginDirection;
+  visualFacing = facingDirection;
+  targetFacingVisual = facingDirection;
+  currentTilt = 0;
+  aiState = 'IDLE';
+  locomotionState = isFlying ? 'IDLE_FLY' : 'IDLE_GROUND';
+  autoCooldown = 0.5;
+
+  // Hồi sinh Aoda (Team 2) tại Platform 1A Base
+  aodaIsDead = false;
+  aodaDeathTimer = 0;
+  aodaHp = aodaMaxHp;
+  aodaHitFlash = 0;
+  aodaStunTimer = 0;
+  aodaDamageGhosts.length = 0;
+  aodaDamageNumbers.length = 0;
+  aodaPlatform = AODA_PLATFORMS[0];
+  aodaPlatformIndex = 0;
+  aodaX = aodaPlatform.minX + 35;
+  aodaY = aodaPlatform.y;
+  aodaFacing = 1;
+  aodaVisualFacing = 1.0;
+  aodaState = 'MOVE';
+  aodaFrameIndex = 65;
+  aodaAnimAccum = 0;
+  aodaTornadoCooldown = 0;
+
+  // Hồi sinh Ground Dummy (Team 1) trên Platform 2
+  groundDummyHp = 100;
+  groundDummyHitFlash = 0;
+  groundDummyStunTimer = 0;
+  groundDummyDamageGhosts.length = 0;
+  groundDummyX = SWORD_X - 60 * (mapScale / 2.625);
+
+  // Hồi sinh Moving Dummy
+  enemyHp = 100;
+  enemyHitFlash = 0;
+  enemyStunTimer = 0;
+  enemyDamageGhosts.length = 0;
+  enemyDamageNumbers.length = 0;
+  enemyWorldX = (teamOriginDirection === 1) ? (mapX + 220.0 * mapScale) : (mapX + 380.0 * mapScale);
+
+  if (hudObjectiveStatus) {
+    hudObjectiveStatus.textContent = 'Thánh Kiếm: Trống (Tiến vào vùng và giữ 20s để thắng)';
+    hudObjectiveStatus.className = 'badge';
+  }
+  showToast('🔄 Đã thiết lập lại trận đấu 3v3!');
+}
+
+if (btnResetMatch) {
+  btnResetMatch.addEventListener('click', resetMatch);
 }
 
 // Magnifier Loupe Renderer (10x zoom)
@@ -1232,22 +1312,11 @@ function triggerTeleport(targetX, targetY, newFacing = null) {
   isPhaseBlinking = true;
   phaseBlinkTimer = 0;
   phaseBlinkTargetFacing = (newFacing !== null) ? newFacing : facingDirection;
-  let tx = Math.max(mapX + 110, Math.min(W - 400, targetX));
-  let ty = isFlying ? Math.max(skyCeilingY, Math.min(skyLowY, targetY)) : groundY;
-
-  // Nếu điểm dịch chuyển rơi vào khối đá môi trường, nâng độ cao lên vùng trời quang đãng
-  if (isFlying) {
-    let pushCount = 0;
-    while (isVargostColliding(tx, ty) && pushCount < 20) {
-      ty -= 12;
-      pushCount++;
-    }
-  }
-
-  teleportTargetX = tx;
-  teleportTargetY = ty;
+  const safePos = resolveCollisionSafe(targetX, targetY, isFlying);
+  teleportTargetX = safePos.x;
+  teleportTargetY = safePos.y;
   phaseBlinkStep = 1;
-  currentTilt = 0; // Đứng thẳng 0 độ uy nghiêm, triệt tiêu hoàn toàn nghiêng ngửa ra sau khi lùi
+  currentTilt = 0;
 }
 
 function triggerPhaseBlink(newFacing) {
@@ -1419,6 +1488,92 @@ function update(timestamp) {
 
   hoverTimer += dt;
   const hoverOffset = isFlying ? Math.sin(hoverTimer * 3.2) * 8 : 0;
+
+  // -------------------------------------------------------------
+  // CẬP NHẬT TIẾN ĐỘ CHIẾM CỨ ĐIỂM THÁNH KIẾM (Asset/Character/vfx/sword.mp4)
+  // Quy tắc: 20s liên tục không rời vùng -> Thắng!
+  // Rời vùng -> Reset về 0.0s!
+  // Tranh chấp -> Đóng băng đồng hồ!
+  // -------------------------------------------------------------
+  swordAnimAccum += dt;
+  if (swordAnimAccum >= 0.04) {
+    swordAnimAccum -= 0.04;
+    swordFrameIndex = (swordFrameIndex + 1) % 55;
+  }
+
+  // Thành viên chiếm đóng trong vòng 135px: Team 1 (Vargost) vs Team 2 (Aoda) - Đã xóa bỏ các hình nhân
+  const isVargostInZone = (!isDead && Math.hypot(vargostX - SWORD_X, (vargostY + hoverOffset) - SWORD_Y) <= SWORD_CAPTURE_RADIUS);
+  const hasTeam1InZone = isVargostInZone;
+
+  const isAodaInZone = (!aodaIsDead && Math.hypot(aodaX - SWORD_X, aodaY - SWORD_Y) <= SWORD_CAPTURE_RADIUS);
+  const hasTeam2InZone = isAodaInZone;
+
+  if (matchWinner === null) {
+    if (hasTeam1InZone && hasTeam2InZone) {
+      isSwordContested = true;
+      if (hudObjectiveStatus) {
+        hudObjectiveStatus.textContent = `⚔ TRANH CHẤP (${swordCaptureTimer.toFixed(1)}/20.0s) · Giao tranh nghẹt thở!`;
+        hudObjectiveStatus.className = 'badge warning';
+      }
+    } else if (hasTeam1InZone) {
+      isSwordContested = false;
+      if (swordControllingTeam !== 1) {
+        swordControllingTeam = 1;
+        swordCaptureTimer = 0.0;
+      }
+      swordCaptureTimer += dt;
+      if (swordCaptureTimer >= SWORD_CAPTURE_REQUIRED) {
+        swordCaptureTimer = SWORD_CAPTURE_REQUIRED;
+        matchWinner = 1;
+        showToast('🏆 TEAM 1 CHIẾN THẮNG! Chiếm giữ Thánh Kiếm thành công sau 20s!');
+      }
+      if (hudObjectiveStatus) {
+        hudObjectiveStatus.textContent = `Đội 1 Chiếm Giữ: ${swordCaptureTimer.toFixed(1)}/20.0s [${Math.round((swordCaptureTimer / 20.0) * 100)}%]`;
+        hudObjectiveStatus.className = 'badge success';
+      }
+    } else if (hasTeam2InZone) {
+      isSwordContested = false;
+      if (swordControllingTeam !== 2) {
+        swordControllingTeam = 2;
+        swordCaptureTimer = 0.0;
+      }
+      swordCaptureTimer += dt;
+      if (swordCaptureTimer >= SWORD_CAPTURE_REQUIRED) {
+        swordCaptureTimer = SWORD_CAPTURE_REQUIRED;
+        matchWinner = 2;
+        showToast('🏆 TEAM 2 CHIẾN THẮNG! Chiếm giữ Thánh Kiếm thành công sau 20s!');
+      }
+      if (hudObjectiveStatus) {
+        hudObjectiveStatus.textContent = `Đội 2 Chiếm Giữ: ${swordCaptureTimer.toFixed(1)}/20.0s [${Math.round((swordCaptureTimer / 20.0) * 100)}%]`;
+        hudObjectiveStatus.className = 'badge danger';
+      }
+    } else {
+      // KHÔNG CÒN AI TRONG VÙNG -> RESET NGAY LẬP TỨC VỀ 0.0s
+      isSwordContested = false;
+      if (swordCaptureTimer > 0 || swordControllingTeam !== null) {
+        swordCaptureTimer = 0.0;
+        swordControllingTeam = null;
+      }
+      if (hudObjectiveStatus) {
+        hudObjectiveStatus.textContent = 'Thánh Kiếm: Trống (Tiến vào vùng và giữ 20s để thắng)';
+        hudObjectiveStatus.className = 'badge';
+      }
+    }
+  }
+
+  // Cập nhật mục tiêu nhiệm vụ trên HUD
+  if (hudVargostObjective) {
+    hudVargostObjective.textContent = isVargostInZone
+      ? 'Vargost: [PHÒNG THỦ] Trụ trong vùng Thánh Kiếm'
+      : 'Vargost: [TẤN CÔNG] Bay tiến về chiếm Thánh Kiếm';
+    hudVargostObjective.className = isVargostInZone ? 'badge active' : 'badge';
+  }
+  if (hudAodaObjective) {
+    hudAodaObjective.textContent = isAodaInZone
+      ? 'Aoda: [PHÒNG THỦ] Trụ trong vùng Thánh Kiếm'
+      : 'Aoda: [TẤN CÔNG] Chạy nhảy vượt bệ tiến về Thánh Kiếm';
+    hudAodaObjective.className = isAodaInZone ? 'badge active' : 'badge';
+  }
 
   // Cập nhật các bộ đếm trạng thái khống chế (Định Thân & Câm Lặng)
   if (vargostStunTimer > 0) vargostStunTimer = Math.max(0, vargostStunTimer - dt);
@@ -1593,12 +1748,18 @@ function update(timestamp) {
     enemyWorldX = baseTargetX;
   }
 
-  const targetX = enemyWorldX;
-  const targetY = groundY;
+  // Chọn mục tiêu của Vargost: Nhắm thẳng Aoda (Team 2 · Kẻ Địch), nếu Aoda tử trận thì nhắm Thánh Kiếm
+  const primaryTargetX = (!aodaIsDead) ? aodaX : SWORD_X;
+  const primaryTargetY = (!aodaIsDead) ? (aodaY - 45) : SWORD_Y;
+  const targetX = primaryTargetX;
+  const targetY = primaryTargetY;
 
   const diffX = targetX - vargostX;
+  const diffY = targetY - (vargostY + hoverOffset);
+  const dist2DPx = Math.round(Math.hypot(diffX, diffY) / (mapScale / 2.625));
   const absDistPx = Math.round(Math.abs(diffX) / (mapScale / 2.625));
-  const distInPx = absDistPx;
+  // Khi bay, cự ly chiến đấu thực tế là cự ly 2D (tránh ngộ nhận là quá gần khi bay cao trên đầu)
+  const distInPx = isFlying ? dist2DPx : absDistPx;
   const desiredFacing = diffX >= 0 ? 1 : -1;
   const isEnemyBehind = Math.abs(diffX) > 25 && (desiredFacing !== facingDirection);
 
@@ -1728,11 +1889,13 @@ function update(timestamp) {
   if (pendingCombatAction && aiState === 'IDLE' && !isDead) {
     if (distInPx < MIN_ATTACK_RANGE) {
       aiState = 'REPOSITIONING';
-      const retreatDist = (300 - distInPx) * (mapScale / 2.625);
-      const retreatTargetX = vargostX - facingDirection * retreatDist;
-      const retreatTargetY = isFlying ? Math.max(skyCeilingY, vargostY - 30 * mapScale) : groundY;
-      triggerTeleport(retreatTargetX, retreatTargetY);
-      hudAi.textContent = 'AI: Quá gần! Teleport lùi giữ cự ly (Đứng 0°)';
+      const retreatDist = Math.max(130 * (mapScale / 2.625), (300 - distInPx) * (mapScale / 2.625));
+      const safeRet = calculateSafeRetreat(vargostX, vargostY, -facingDirection, retreatDist);
+      triggerTeleport(safeRet.x, safeRet.y);
+      autoCooldown = 0.8;
+      hudAi.textContent = safeRet.escapedVertically
+        ? 'AI: Vướng địa hình! Teleport vút lên cao thoát kẹt'
+        : 'AI: Quá gần! Teleport lùi giữ cự ly (Đứng 0°)';
       hudAi.className = 'badge active';
     } else if (distInPx > MAX_ATTACK_RANGE) {
       aiState = 'REPOSITIONING';
@@ -2320,19 +2483,23 @@ function update(timestamp) {
   // -------------------------------------------------------------
   if (isDead) {
     deathTimer += dt;
-    if (deathTimer >= 3.4) {
+    if (deathTimer >= 2.0) {
       isDead = false;
       deathTimer = 0;
       vargostHp = VARGOST_MAX_HP;
       vargostHitFlash = 0;
+      vargostX = teamOriginDirection === 1 ? (mapX + 180.0 * mapScale) : (mapX + 380.0 * mapScale);
+      vargostY = baseFlyY;
+      targetVargostX = vargostX;
+      targetVargostY = vargostY;
       aiState = 'IDLE';
       locomotionState = isFlying ? 'IDLE_FLY' : 'IDLE_GROUND';
-      autoCooldown = 1.5;
+      autoCooldown = 0.5;
       hudState.textContent = isFlying ? 'Trạng thái: ĐÃ HỒI SINH (LƠ LỬNG)' : 'Trạng thái: ĐÃ HỒI SINH (ĐỨNG TRÊN BỆ)';
       hudState.className = 'badge active';
-      hudAi.textContent = 'AI: Tuần tra chiến thuật';
+      hudAi.textContent = 'AI: Xuất kích tiến về Thánh Kiếm';
       hudAi.className = 'badge';
-      showToast('✨ VARGOST ĐÃ HỒI SINH ĐẦY MÁU!');
+      showToast('✨ VARGOST ĐÃ HỒI SINH! Xuất kích tiến về Thánh Kiếm!');
     }
   }
 
@@ -2412,18 +2579,24 @@ function update(timestamp) {
           aodaFrameIndex++;
         }
       }
-      if (aodaDeathTimer >= 3.5) {
-        // Hồi sinh
+      if (aodaDeathTimer >= 2.0) {
+        // Hồi sinh tại Team 2 Base (Platform 1A)
         aodaIsDead = false;
         aodaDeathTimer = 0;
         aodaHp = aodaMaxHp;
+        aodaPlatform = AODA_PLATFORMS[0];
+        aodaPlatformIndex = 0;
+        aodaX = aodaPlatform.minX + 35;
+        aodaY = aodaPlatform.y;
+        aodaFacing = 1;
+        aodaVisualFacing = 1.0;
         aodaState = 'MOVE';
         aodaFrameIndex = 65;
         if (hudAodaState) {
           hudAodaState.textContent = `Aoda: HỒI SINH TẠI ${aodaPlatform.name.split(' (')[0]}`;
           hudAodaState.className = 'badge active';
         }
-        showToast('✨ AODA ĐÃ HỒI SINH ĐẦY MÁU!');
+        showToast('✨ AODA ĐÃ HỒI SINH ĐẦY MÁU! Tiến về Thánh Kiếm!');
       }
     }
     // Aoda Skill 1 (Lốc Xoáy Đất - Địch mặt đất): Windup từ frame 25, frame 30 tung chiêu
@@ -2459,86 +2632,28 @@ function update(timestamp) {
       }
     }
     // Aoda Skill 2 (FireOrb - Địch trên không / mặt đất): Quả cầu 50px rơi từ trên đầu 20px xuống -> nổ Starburst choáng 0.5s
-    else if (aodaState === 'SKILL_2_WINDUP') {
-      aodaAnimAccum += dt;
-      if (aodaAnimAccum >= 0.06) {
-        aodaAnimAccum -= 0.06;
-        aodaFrameIndex++;
-        if (aodaFrameIndex >= 29) { // 1-based Frame 30
-          // Giải phóng FireOrb rơi tự do xuống mục tiêu
-          for (const orb of activeFireOrbs) {
-            if (orb.state === 'WINDUP') {
-              orb.state = 'FALLING';
-              orb.vy = 280;
-            }
-          }
-          aodaState = 'SKILL_2_RECOVERY';
-          if (hudAodaState) {
-            hudAodaState.textContent = 'Aoda: THI TRIỂN FIRE ORB (Rơi Từ Trên Cao · CD 5s)';
-            hudAodaState.className = 'badge active';
-          }
-        }
-      }
-    }
-    else if (aodaState === 'SKILL_2_RECOVERY') {
-      aodaAnimAccum += dt;
-      if (aodaAnimAccum >= 0.06) {
-        aodaAnimAccum -= 0.06;
-        aodaFrameIndex++;
-        if (aodaFrameIndex > 46) {
-          aodaFrameIndex = 65;
-          aodaState = 'MOVE';
-          if (hudAodaState) {
-            hudAodaState.textContent = `Aoda: Tuần tra ${aodaPlatform.name.split(' (')[0]}`;
-            hudAodaState.className = 'badge';
-          }
-        }
-      }
-    }
-    // Aoda Di Chuyển & Bộ Não Utility AI
+    // Aoda Di Chuyển & Bộ Não Utility AI Hướng Về Chiếm Cứ Điểm Thánh Kiếm
     else if (aodaStunTimer <= 0) {
       if (aodaTornadoCooldown > 0) aodaTornadoCooldown -= dt;
-      if (aodaFireOrbCooldown > 0) aodaFireOrbCooldown -= dt;
-      if (aodaNovaCooldown > 0) aodaNovaCooldown -= dt;
 
       // Utility AI Tự Động Ra Quyết Định Chiêu Thức:
-      // Aoda (Team 2 · Kẻ Địch) nhắm mục tiêu trong Team 1 (Vargost hoặc Ground Dummy):
       if (chkAodaAi && chkAodaAi.checked && aodaState !== 'JUMP' && aodaState !== 'LANDING') {
         const hDistVargost = Math.abs(vargostX - aodaX);
-        const hDistDummy = (chkGroundDummy && chkGroundDummy.checked) ? Math.abs(groundDummyX - aodaX) : Infinity;
+        // Chọn mục tiêu mặt đất: Nhắm trực tiếp vào Vargost khi Vargost hạ cánh
+        let groundTarget = (!isFlying && !isDead) ? { type: 'vargost', x: vargostX, y: vargostY + hoverOffset, hDist: hDistVargost } : null;
 
-        // Ưu tiên chọn mục tiêu:
-        // Nếu Vargost đang bay: Vargost là mục tiêu trên không!
-        // Nếu Vargost hạ cánh hoặc Ground Dummy: là mục tiêu mặt đất!
-        let target = null;
-        if (hDistVargost <= hDistDummy || !chkGroundDummy || !chkGroundDummy.checked) {
-          target = { type: 'vargost', x: vargostX, y: vargostY + hoverOffset, isFlying: isFlying, hDist: hDistVargost };
-        } else {
-          target = { type: 'dummy', x: groundDummyX, y: groundDummyY, isFlying: false, hDist: hDistDummy };
-        }
-
-        if (target) {
-          // Lật mặt hướng về phía mục tiêu
-          if (target.x > aodaX + 15) {
+        if (groundTarget) {
+          if (groundTarget.x > aodaX + 15) {
             aodaFacing = 1;
             aodaVisualFacing = 1;
-          } else if (target.x < aodaX - 15) {
+          } else if (groundTarget.x < aodaX - 15) {
             aodaFacing = -1;
             aodaVisualFacing = -1;
           }
 
-          // QUY TẮC BẮT BUỘC THEO YÊU CẦU NGƯỜI DÙNG:
-          // 1. Mục tiêu trên không (isFlying = true) -> BẮT BUỘC dùng FireOrb (CD 5s), TUYỆT ĐỐI KHÔNG DÙNG Tornado!
-          if (target.isFlying) {
-            if (target.hDist < 580 && aodaFireOrbCooldown <= 0) {
-              triggerAodaSkill2();
-            }
-          }
-          // 2. Mục tiêu trên mặt đất (!isFlying) -> Dùng Tornado (CD 5s) quét đất!
-          else {
-            if (target.hDist < 420 && aodaTornadoCooldown <= 0) {
-              triggerAodaSkill1();
-            }
+          // CHỈ DÙNG TORNADO CHO ĐỊCH MẶT ĐẤT, KHÔNG CÓ FIRE ORB
+          if (groundTarget.hDist < 420 && aodaTornadoCooldown <= 0) {
+            triggerAodaSkill1();
           }
         }
       }
@@ -2548,7 +2663,14 @@ function update(timestamp) {
         if (aodaAnimAccum >= 0.06) {
           aodaAnimAccum -= 0.06;
           aodaFrameIndex++;
-          if (aodaFrameIndex > 92) aodaFrameIndex = 65; // Lặp chuỗi chạy bộ 28 frame (65..92)
+          if (aodaFrameIndex > 92) aodaFrameIndex = 65;
+        }
+
+        // Hướng di chuyển theo mục tiêu chiếm Thánh Kiếm:
+        const isAodaInSwordZone = Math.hypot(aodaX - SWORD_X, aodaY - SWORD_Y) <= SWORD_CAPTURE_RADIUS;
+        if (!isAodaInSwordZone) {
+          aodaFacing = (SWORD_X > aodaX) ? 1 : -1;
+          aodaVisualFacing = aodaFacing;
         }
 
         // Di chuyển trên bệ & Kiểm tra mép đất (Ledge Limit):
@@ -2558,62 +2680,47 @@ function update(timestamp) {
         const minLedge = aodaPlatform.minX + 20;
         const maxLedge = aodaPlatform.maxX - 20;
 
-        if (targetEdgeX < minLedge || targetEdgeX > maxLedge) {
-          // Đã chạm mép bệ!
-          // QUY TẮC MỚI: HẠN CHẾ NHẢY QUA ĐỊA HÌNH - CHỈ NHẢY KHI MỤC TIÊU XA HƠN TẦM ĐÁNH
-          const curTargetX = (!isDead) ? vargostX : ((chkGroundDummy && chkGroundDummy.checked) ? groundDummyX : aodaX);
-          const isTargetAhead = (aodaFacing > 0 && curTargetX > aodaX) || (aodaFacing < 0 && curTargetX < aodaX);
-          const hDistTarget = Math.abs(curTargetX - aodaX);
-          const AODA_ATTACK_RANGE = 420; // Tầm đánh hiệu quả của Aoda (px)
+        const curTargetX = (!isDead) ? vargostX : SWORD_X;
+        const isSwordAhead = (aodaFacing > 0 && SWORD_X > aodaX) || (aodaFacing < 0 && SWORD_X < aodaX);
 
-          if (isTargetAhead && hDistTarget > AODA_ATTACK_RANGE) {
-            // Mục tiêu ở phía trước VÀ XA HƠN TẦM ĐÁNH -> Cần nhảy qua bệ khác để tiếp cận
-            const adj = getAdjacentPlatform(aodaPlatform, aodaFacing);
-            if (adj) {
-              aodaState = 'JUMP';
-              aodaJumpTimer = 0;
-              aodaJumpDuration = 0.48;
-              aodaJumpStartX = aodaX;
-              aodaJumpStartY = aodaY;
-              aodaJumpTargetPlatform = adj.platform;
-              aodaJumpTargetX = adj.targetX;
-              aodaJumpTargetY = adj.platform.y;
-              const isJumpUp = (aodaJumpTargetY < aodaJumpStartY);
-              if (hudAodaState) {
-                hudAodaState.textContent = `Aoda: ${isJumpUp ? 'NHẢY LÊN BẬC CAO' : 'NHẢY XUỐNG BẬC THẤP'} (Truy đuổi mục tiêu ngoài tầm đánh > 420px)`;
-                hudAodaState.className = 'badge active';
-              }
-              showToast(`🦘 Aoda: Nhảy qua bệ mới để thu hẹp khoảng cách (Mục tiêu xa ${Math.round(hDistTarget)}px > 420px)!`);
-            } else {
-              // Hết đường bệ nối -> Dừng lại tại mép bệ
-              aodaX = (aodaFacing > 0) ? maxLedge : minLedge;
-              aodaState = 'IDLE';
-              aodaFrameIndex = 0;
+        if (targetEdgeX < minLedge || targetEdgeX > maxLedge) {
+          // Đã chạm mép bệ: Nhảy sang bệ tiếp theo để tiến vào Platform 2
+          const adj = getAdjacentPlatform(aodaPlatform, aodaFacing);
+          if ((isSwordAhead || !isAodaInSwordZone) && adj) {
+            aodaState = 'JUMP';
+            aodaJumpTimer = 0;
+            aodaJumpDuration = 0.48;
+            aodaJumpStartX = aodaX;
+            aodaJumpStartY = aodaY;
+            aodaJumpTargetPlatform = adj.platform;
+            aodaJumpTargetX = adj.targetX;
+            aodaJumpTargetY = adj.platform.y;
+            const isJumpUp = (aodaJumpTargetY < aodaJumpStartY);
+            if (hudAodaState) {
+              hudAodaState.textContent = `Aoda: ${isJumpUp ? 'NHẢY LÊN BẬC CAO' : 'NHẢY XUỐNG BẬC THẤP'} (Tiến đánh Thánh Kiếm)`;
+              hudAodaState.className = 'badge active';
             }
-          } else if (isTargetAhead && hDistTarget <= AODA_ATTACK_RANGE) {
-            // Mục tiêu ở phía trước VÀ ĐÃ NẰM TRONG TẦM ĐÁNH (<= 420px) -> DỪNG LẠI TẠI MÉP BỆ, KHÔNG NHẢY!
+            showToast(`🦘 Aoda: Nhảy bệ tiến đánh Thánh Kiếm!`);
+          } else {
             aodaX = (aodaFacing > 0) ? maxLedge : minLedge;
             aodaState = 'IDLE';
-            aodaFrameIndex = 0; // Đứng thế thủ tấn công từ mép bệ
+            aodaFrameIndex = 0;
             if (hudAodaState) {
-              hudAodaState.textContent = `Aoda: Dừng tại mép bệ (Mục tiêu trong tầm đánh ${Math.round(hDistTarget)}px <= 420px · Giữ vị trí tấn công)`;
-              hudAodaState.className = 'badge';
-            }
-          } else {
-            // Mục tiêu ở sau lưng hoặc không có mục tiêu -> Quay đầu lại
-            aodaFacing = -aodaFacing;
-            aodaVisualFacing = aodaFacing;
-            aodaX = (aodaFacing > 0) ? minLedge : maxLedge;
-            if (hudAodaState) {
-              hudAodaState.textContent = 'Aoda: Chạm mép vực -> QUAY ĐẦU LẠI';
+              hudAodaState.textContent = isAodaInSwordZone ? 'Aoda: [PHÒNG THỦ] Giữ cứ điểm Thánh Kiếm' : 'Aoda: Dừng tại mép bệ';
               hudAodaState.className = 'badge';
             }
           }
         } else {
-          aodaX = targetEdgeX;
-          if (hudAodaState) {
-            hudAodaState.textContent = `Aoda: Chạy bộ @ ${aodaPatrolSpeed}px/s trên ${aodaPlatform.name.split(' (')[0]}`;
-            hudAodaState.className = 'badge';
+          // Nếu đã vào vùng Thánh Kiếm -> Thế thủ vững vàng phòng thủ!
+          if (isAodaInSwordZone && Math.abs(aodaX - SWORD_X) < 40) {
+            aodaState = 'IDLE';
+            aodaFrameIndex = 0;
+            if (hudAodaState) {
+              hudAodaState.textContent = 'Aoda: [PHÒNG THỦ] Giữ cứ điểm Thánh Kiếm';
+              hudAodaState.className = 'badge active';
+            }
+          } else {
+            aodaX = targetEdgeX;
           }
         }
       }
@@ -2621,74 +2728,59 @@ function update(timestamp) {
         aodaJumpTimer += dt;
         const t = Math.min(1.0, aodaJumpTimer / aodaJumpDuration);
         aodaX = aodaJumpStartX + (aodaJumpTargetX - aodaJumpStartX) * t;
-
-        const isJumpUp = (aodaJumpTargetY < aodaJumpStartY);
-        const arcHeight = isJumpUp ? 75 : 45;
-        const linearY = aodaJumpStartY + (aodaJumpTargetY - aodaJumpStartY) * t;
-        const parabola = 4 * t * (1.0 - t) * arcHeight;
-        aodaY = linearY - parabola;
-
-        aodaAnimAccum += dt;
-        if (aodaAnimAccum >= 0.08) {
-          aodaAnimAccum -= 0.08;
-          aodaFrameIndex = 65 + (Math.floor(t * 8) % 10);
-        }
+        const arc = Math.sin(t * Math.PI) * 55 * (mapScale / 2.625);
+        aodaY = (aodaJumpStartY + (aodaJumpTargetY - aodaJumpStartY) * t) - arc;
+        aodaFrameIndex = 25;
 
         if (t >= 1.0) {
-          // Đã tiếp đất bệ đích!
-          aodaX = aodaJumpTargetX;
-          aodaY = aodaJumpTargetY;
           aodaPlatform = aodaJumpTargetPlatform;
           aodaPlatformIndex = AODA_PLATFORMS.indexOf(aodaPlatform);
-          if (aodaPlatformIndex < 0) aodaPlatformIndex = 0;
+          aodaX = aodaJumpTargetX;
+          aodaY = aodaJumpTargetY;
           aodaState = 'LANDING';
           aodaLandingTimer = 0.12;
-
-          // Sinh hạt bụi đất tiếp đất
-          for (let p = 0; p < 7; p++) {
-            emberParticles.push({
-              x: aodaX + (Math.random() - 0.5) * 24,
-              y: aodaY - 2,
-              vx: (Math.random() - 0.5) * 90,
-              vy: -Math.random() * 35 - 10,
-              size: 2.2,
-              alpha: 0.8,
-              color: '#d6c8a2',
-              life: 0.25
-            });
-          }
-
-          if (hudAodaState) {
-            hudAodaState.textContent = `Aoda: Tiếp đất an toàn tại ${aodaPlatform.name.split(' (')[0]}`;
-            hudAodaState.className = 'badge';
-          }
+          aodaFrameIndex = 26;
         }
       }
       else if (aodaState === 'LANDING') {
         aodaLandingTimer -= dt;
         if (aodaLandingTimer <= 0) {
-          aodaState = 'MOVE';
+          const isAodaInSwordZone = Math.hypot(aodaX - SWORD_X, aodaY - SWORD_Y) <= SWORD_CAPTURE_RADIUS;
+          if (isAodaInSwordZone) {
+            aodaState = 'IDLE';
+            aodaFrameIndex = 0;
+            if (hudAodaState) {
+              hudAodaState.textContent = 'Aoda: [PHÒNG THỦ] Giữ cứ điểm Thánh Kiếm';
+              hudAodaState.className = 'badge active';
+            }
+          } else {
+            aodaFacing = (SWORD_X > aodaX) ? 1 : -1;
+            aodaVisualFacing = aodaFacing;
+            aodaState = 'MOVE';
+            aodaFrameIndex = 65;
+          }
         }
       }
       else if (aodaState === 'IDLE') {
         aodaAnimAccum += dt;
-        if (aodaAnimAccum >= 0.06) {
-          aodaAnimAccum -= 0.06;
-          aodaFrameIndex = (aodaFrameIndex + 1) % 25; // Lặp thế thủ tĩnh 0..24
+        if (aodaAnimAccum >= 0.08) {
+          aodaAnimAccum -= 0.08;
+          aodaFrameIndex++;
+          if (aodaFrameIndex > 23) aodaFrameIndex = 0;
         }
-        // Kiểm tra nếu mục tiêu di chuyển ra xa ngoài tầm đánh (> 450px) hoặc chạy ra sau lưng:
-        const curTargetX = (!isDead) ? vargostX : ((chkGroundDummy && chkGroundDummy.checked) ? groundDummyX : aodaX);
-        const shouldTurn = (aodaFacing > 0 && curTargetX < aodaX - 50) || (aodaFacing < 0 && curTargetX > aodaX + 50);
-        if (shouldTurn) {
-          aodaFacing = -aodaFacing;
+
+        const isAodaInSwordZone = Math.hypot(aodaX - SWORD_X, aodaY - SWORD_Y) <= SWORD_CAPTURE_RADIUS;
+        const curTargetX = (!isDead) ? vargostX : SWORD_X;
+        if (!isAodaInSwordZone) {
+          aodaFacing = (SWORD_X > aodaX) ? 1 : -1;
           aodaVisualFacing = aodaFacing;
           aodaState = 'MOVE';
           aodaFrameIndex = 65;
         } else {
-          const hDist = Math.abs(curTargetX - aodaX);
-          if (hDist > 450) {
-            aodaState = 'MOVE';
-            aodaFrameIndex = 65;
+          // Trong vùng Thánh Kiếm: Quay mặt phòng thủ đối diện kẻ địch
+          if (Math.abs(curTargetX - aodaX) > 25) {
+            aodaFacing = (curTargetX > aodaX) ? 1 : -1;
+            aodaVisualFacing = aodaFacing;
           }
         }
       }
@@ -2786,148 +2878,7 @@ function update(timestamp) {
       }
     }
 
-    // Cập nhật FireOrb (Chiêu 2 của Aoda: Cầu Lửa 80px rơi từ trên đầu mục tiêu 20px xuống -> Chạm mục tiêu hoặc scene thì phát nổ Starburst 20px, gây choáng 0.5s)
-    for (let i = activeFireOrbs.length - 1; i >= 0; i--) {
-      const orb = activeFireOrbs[i];
-      orb.lifeTime += dt;
-      orb.frameTimer += dt;
-      if (orb.frameTimer >= 0.05) {
-        orb.frameTimer -= 0.05;
-        orb.frame = (orb.frame + 1) % 22;
-      }
 
-      if (orb.state === 'WINDUP') {
-        // Tụ lực tại vị trí khóa 20px trên đầu mục tiêu trong lúc Aoda vận công
-        if (aodaState !== 'SKILL_2_WINDUP') {
-          orb.state = 'FALLING';
-          orb.vy = 320; // Rơi xuống nhanh và dứt khoát
-          orb.fallDistance = 0;
-        }
-      } else if (orb.state === 'FALLING') {
-        orb.y += orb.vy * dt;
-        orb.vy += 850 * dt; // Gia tốc trọng lực rơi tự do
-        orb.fallDistance = (orb.fallDistance || 0) + (orb.vy * dt);
-
-        let hit = false;
-        let hitX = orb.x;
-        let hitY = orb.y;
-
-        const orbBottomY = orb.y + 40 * (zoom / 0.7); // Đáy của quả cầu 80px
-
-        // Chỉ kiểm tra va chạm khi quả cầu đã thực sự bắt đầu rơi xuống
-        if (orb.fallDistance > 12) {
-          // 1. Va chạm với Vargost (Team 1)
-          const curHover = isFlying ? Math.sin(hoverTimer * 3.2) * 8 : 0;
-          const vTop = (vargostY + curHover) - 58 * (zoom / 0.7);
-          const vBottom = (vargostY + curHover) + 10;
-          const inX = Math.abs(orb.x - vargostX) < 40 * (zoom / 0.7);
-
-          if (inX && orbBottomY >= vTop && orb.y <= vBottom) {
-            hit = true;
-            hitX = vargostX;
-            hitY = Math.min(orbBottomY, vTop + 12);
-
-            // Gây Choáng 0.5s & Sát thương
-            vargostStunTimer = Math.max(vargostStunTimer, 0.5);
-            vargostSilenceTimer = Math.max(vargostSilenceTimer, 0.5);
-            vargostHitFlash = 0.35;
-            const prevHp = vargostHp;
-            vargostHp = Math.max(10, vargostHp - 35);
-            vargostDamageGhosts.push({
-              fromHp: prevHp, toHp: vargostHp, maxHp: VARGOST_MAX_HP,
-              timer: 0, flashDuration: 0.12, dissolveDuration: 0.42, totalDuration: 0.54, seed: Math.random()
-            });
-            enemyDamageNumbers.push({
-              text: '🔥 FIRE ORB: STUN 0.5s!',
-              x: vargostX,
-              y: vargostY - 50,
-              color: '#ff922b',
-              alpha: 1.0,
-              vy: -45
-            });
-            showToast('🔥 FIRE ORB: Trúng đích! Choáng 0.5s và kích hoạt bùng nổ Starburst 20px!');
-          }
-
-          // 2. Va chạm với Ground Dummy (Team 1)
-          if (!hit && chkGroundDummy && chkGroundDummy.checked) {
-            const dTop = groundDummyY - 48 * (zoom / 0.7);
-            const dBottom = groundDummyY + 10;
-            const inXDummy = Math.abs(orb.x - groundDummyX) < 35 * (zoom / 0.7);
-            if (inXDummy && orbBottomY >= dTop && orb.y <= dBottom) {
-              hit = true;
-              hitX = groundDummyX;
-              hitY = Math.min(orbBottomY, dTop + 12);
-              groundDummyStunTimer = Math.max(groundDummyStunTimer, 0.5);
-              groundDummySilenceTimer = Math.max(groundDummySilenceTimer, 0.5);
-              groundDummyHitFlash = 0.35;
-              const prevHp = groundDummyHp;
-              groundDummyHp = Math.max(10, groundDummyHp - 35);
-              groundDummyDamageGhosts.push({
-                fromHp: prevHp, toHp: groundDummyHp, maxHp: 100,
-                timer: 0, flashDuration: 0.12, dissolveDuration: 0.42, totalDuration: 0.54, seed: Math.random()
-              });
-              enemyDamageNumbers.push({
-                text: '🔥 FIRE ORB: STUN 0.5s!',
-                x: groundDummyX,
-                y: groundDummyY - 50,
-                color: '#ff922b',
-                alpha: 1.0,
-                vy: -45
-              });
-              showToast('🔥 FIRE ORB: Trúng Hình Nhân Đất! Choáng 0.5s và nổ Starburst 20px!');
-            }
-          }
-
-          // 3. Va chạm với Scene môi trường hoặc mặt đất (nếu chưa trúng địch)
-          if (!hit) {
-            if (isPointInSolid(orb.x, orbBottomY) || orbBottomY >= groundY) {
-              hit = true;
-              hitX = orb.x;
-              hitY = orbBottomY;
-              showToast('💥 FireOrb va chạm môi trường scene -> Nổ Starburst 20px!');
-            }
-          }
-        }
-
-        if (hit) {
-          spawnStarburst(hitX, hitY);
-          activeFireOrbs.splice(i, 1);
-          continue;
-        }
-
-        // Vượt quá đáy màn hình -> Hủy
-        if (orb.y > groundY + 150) {
-          activeFireOrbs.splice(i, 1);
-          continue;
-        }
-      }
-    }
-
-    // Cập nhật Starburst Explosions (Kích thước chuẩn 20px theo yêu cầu người dùng)
-    for (let i = activeStarburstExplosions.length - 1; i >= 0; i--) {
-      const sb = activeStarburstExplosions[i];
-      sb.frameTimer += dt;
-      if (sb.frameTimer >= (1.0 / sb.fps)) {
-        sb.frameTimer -= (1.0 / sb.fps);
-        sb.frame++;
-        if (sb.frame >= sb.totalFrames) {
-          activeStarburstExplosions.splice(i, 1);
-          continue;
-        }
-      }
-    }
-
-    // Cập nhật Ground Dummy di chuyển nhẹ trên Bệ Giữa
-    if (chkGroundDummy && chkGroundDummy.checked && groundDummyStunTimer <= 0) {
-      groundDummyX += groundDummyMoveDir * 60 * dt;
-      if (groundDummyX > mapX + 245 * mapScale) {
-        groundDummyX = mapX + 245 * mapScale;
-        groundDummyMoveDir = -1;
-      } else if (groundDummyX < mapX + 200 * mapScale) {
-        groundDummyX = mapX + 200 * mapScale;
-        groundDummyMoveDir = 1;
-      }
-    }
 
     // -------------------------------------------------------------
     // Render Scene
@@ -3208,66 +3159,20 @@ function drawScene(targetX, targetY, dt) {
     ctx.restore();
   }
 
-  // 2. Draw Target Enemy Dummy (Chiến Binh Huấn Luyện Pixel & Thanh Máu)
-  ctx.save();
-  // Shadow on ground
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
-  ctx.beginPath();
-  ctx.ellipse(targetX, targetY + 2, 24 * (zoom / 0.7), 7 * (zoom / 0.7), 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Draw Pixel Enemy Dummy Silhouette
+  // 2. Aim Reticle Circle & Attacking Target Dummy (Hình Nhân Tấn Công)
   const dummyScale = (zoom / 0.7);
-  const dummyW = 28 * dummyScale;
   const dummyH = 46 * dummyScale;
-  const dummyX = targetX - dummyW / 2;
-  const dummyY = targetY - dummyH;
 
-  // Flash color when hit by projectile explosion
-  if (enemyHitFlash > 0) {
-    ctx.fillStyle = (Math.floor(hoverTimer * 30) % 2 === 0) ? '#ffffff' : '#ff4444';
-  } else {
-    ctx.fillStyle = isEnemyDashing ? '#f0883e' : '#6e40c9';
-  }
-
-  // Head
-  ctx.fillRect(targetX - 7 * dummyScale, dummyY, 14 * dummyScale, 12 * dummyScale);
-  // Red eyes
-  ctx.fillStyle = '#ff3838';
-  const eyeOffset = (enemyMoveDir > 0) ? 2 : -2;
-  ctx.fillRect(targetX + eyeOffset - 3, dummyY + 4, 3, 3);
-  ctx.fillRect(targetX + eyeOffset + 2, dummyY + 4, 3, 3);
-
-  // Body & Armor
-  ctx.fillStyle = (enemyHitFlash > 0) ? '#ffaaaa' : (isEnemyDashing ? '#d29922' : '#5832a8');
-  ctx.fillRect(dummyX, dummyY + 12 * dummyScale, dummyW, 20 * dummyScale);
-  // Belt
-  ctx.fillStyle = '#d29922';
-  ctx.fillRect(dummyX + 2, dummyY + 32 * dummyScale, dummyW - 4, 3 * dummyScale);
-  // Legs
-  ctx.fillStyle = '#311b58';
-  ctx.fillRect(dummyX + 3, dummyY + 35 * dummyScale, 8 * dummyScale, 11 * dummyScale);
-  ctx.fillRect(dummyX + dummyW - 11 * dummyScale, dummyY + 35 * dummyScale, 8 * dummyScale, 11 * dummyScale);
-
-  // Reticle circle
+  // 2a. Reticle circle quanh mục tiêu đang nhắm của Vargost (Aoda hoặc Dummy)
+  ctx.save();
   ctx.strokeStyle = '#f6ad55';
   ctx.lineWidth = 1.5;
   ctx.setLineDash([4, 4]);
   ctx.beginPath();
-  ctx.arc(targetX, targetY - dummyH / 2, 26 * dummyScale, 0, Math.PI * 2);
+  ctx.arc(targetX, targetY - 20 * dummyScale, 26 * dummyScale, 0, Math.PI * 2);
   ctx.stroke();
   ctx.setLineDash([]);
-
   ctx.restore();
-
-  // Gothic Health Bar của Mục tiêu Huấn Luyện (Mẫu image copy.png, Theme Đỏ phe địch tươi hơn 15%)
-  const enemyBarTopY = dummyY - 24 * dummyScale;
-  const stunStr = (enemyStunTimer > 0) ? ' ⚡ STUN 0.1s!' : '';
-  const arrowStr = (chkMovingTarget && chkMovingTarget.checked) ? (enemyMoveDir > 0 ? '▶ Tiến Phải' : '◀ Tiến Trái') : 'Đứng Yên';
-  const dashStr = isEnemyDashing ? ' ⚡ DASH' : '';
-  const enemyLabel = `Mục tiêu (Team 2 · Kẻ Địch) ${enemyHp}/100 HP${stunStr}`;
-  const enemySub = `(${arrowStr}${dashStr})`;
-  drawGothicHealthBar(ctx, targetX, enemyBarTopY, enemyHp, 100, enemyDamageGhosts, enemyLabel, enemySub, enemyHitFlash > 0, 70, 'red');
 
   // Floating Damage Numbers (💥 -9999 CRIT! / 💨 MISSED / NÉ ĐÒN!)
   for (let i = 0; i < enemyDamageNumbers.length; i++) {
@@ -3741,57 +3646,89 @@ function drawScene(targetX, targetY, dt) {
     ctx.restore();
   }
 
-  // 7. Ground Training Dummy on Platform 2 (Bệ Giữa - X ≈ 865, Y ≈ 587.2)
-  if (chkGroundDummy && chkGroundDummy.checked) {
-    const dScale = (zoom / 0.7);
-    ctx.save();
-    ctx.translate(groundDummyX, groundDummyY);
-
-    // Shadow under dummy
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 22 * dScale, 8 * dScale, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Wooden dummy post / stand
-    ctx.fillStyle = '#8b5a2b';
-    ctx.fillRect(-6 * dScale, -50 * dScale, 12 * dScale, 50 * dScale); // Cọc chính
-    ctx.fillStyle = '#cd853f';
-    ctx.fillRect(-18 * dScale, -42 * dScale, 36 * dScale, 10 * dScale); // Tay ngang
-    ctx.fillStyle = '#d2691e';
-    ctx.beginPath();
-    ctx.arc(0, -60 * dScale, 12 * dScale, 0, Math.PI * 2); // Đầu bia
-    ctx.fill();
-
-    // Whiteout hit flash khi trúng đòn
-    if (groundDummyHitFlash > 0) {
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-      ctx.fillRect(-18 * dScale, -72 * dScale, 36 * dScale, 72 * dScale);
-    }
-
-    // Stun Indicator (⚡ ĐỊNH THÂN 2s)
-    if (groundDummyStunTimer > 0) {
-      ctx.fillStyle = '#ffd166';
-      ctx.font = 'bold 12px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText(`⚡ ĐỊNH THÂN ${groundDummyStunTimer.toFixed(1)}s`, 0, -82 * dScale);
-      // Spark rings
-      ctx.strokeStyle = 'rgba(255, 209, 102, 0.7)';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([3, 3]);
-      ctx.beginPath();
-      ctx.arc(0, -35 * dScale, 28 * dScale, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
-
-    ctx.restore();
-
-    // Gothic Health Bar cho Ground Dummy (Team 1 · Đồng Minh Vargost trên mặt đất)
-    const gdLabel = `Hình Nhân Đất (Team 1 · Đồng Minh) ${groundDummyHp}/100 HP${groundDummyStunTimer > 0 ? ' ⚡ CHOÁNG 0.5s' : ''}`;
-    const gdSub = '(Bệ Giữa 880px · Team 1 Xanh Lá)';
-    drawGothicHealthBar(ctx, groundDummyX, groundDummyY - 95 * dScale, groundDummyHp, 100, groundDummyDamageGhosts, gdLabel, gdSub, groundDummyHitFlash > 0, 70, 'green');
+  // -------------------------------------------------------------
+  // 6b. VẼ CỨ ĐIỂM THÁNH KIẾM (Asset/Character/vfx/sword.mp4) TRÊN PLATFORM 2
+  // -------------------------------------------------------------
+  ctx.save();
+  // Vùng tròn chiếm đóng (Bán kính SWORD_CAPTURE_RADIUS)
+  ctx.save();
+  ctx.beginPath();
+  ctx.ellipse(SWORD_X, SWORD_Y + 10, SWORD_CAPTURE_RADIUS, SWORD_CAPTURE_RADIUS * 0.42, 0, 0, Math.PI * 2);
+  let zoneColor = 'rgba(0, 229, 255, 0.15)';
+  let ringStroke = 'rgba(0, 229, 255, 0.7)';
+  if (isSwordContested) {
+    zoneColor = 'rgba(240, 136, 62, 0.28)';
+    ringStroke = '#f0883e';
+  } else if (swordControllingTeam === 1) {
+    zoneColor = 'rgba(63, 185, 80, 0.28)';
+    ringStroke = '#3fb950';
+  } else if (swordControllingTeam === 2) {
+    zoneColor = 'rgba(255, 60, 60, 0.28)';
+    ringStroke = '#ff5252';
   }
+  ctx.fillStyle = zoneColor;
+  ctx.fill();
+  ctx.strokeStyle = ringStroke;
+  ctx.lineWidth = 2.5;
+  ctx.setLineDash([8, 6]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // Vẽ Sprite Thánh Kiếm từ Atlas đã bóc tách từ Asset/Character/vfx/sword.mp4
+  if (assets.swordObjective && swordFrames && swordFrames.frames) {
+    const frameData = swordFrames.frames[swordFrameIndex % swordFrames.frames.length];
+    if (frameData) {
+      const targetSwordH = 90.0; // Chiều cao chuẩn hóa đúng 90px theo yêu cầu người dùng
+      const swScale = (targetSwordH / 158.0) * (zoom / 0.7);
+      const drawW = frameData.source_width * swScale;
+      const drawH = targetSwordH * (zoom / 0.7); // Chuẩn xác 90px
+      const anchorX = frameData.anchor_x * swScale;
+      const anchorY = frameData.anchor_y * swScale;
+      const hoverSword = Math.sin(hoverTimer * 3.0) * 8 * (zoom / 0.7);
+
+      ctx.save();
+      ctx.translate(SWORD_X, SWORD_Y + hoverSword);
+
+      // Hào quang vàng kim bao quanh thanh kiếm
+      ctx.fillStyle = 'rgba(255, 215, 0, 0.2)';
+      ctx.beginPath();
+      ctx.arc(0, -anchorY + drawH / 2, 45 * swScale, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.drawImage(
+        assets.swordObjective,
+        frameData.atlas_x, frameData.atlas_y, frameData.source_width, frameData.source_height,
+        -anchorX, -anchorY, drawW, drawH
+      );
+      ctx.restore();
+    }
+  }
+
+  // Thanh tiến trình chiếm giữ 20.0s trên đỉnh Thánh Kiếm
+  if (swordCaptureTimer > 0 || isSwordContested) {
+    const barW = 120 * (zoom / 0.7);
+    const barH = 10 * (zoom / 0.7);
+    const barX = SWORD_X - barW / 2;
+    const barY = SWORD_Y - 95 * (zoom / 0.7);
+    const progress = Math.min(1.0, swordCaptureTimer / SWORD_CAPTURE_REQUIRED);
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(10, 14, 20, 0.85)';
+    ctx.fillRect(barX - 2, barY - 2, barW + 4, barH + 4);
+    ctx.fillStyle = isSwordContested ? '#f0883e' : (swordControllingTeam === 1 ? '#3fb950' : '#ff5252');
+    ctx.fillRect(barX, barY, barW * progress, barH);
+    ctx.strokeStyle = '#d29922';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(barX - 2, barY - 2, barW + 4, barH + 4);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 11px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${swordCaptureTimer.toFixed(1)}s / 20.0s`, SWORD_X, barY - 5);
+    ctx.restore();
+  }
+  ctx.restore();
 
   // 8. Active Tornadoes (Chiêu 1 của Aoda: Tornado 85px, hiện từ từ 0.8s, hoạt động quét 50px/s suốt 2.0s, tan biến từ từ 0.8s)
   if (assets.vfxTornado) {
@@ -3875,8 +3812,8 @@ function drawScene(targetX, targetY, dt) {
   // Tornado Windup Preview (khi Aoda bắt đầu vận công tại frame 25..29): Lốc trồi dần từ mặt đất lên mượt mà
   if (aodaState === 'SKILL_1_WINDUP' && assets.vfxTornado) {
     const windupProgress = (aodaFrameIndex - 24) / 5.0; // 0..1
-    const previewX = (chkGroundDummy && chkGroundDummy.checked && Math.abs(groundDummyX - aodaX) < 500) ? groundDummyX : (aodaX + aodaLockedFacing * 120);
-    const previewY = (chkGroundDummy && chkGroundDummy.checked && Math.abs(groundDummyX - aodaX) < 500) ? groundDummyY : aodaY;
+    const previewX = aodaX + aodaLockedFacing * 120;
+    const previewY = aodaY;
     const vfxScale = (85.0 / 690.0) * (zoom / 0.7);
     const drawW = 700 * vfxScale;
     const drawH = 690 * vfxScale;
@@ -3906,134 +3843,12 @@ function drawScene(targetX, targetY, dt) {
     ctx.restore();
   }
 
-  // 9. Active FireOrbs (Chiêu 2 của Aoda: Cầu Lửa hình cầu chuẩn 80px đường kính rơi tự do)
-  if (assets.vfxFireOrb) {
-    for (const orb of activeFireOrbs) {
-      const col = orb.frame % 5;
-      const row = Math.floor(orb.frame / 5);
-      const sx = col * 620;
-      const sy = row * 620;
-
-      // Chuẩn hóa kích thước đường kính 80px theo yêu cầu người dùng
-      const orbScale = (80.0 / 620.0) * (zoom / 0.7);
-      const drawW = 620 * orbScale;
-      const drawH = 620 * orbScale;
-      const anchorX = 310 * orbScale;
-      const anchorY = 310 * orbScale;
-
-      ctx.save();
-      ctx.translate(orb.x, orb.y);
-
-      // Quầng hào quang phát sáng đỏ cam rực rỡ
-      ctx.fillStyle = 'rgba(255, 90, 0, 0.4)';
-      ctx.beginPath();
-      ctx.arc(0, 0, 42 * (zoom / 0.7), 0, Math.PI * 2);
-      ctx.fill();
-
-      // Vẽ quả cầu lửa 80px
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.drawImage(
-        assets.vfxFireOrb,
-        sx, sy, 620, 620,
-        -anchorX, -anchorY,
-        drawW, drawH
-      );
-
-      // Lớp phát sáng Additive Blending rực rỡ
-      ctx.globalCompositeOperation = 'lighter';
-      ctx.globalAlpha = 0.7;
-      ctx.drawImage(
-        assets.vfxFireOrb,
-        sx, sy, 620, 620,
-        -anchorX, -anchorY,
-        drawW, drawH
-      );
-      ctx.restore();
-    }
-  }
-
-  // 10. Active Starburst Explosions (Vụ nổ nảy ra khi FireOrb chạm mục tiêu/scene - Kích thước chuẩn 20px)
-  if (assets.vfxFireOrbExplosion) {
-    for (const exp of activeStarburstExplosions) {
-      const col = exp.frame % 4;
-      const row = Math.floor(exp.frame / 4);
-      const sx = col * 632;
-      const sy = row * 820;
-
-      const drawW = 632 * exp.scale;
-      const drawH = 820 * exp.scale;
-      const anchorX = 316 * exp.scale;
-      const anchorY = 410 * exp.scale;
-
-      ctx.save();
-      ctx.translate(exp.x, exp.y);
-      ctx.globalCompositeOperation = 'lighter';
-      ctx.drawImage(
-        assets.vfxFireOrbExplosion,
-        sx, sy, 632, 820,
-        -anchorX, -anchorY,
-        drawW, drawH
-      );
-      ctx.restore();
-    }
-  }
-
-  // FireOrb Windup Preview (khi Aoda đang tụ lực Chiêu 2 tại frame 25..29): Khóa tâm ngắm trên đầu mục tiêu 20px
-  if (aodaState === 'SKILL_2_WINDUP') {
-    const windupProgress = (aodaFrameIndex - 24) / 5.0; // 0..1
-    let targetPreviewX = vargostX;
-    let targetPreviewHeadY = (vargostY + hoverOffset) - 58 * (zoom / 0.7);
-
-    if (chkGroundDummy && chkGroundDummy.checked) {
-      const hDistDummy = Math.abs(groundDummyX - aodaX);
-      const hDistVargost = Math.abs(vargostX - aodaX);
-      if (!isFlying && hDistDummy < hDistVargost) {
-        targetPreviewX = groundDummyX;
-        targetPreviewHeadY = groundDummyY - 48 * (zoom / 0.7);
-      }
-    }
-    const lockedY = targetPreviewHeadY - 20 - 40 * (zoom / 0.7);
-
-    ctx.save();
-    ctx.translate(targetPreviewX, lockedY);
-
-    // Vòng tròn khóa mục tiêu lửa xoay tròn
-    const lockRadius = (35 - 10 * windupProgress) * (zoom / 0.7);
-    ctx.strokeStyle = `rgba(255, 120, 0, ${0.5 + 0.5 * windupProgress})`;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(0, 0, lockRadius, 0, Math.PI * 2);
-    ctx.moveTo(-lockRadius * 1.3, 0); ctx.lineTo(lockRadius * 1.3, 0);
-    ctx.moveTo(0, -lockRadius * 1.3); ctx.lineTo(0, lockRadius * 1.3);
-    ctx.stroke();
-
-    // Hạt lửa tụ về tâm
-    ctx.fillStyle = `rgba(255, 200, 50, ${0.4 + 0.6 * windupProgress})`;
-    ctx.beginPath();
-    ctx.arc(0, 0, 10 * windupProgress * (zoom / 0.7), 0, Math.PI * 2);
-    ctx.fill();
-
-    // Tia laser dẫn đường lửa từ Aoda đến điểm khóa
-    ctx.strokeStyle = `rgba(255, 100, 0, ${0.35 + 0.45 * windupProgress})`;
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([6, 4]);
-    ctx.beginPath();
-    ctx.moveTo(aodaX - targetPreviewX, aodaY - 50 - lockedY);
-    ctx.lineTo(0, 0);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.restore();
-  }
-
   // 11. Stun VFX quanh đầu (Procedural Stun Stars xoay tròn)
   const spriteScaleStun = (assets.manifest ? assets.manifest.display_scale : 0.872) * (zoom / 0.7);
   if (vargostStunTimer > 0) {
     drawStunStars(ctx, vargostX, (vargostY + hoverOffset) - 58 * spriteScaleStun, 24 * spriteScaleStun, 8 * spriteScaleStun);
   }
-  if (chkGroundDummy && chkGroundDummy.checked && groundDummyStunTimer > 0) {
-    const dScaleStun = (zoom / 0.7);
-    drawStunStars(ctx, groundDummyX, groundDummyY - 52 * dScaleStun, 22 * dScaleStun, 7 * dScaleStun);
-  }
+
   if (aodaStunTimer > 0) {
     const aodaScaleStun = (assets.aodaManifest ? assets.aodaManifest.display_scale : 0.333) * (zoom / 0.7);
     drawStunStars(ctx, aodaX, aodaY - 55 * aodaScaleStun, 22 * aodaScaleStun, 8 * aodaScaleStun);

@@ -179,6 +179,52 @@ test('Vargost Combat Logic: Teleport Retreat, Evasive Dodge/Miss, and Enemy Coun
     }
     if (isDead) throw new Error("Vargost phải tự động hồi sinh sau 3.4s");
     if (vargostHp !== VARGOST_MAX_HP) throw new Error("vargostHp phải đầy lại sau khi hồi sinh");
+
+    // Test 6: Tuyệt Đối Chặn Bug Địa Hình - Teleport Lùi Khi Quá Gần Mục Tiêu Không Dính Zone 3 (Vách Đá Phải)
+    isDead = false;
+    vargostHp = 1000;
+    isFlying = true;
+    // Đặt Vargost ở bệ đá gần vách đá Zone 3, mặt hướng về phía trái (kẻ địch bên trái)
+    vargostX = mapX + 250 * mapScale;
+    vargostY = mapY + 140 * mapScale;
+    facingDirection = -1; // Nhìn trái -> lùi về bên phải (hướng vào Zone 3)
+    const enemyCloseX = vargostX - 60; // Kẻ địch ở cự ly quá gần (< 150px)
+    const enemyCloseY = groundY - 24;
+
+    const safeRetreat = calculateSafeRetreat(vargostX, vargostY, facingDirection, 180, enemyCloseX, enemyCloseY);
+    if (isVargostColliding(safeRetreat.x, safeRetreat.y)) {
+      throw new Error("Tọa độ safeRetreat (" + safeRetreat.x + ", " + safeRetreat.y + ") bị va chạm địa hình!");
+    }
+    // Xác nhận không dính vào Zone 3 (Vách Đá Phải bắt đầu từ mapX + 284 * mapScale)
+    const zone3Face = mapX + 284 * mapScale;
+    if (safeRetreat.x >= zone3Face && safeRetreat.y >= mapY + 94 * mapScale) {
+      throw new Error("safeRetreat rơi vào trong lòng khối đá Zone 3!");
+    }
+    // Thực hiện teleport và tua qua phase blink
+    triggerTeleport(safeRetreat.x, safeRetreat.y);
+    let blinkTime = 0;
+    while (isPhaseBlinking && blinkTime < 1.0) {
+      blinkTime += 0.05;
+      update((12.0 + blinkTime) * 1000);
+    }
+    if (isVargostColliding(vargostX, vargostY)) {
+      throw new Error("Vargost bị kẹt địa hình sau khi hoàn tất teleport lùi!");
+    }
+
+    // Test 7: LoS Check Tuyệt Đối Không Bắn Vào Vách Đá Địa Hình
+    // Khi tầm nhìn bị địa hình cản, Vargost không xuất chiêu bừa bãi mà chuyển sang LOS_EVASIVE né đá
+    aiState = 'IDLE';
+    pendingCombatAction = null;
+    autoCooldown = 0;
+    const rockObstacle = raycastEnvCollision(vargostX, vargostY - 20, enemyCloseX, enemyCloseY);
+    if (rockObstacle) {
+      // Giả lập kích hoạt tung chiêu khi có đá chắn
+      orderBlazingHalo();
+      update(15000); // 1 frame update
+      if (aiState === 'HALO_WINDUP' || currentFrameIndex === 44) {
+        throw new Error("Vargost không được vào HALO_WINDUP khi tầm nhìn bị vách đá cản trực diện!");
+      }
+    }
   `;
 
   runInContext(testLogic, context);

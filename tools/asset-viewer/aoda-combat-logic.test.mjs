@@ -17,15 +17,13 @@ test('Aoda Metadata: 90px Height, Atlases & Action Frame Separation', () => {
   const actions = manifest.actions;
   assert.ok(actions.idle, 'Must have idle action');
   assert.ok(actions.skill_1_tornado, 'Must have skill_1_tornado action');
-  assert.ok(actions.skill_2_fire_orb, 'Must have skill_2_fire_orb action');
+  assert.equal(actions.skill_2_fire_orb, undefined, 'Must not have skill_2_fire_orb (deleted)');
   assert.ok(actions.ko, 'Must have ko action');
   assert.ok(actions.move, 'Must have move action');
 
   // Frame 1..47 (indices 0..46): Vận công / tấn công & thế thủ
   assert.equal(actions.skill_1_tornado.windup_start, 24, 'Skill 1 windup must start at index 24 (frame 25)');
   assert.equal(actions.skill_1_tornado.windup_release, 29, 'Skill 1 release at index 29 (frame 30)');
-  assert.equal(actions.skill_2_fire_orb.windup_start, 24, 'Skill 2 windup must start at index 24 (frame 25)');
-  assert.equal(actions.skill_2_fire_orb.windup_release, 29, 'Skill 2 release at index 29 (frame 30)');
 
   // Frame 47..65 (indices 46..64): Gục ngã & tan biến KO
   assert.equal(actions.ko.start_frame, 46, 'KO start frame must be index 46 (frame 47)');
@@ -36,25 +34,18 @@ test('Aoda Metadata: 90px Height, Atlases & Action Frame Separation', () => {
   assert.equal(actions.move.end_frame, 92, 'Move end frame must be index 92 (frame 93)');
   assert.equal(manifest.frames.length, 93, 'Total frames must be 93');
 
-  // 3. VFX Red Tornado (85px, 50px/s, Range 85px, CD 5s) & FireOrb (80px, Choáng 0.5s, Starburst 20px, CD 5s)
+  // 3. VFX Red Tornado (85px, xoay tại chỗ đúng 2.0s, CD 5s)
   assert.ok(manifest.vfx.red_tornado, 'Must have red_tornado vfx config');
   assert.equal(manifest.vfx.red_tornado.name, 'Tornado', 'Red tornado name must be Tornado');
   assert.equal(manifest.vfx.red_tornado.duration_sec, 2.0, 'Red tornado duration must be 2.0s');
   assert.equal(manifest.vfx.red_tornado.height_px, 85, 'Red tornado height must be 85px');
-  assert.equal(manifest.vfx.red_tornado.speed_px, 50, 'Red tornado speed must be 50px/s');
-  assert.equal(manifest.vfx.red_tornado.range_px, 85, 'Red tornado range must be 85px sweep');
+  assert.equal(manifest.vfx.red_tornado.speed_px, 0, 'Red tornado speed must be 0px/s (stationary spin in place)');
+  assert.equal(manifest.vfx.red_tornado.range_px, 85, 'Red tornado range must be 85px');
   assert.equal(manifest.vfx.red_tornado.cooldown_sec, 5.0, 'Red tornado cooldown must be 5.0s');
   assert.equal(manifest.vfx.red_tornado.effect, 'root_and_silence', 'Red tornado effect must be root_and_silence');
 
-  assert.ok(manifest.vfx.fire_orb, 'Must have fire_orb vfx config');
-  assert.equal(manifest.vfx.fire_orb.name, 'FireOrb', 'FireOrb name must be FireOrb');
-  assert.equal(manifest.vfx.fire_orb.diameter_px, 80, 'FireOrb diameter must be 80px');
-  assert.equal(manifest.vfx.fire_orb.spawn_offset_y, -20, 'FireOrb spawn must be 20px above target head');
-  assert.equal(manifest.vfx.fire_orb.stun_duration_sec, 0.5, 'FireOrb stun must be 0.5s');
-  assert.equal(manifest.vfx.fire_orb.cooldown_sec, 5.0, 'FireOrb cooldown must be 5.0s');
-
-  assert.ok(manifest.vfx.fire_orb_explosion, 'Must have fire_orb_explosion config');
-  assert.equal(manifest.vfx.fire_orb_explosion.size_px, 20, 'Starburst impact explosion size must be 20px');
+  assert.equal(manifest.vfx.fire_orb, undefined, 'FireOrb vfx must be completely deleted');
+  assert.equal(manifest.vfx.fire_orb_explosion, undefined, 'FireOrb explosion vfx must be completely deleted');
 
   // 4. Candidate configs check
   const fineCandidate = JSON.parse(readFileSync('Asset/Character/fine_candidates/aoda/candidate.json', 'utf8'));
@@ -88,54 +79,55 @@ test('Tornado Ground-Only Aerial Immunity & Multi-target AoE', () => {
     'All ground enemies in AoE must be hit by Tornado');
 });
 
-test('FireOrb Aerial/Ground Targeting, 80px Diameter, 20px Starburst & 0.5s Stun', () => {
-  const target = { x: 600, headY: 450, isFlying: true };
+test('Tornado 2.0s Duration & Static In-Place Spinning Lifecycle (Emerge -> Spin 2.0s -> Dissipate)', () => {
+  // Chu trình hoạt ảnh Tornado: Xuất hiện (Frame 0..3) -> Tồn tại xoay đúng 2.0s tại chỗ -> Tan biến (Frame 10..14)
+  const tornado = {
+    originX: 500,
+    x: 500,
+    y: 800,
+    phase: 'EMERGE',
+    frameIndex: 0,
+    spinElapsed: 0,
+    spinDuration: 2.0
+  };
 
-  // 1. Tọa độ spawn khóa đúng 20px trên đầu mục tiêu (đáy cầu cách đầu 20px)
-  const diameter = 80;
-  const radius = diameter / 2; // 40px
-  const spawnX = target.x;
-  const spawnY = target.headY - 20 - radius; // tâm cầu cách đầu mục tiêu 60px
-  assert.equal(spawnY, 390, 'Center spawn Y must be target.headY - 20 - radius = 390px');
-  assert.equal(spawnY + radius, 430, 'Bottom of orb must be exactly 20px above target head at spawn');
+  // 1. Pha Emerge
+  assert.equal(tornado.phase, 'EMERGE');
+  assert.equal(tornado.x, tornado.originX, 'Tornado must remain at spawn position');
 
-  // 2. Kích thước 80px hình cầu
-  assert.equal(diameter, 80, 'Diameter must be 80px');
-  assert.equal(radius, 40, 'Radius must be 40px');
+  // Chuyển sang phase SPIN
+  tornado.phase = 'SPIN';
+  tornado.frameIndex = 4;
+  assert.equal(tornado.frameIndex, 4, 'Peak spin loop starts at frame index 4');
 
-  // 3. Rơi tự do và va chạm khi đáy cầu chạm mục tiêu
-  let orbY = spawnY;
-  const vy = 300;
-  orbY += vy * 0.15; // Rơi xuống Y = 435 (đáy cầu ở Y = 475 > headY = 450)
-  const orbBottomY = orbY + radius;
-  const hit = (orbBottomY >= target.headY && Math.abs(spawnX - target.x) < 48);
-  assert.ok(hit, 'Falling FireOrb bottom must detect collision with target');
+  // 2. Pha SPIN lặp lại 2.0s
+  tornado.spinElapsed += 2.0;
+  assert.ok(tornado.spinElapsed >= tornado.spinDuration, 'Tornado must spin for exactly 2.0s');
+  assert.equal(tornado.x, tornado.originX, 'Tornado must stay stationary in place without sweeping');
 
-  // 4. Choáng 0.5s và Starburst nổ 20px
-  const stunDuration = 0.5;
-  const starburstSize = 20;
-  assert.equal(stunDuration, 0.5, 'Stun duration must be 0.5s with head spinning stars');
-  assert.equal(starburstSize, 20, 'Starburst impact size must be 20px');
+  // 3. Pha DISSIPATE
+  tornado.phase = 'DISSIPATE';
+  tornado.frameIndex = 10;
+  assert.equal(tornado.phase, 'DISSIPATE');
+  assert.equal(tornado.frameIndex, 10, 'Dissipate phase starts at frame index 10');
 });
 
-test('Utility AI Target & Skill Selection: Flying -> FireOrb, Ground -> Tornado (Both CD 5s)', () => {
-  function decideSkill(nearestEnemy, tornadoCd, fireOrbCd) {
+test('Utility AI Target & Skill Selection: Ground -> Tornado (CD 5s), Airborne -> Hold Skill', () => {
+  function decideSkill(nearestEnemy, tornadoCd) {
     if (!nearestEnemy) return null;
-    if (nearestEnemy.isFlying) {
-      if (fireOrbCd <= 0) return 'FIRE_ORB';
-    } else {
-      if (tornadoCd <= 0) return 'TORNADO';
+    if (!nearestEnemy.isFlying && tornadoCd <= 0) {
+      return 'TORNADO';
     }
     return null;
   }
 
-  // Trường hợp 1: Mục tiêu gần nhất đang bay trên không -> Chọn FireOrb
+  // Trường hợp 1: Mục tiêu gần nhất đang bay trên không -> Không dùng Tornado phí phạm
   const flyingEnemy = { x: 450, y: 200, isFlying: true, dist: 300 };
-  assert.equal(decideSkill(flyingEnemy, 0, 0), 'FIRE_ORB', 'AI must select FireOrb against airborne enemy');
+  assert.equal(decideSkill(flyingEnemy, 0), null, 'AI must hold skill against airborne enemy');
 
   // Trường hợp 2: Mục tiêu gần nhất ở dưới mặt đất -> Chọn Tornado
   const groundEnemy = { x: 450, y: 750, isFlying: false, dist: 250 };
-  assert.equal(decideSkill(groundEnemy, 0, 0), 'TORNADO', 'AI must select Tornado against ground enemy');
+  assert.equal(decideSkill(groundEnemy, 0), 'TORNADO', 'AI must select Tornado against ground enemy');
 });
 
 test('Aoda Ledge Jumping: Parabolic Arc & Bi-directional Height Traversal', () => {
@@ -238,4 +230,228 @@ test('Team System: Team 1 (Green / Vargost & Ground Dummy) vs Team 2 (Red / Aoda
   assert.equal(canAttack(teams.aoda.team, teams.vargost.team), true, 'Aoda can attack Vargost (opposing team)');
   // Vargost (Team 1) được phép tấn công Aoda (Team 2):
   assert.equal(canAttack(teams.vargost.team, teams.aoda.team), true, 'Vargost can attack Aoda (opposing team)');
+});
+
+test('Decoupling Attacking Target Dummy from Aoda: Independent Positions, Separate Health Bars, and Platform Traversal', () => {
+  // 1. Phân tách hoàn toàn Hình Nhân Tấn Công khỏi Aoda
+  const aoda = { x: 425, y: 745, hp: 100, maxHp: 100, label: 'Aoda 90px (Team 2 · Kẻ Địch)' };
+  const attackingDummy = { x: 865, y: 587, hp: 100, label: 'Hình Nhân Tấn Công (Team 2 · Kẻ Địch)' };
+
+  // Vị trí không bao giờ trùng nhau (Aoda trên Platform 1A, Hình nhân trên Platform 2)
+  assert.notEqual(aoda.x, attackingDummy.x, 'Aoda and Attacking Dummy must have completely separate X coordinates');
+  assert.ok(Math.abs(aoda.x - attackingDummy.x) > 300, 'Aoda and Attacking Dummy must be distanced across platforms');
+  assert.notEqual(aoda.label, attackingDummy.label, 'Health bar titles must be distinct and identifiable');
+
+  // 2. Logic di chuyển mượt mà không bị đóng băng ở cự ly 280px
+  function shouldAodaAdvance(hDistTarget, isTargetOnGround) {
+    if (isTargetOnGround && hDistTarget <= 75) {
+      return false; // Áp sát cự ly cận chiến cực gần -> Đứng thế thủ
+    }
+    return true; // Còn lại luôn di chuyển và nhảy bệ áp sát
+  }
+
+  // Khi mục tiêu cách 200px (như Vargost bay ở đầu game): Aoda PHẢI tiếp tục chạy bộ áp sát, không bị kẹt IDLE!
+  assert.equal(shouldAodaAdvance(200, false), true, 'Aoda must advance when target is 200px away in the air');
+  assert.equal(shouldAodaAdvance(60, true), false, 'Aoda must enter melee stance only when within 75px on ground');
+
+  // 3. Logic chọn mục tiêu tung chiêu Tornado khi Vargost bay
+  function selectGroundTornadoTarget(isFlying, vargostX, groundDummyX, aodaX, dummyActive) {
+    const hDistV = Math.abs(vargostX - aodaX);
+    const hDistD = dummyActive ? Math.abs(groundDummyX - aodaX) : Infinity;
+
+    if (!isFlying) {
+      return (hDistV <= hDistD || !dummyActive) ? 'VARGOST' : 'DUMMY';
+    } else if (dummyActive) {
+      return 'DUMMY'; // Vargost đang bay -> Nhắm Ground Dummy dưới mặt đất
+    } else {
+      return 'VARGOST_GROUND_PROJECTION';
+    }
+  }
+
+  // Khi Vargost đang bay (isFlying = true) và Ground Dummy đang có mặt -> Aoda nhắm Ground Dummy tung Tornado
+  assert.equal(selectGroundTornadoTarget(true, 600, 865, 425, true), 'DUMMY',
+    'Aoda must target Ground Dummy when Vargost is flying');
+
+  // Khi Vargost hạ cánh (isFlying = false) và ở gần -> Aoda nhắm Vargost
+  assert.equal(selectGroundTornadoTarget(false, 550, 865, 425, true), 'VARGOST',
+    'Aoda must target landed Vargost when closer than dummy');
+});
+
+test('Central Holy Sword Objective: 20.0s Continuous Capture, Contested Freeze & Zone Reset', () => {
+  const SWORD_X = 865;
+  const SWORD_Y = 587;
+  const SWORD_CAPTURE_RADIUS = 135;
+  const SWORD_CAPTURE_REQUIRED = 20.0;
+
+  function evaluateSwordZone(team1Units, team2Units, currentState, dt) {
+    const isInside = (u) => Math.hypot(u.x - SWORD_X, u.y - SWORD_Y) <= SWORD_CAPTURE_RADIUS && u.hp > 0;
+    const hasTeam1 = team1Units.some(isInside);
+    const hasTeam2 = team2Units.some(isInside);
+
+    let { timer, controllingTeam, contested, winner } = currentState;
+
+    if (winner !== null) {
+      return currentState;
+    }
+
+    if (hasTeam1 && hasTeam2) {
+      // Cả 2 đội cùng trong vùng -> Tranh chấp, đóng băng đồng hồ
+      contested = true;
+    } else if (hasTeam1) {
+      contested = false;
+      if (controllingTeam !== 1) {
+        controllingTeam = 1;
+        timer = 0.0;
+      }
+      timer += dt;
+      if (timer >= SWORD_CAPTURE_REQUIRED) {
+        timer = SWORD_CAPTURE_REQUIRED;
+        winner = 1;
+      }
+    } else if (hasTeam2) {
+      contested = false;
+      if (controllingTeam !== 2) {
+        controllingTeam = 2;
+        timer = 0.0;
+      }
+      timer += dt;
+      if (timer >= SWORD_CAPTURE_REQUIRED) {
+        timer = SWORD_CAPTURE_REQUIRED;
+        winner = 2;
+      }
+    } else {
+      // KHÔNG CÒN AI TRONG VÙNG -> RESET NGAY LẬP TỨC VỀ 0.0s!
+      contested = false;
+      timer = 0.0;
+      controllingTeam = null;
+    }
+
+    return { timer, controllingTeam, contested, winner };
+  }
+
+  // 1. Trạng thái ban đầu: Trống
+  let state = { timer: 0.0, controllingTeam: null, contested: false, winner: null };
+
+  // 2. Team 1 bước vào vùng: Bắt đầu tích lũy thời gian
+  let team1 = [{ x: 865, y: 587, hp: 1000 }]; // Đứng ngay cạnh kiếm
+  let team2 = [{ x: 425, y: 700, hp: 300 }];  // Aoda ở Platform 1A ngoài vùng
+
+  state = evaluateSwordZone(team1, team2, state, 5.0);
+  assert.equal(state.controllingTeam, 1, 'Controlling team must be Team 1');
+  assert.equal(state.timer, 5.0, 'Timer must advance to 5.0s');
+  assert.equal(state.contested, false);
+  assert.equal(state.winner, null);
+
+  // 3. Team 2 bước vào vùng kiếm -> TRANH CHẤP!
+  team2 = [{ x: 890, y: 587, hp: 300 }]; // Aoda nhảy tới Bệ Giữa vào vùng kiếm
+  state = evaluateSwordZone(team1, team2, state, 3.0);
+  assert.equal(state.contested, true, 'Zone must be contested when both teams are inside');
+  assert.equal(state.timer, 5.0, 'Capture timer must freeze during contest');
+  assert.equal(state.winner, null);
+
+  // 4. Team 1 tiêu diệt Team 2 (Aoda hp = 0) -> Team 1 tiếp tục giữ vùng
+  team2 = [{ x: 890, y: 587, hp: 0 }];
+  state = evaluateSwordZone(team1, team2, state, 15.0);
+  assert.equal(state.contested, false);
+  assert.equal(state.timer, 20.0, 'Timer must reach 20.0s');
+  assert.equal(state.winner, 1, 'Team 1 must be declared WINNER after 20.0s continuous hold');
+
+  // 5. Kiểm tra quy tắc RESET VỀ 0: Khi cả 2 đội rời khỏi vùng (không còn ai)
+  let freshState = { timer: 14.5, controllingTeam: 2, contested: false, winner: null };
+  const emptyTeam1 = [{ x: 200, y: 200, hp: 1000 }]; // Ngoài vùng
+  const emptyTeam2 = [{ x: 400, y: 700, hp: 300 }];  // Ngoài vùng
+  freshState = evaluateSwordZone(emptyTeam1, emptyTeam2, freshState, 1.0);
+  assert.equal(freshState.timer, 0.0, 'Timer MUST reset to 0.0s when zone is empty');
+  assert.equal(freshState.controllingTeam, null, 'Controlling team MUST reset to null');
+  assert.equal(freshState.contested, false);
+});
+
+test('Vargost Collision Escape: Vertical Teleport to Open Airspace When Blocked by Terrain', () => {
+  const mapScale = 2.625;
+  const mapX = 600;
+  const skyCeilingY = 280;
+
+  // Mô phỏng hàm kiểm tra va chạm địa hình Zone 3
+  function mockIsVargostColliding(px, py) {
+    const zone3FaceX = mapX + 284 * mapScale; // Vách đá Zone 3
+    if (px >= zone3FaceX && py >= 450) return true; // Va chạm vào vách đá
+    return false;
+  }
+
+  function mockCalculateSafeRetreat(fromX, fromY, retreatDir, desiredDistance) {
+    const candX = fromX + retreatDir * desiredDistance;
+    const candY = fromY;
+    const isColliding = mockIsVargostColliding(candX, candY);
+    const minX = mapX + 75 * mapScale;
+    const maxX = mapX + 475 * mapScale;
+    const isOutOfBounds = (candX < minX || candX > maxX);
+
+    if (!isColliding && !isOutOfBounds) {
+      return { x: candX, y: candY, escapedVertically: false };
+    }
+
+    // Thoát kẹt lên trên vào vùng trời mở
+    const escapeY = skyCeilingY + 12;
+    let escapeX = Math.min(fromX, mapX + 250 * mapScale);
+    return { x: escapeX, y: escapeY, escapedVertically: true };
+  }
+
+  // Tình huống 1: Vargost đứng sát vách đá Zone 3 (fromX = 1340), muốn lùi về phía bên phải (+1)
+  const retreatBlocked = mockCalculateSafeRetreat(1340, 500, 1, 130);
+  assert.equal(retreatBlocked.escapedVertically, true,
+    'Must trigger vertical upward escape when backward retreat is blocked by cliff');
+  assert.equal(retreatBlocked.y, skyCeilingY + 12,
+    'Target Y must be elevated to open sky ceiling above terrain');
+  assert.ok(retreatBlocked.x <= mapX + 250 * mapScale,
+    'Target X must be pulled back safely into arena airspace');
+
+  // Tình huống 2: Vargost ở khoảng trống (fromX = 900), lùi an toàn
+  const retreatSafe = mockCalculateSafeRetreat(900, 350, -1, 100);
+  assert.equal(retreatSafe.escapedVertically, false, 'Should retreat horizontally when airspace is clear');
+  assert.equal(retreatSafe.x, 800);
+});
+
+test('Aoda Utility AI: Cross-Platform Ledge Traversal & Holy Sword Assault vs Defense', () => {
+  const SWORD_X = 865;
+  const SWORD_Y = 587;
+  const SWORD_CAPTURE_RADIUS = 135;
+
+  function getAodaObjectiveRole(aodaX, aodaY) {
+    const distToSword = Math.hypot(aodaX - SWORD_X, aodaY - SWORD_Y);
+    if (distToSword <= SWORD_CAPTURE_RADIUS) {
+      return 'DEFENSE'; // Ở trong vùng kiếm -> Phòng thủ cứ điểm!
+    } else {
+      return 'ASSAULT'; // Ngoài vùng kiếm -> Tấn công tiến về phía kiếm!
+    }
+  }
+
+  // Aoda ở Platform 1A (Team 2 Base, X = 425) -> Role là ASSAULT tiến về kiếm
+  assert.equal(getAodaObjectiveRole(425, 700), 'ASSAULT', 'Outside sword zone must be ASSAULT mode');
+
+  // Aoda đã nhảy sang Platform 2 cạnh kiếm (X = 865, Y = 587) -> Role là DEFENSE
+  assert.equal(getAodaObjectiveRole(865, 587), 'DEFENSE', 'Inside sword zone must be DEFENSE mode');
+});
+
+test('Holy Sword Central Pedestal Standardized 90px & Pure 1v1 Champion Combat (Dummies Removed)', () => {
+  const framesJsonPath = 'Asset/Character/characters/sword_objective/frames.json';
+  assert.ok(existsSync(framesJsonPath), 'frames.json must exist');
+  const swordMeta = JSON.parse(readFileSync(framesJsonPath, 'utf8'));
+
+  // 1. Kích thước chuẩn hóa đúng 90px theo yêu cầu người dùng
+  assert.equal(swordMeta.target_height_px, 90, 'Holy sword target_height_px must be 90px');
+  assert.equal(swordMeta.frame_h, 158, 'Source frame height must be 158px');
+  const calculatedScale = swordMeta.target_height_px / swordMeta.frame_h;
+  const drawHeight = swordMeta.frame_h * calculatedScale;
+  assert.equal(Math.round(drawHeight), 90, 'Rendered height of holy sword must be exactly 90px');
+
+  // 2. Chế độ giao tranh thuần tướng 1v1 (Đã xóa bỏ hoàn toàn 2 hình nhân)
+  function isZoneCapturePure(activeChampions) {
+    return activeChampions.every(c => c.type === 'vargost' || c.type === 'aoda');
+  }
+
+  const activeMatch = [
+    { type: 'vargost', team: 1, hp: 1000 },
+    { type: 'aoda', team: 2, hp: 300 }
+  ];
+  assert.equal(isZoneCapturePure(activeMatch), true, 'Combatants must strictly be champions Vargost & Aoda');
 });

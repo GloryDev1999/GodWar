@@ -73,9 +73,9 @@
       flex-direction: column;
       gap: 6px;
       margin: 6px auto;
-      height: 98px;
-      min-height: 98px;
-      max-height: 98px;
+      height: 134px;
+      min-height: 134px;
+      max-height: 134px;
       overflow: hidden;
       width: 100%;
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -471,6 +471,12 @@
         <span class="badge" id="hud-aoda-ai" style="flex: 1.1;" title="Trí tuệ nhân tạo Aoda">Aoda AI: Sẵn sàng</span>
         <span class="badge" id="hud-env-status" style="flex: 1.5; border-color: #3fb950; color: #3fb950;" title="Trạng thái ranh giới môi trường">Môi trường: 3 Phân vùng (Đất cản đạn & Vargost)</span>
       </div>
+      <div class="hud-row objective-row">
+        <span class="badge" id="hud-objective-status" style="flex: 2.2; font-weight: bold; font-size: 13px; background: #161b22; border-color: #a371f7; color: #d2a8ff;" title="Tiến trình tranh đoạt Thánh Kiếm trung tâm (20.0s liên tục để chiến thắng)">⚔️ THÁNH KIẾM TRUNG TÂM (Mục Tiêu 20.0s) · Chưa Ai Chiếm</span>
+        <span class="badge" id="hud-vargost-objective" style="flex: 1.2; border-color: #3fb950; color: #3fb950;" title="Chiến thuật Utility AI của Vargost">Vargost: [TIẾN ĐÁNH KIẾM]</span>
+        <span class="badge" id="hud-aoda-objective" style="flex: 1.2; border-color: #f85149; color: #ff7b72;" title="Chiến thuật Utility AI của Aoda">Aoda: [TIẾN ĐÁNH KIẾM]</span>
+        <button id="btn-reset-match" class="secondary small" style="border-color: #a371f7; color: #d2a8ff; font-weight: bold; height: 30px; line-height: 28px; padding: 0 12px;" title="Khởi động lại hiệp đấu tranh đoạt Thánh Kiếm">🔄 Hiệp Mới</button>
+      </div>
     </div>
 
     <!-- Stage & Pixel Inspector Layout -->
@@ -583,11 +589,7 @@
         <label style="background: #161b22; padding: 4px 8px; border-radius: 4px; border: 1px solid #30363d; cursor: pointer;">
           <input type="checkbox" id="chk-auto" checked> <b>Utility AI Tự Động Di Chuyển & Tấn Công</b>
         </label>
-        <label style="background: #161b22; padding: 4px 8px; border-radius: 4px; border: 1px solid #388bfd; cursor: pointer;" title="Kẻ địch di chuyển qua lại trên bệ đá với tốc độ 300 - 1000 px/s">
-          <input type="checkbox" id="chk-moving-target" checked> <b style="color: #58a6ff;">🎯 Mục Tiêu Di Động (300-1000px/s)</b>
-        </label>
-        <button class="secondary small" id="btn-enemy-dash" style="border-color: #f0883e; color: #f0883e; font-weight: bold;" title="Kẻ địch đột ngột tăng tốc 850px/s lướt vụt qua mặt Vargost sang sau lưng">🏃 Địch Lướt Né Đòn (850px/s)</button>
-        <button class="secondary small" id="btn-enemy-attack" style="border-color: #a371f7; color: #d2a8ff; font-weight: bold;" title="Kẻ địch bắn Ám Tiễn Hắc Ám phản công Vargost để kiểm tra hoạt ảnh Vargost trúng đòn">⚔️ Địch Phản Công Vargost</button>
+
         <button class="secondary small" id="btn-test-death" style="border-color: #f85149; color: #ff7b72; font-weight: bold;" title="Giả lập Vargost hết máu và gục ngã (Đứng hình 0.3s -> Bốc hơi pixel 1.6s bay lên 30px)">💀 Test Vargost Gục Ngã (KO)</button>
         <label>
           Cự ly cơ sở:
@@ -602,8 +604,7 @@
       <!-- Aoda Combat & Skills Controls -->
       <div class="controls-row" style="margin-top: 6px; background: #161b22; border: 1px solid #30363d; padding: 6px 10px; border-radius: 6px;">
         <span style="font-weight: bold; font-size: 13px; color: #ff7b72;">🥋 AODA (TEAM 2 · KẺ ĐỊCH · ỐNG MÁU ĐỎ · 90px):</span>
-        <button id="btn-aoda-skill-1" style="background: #bd561d; border: 1px solid #f0883e; color: #fff; font-weight: bold;" title="Chiêu 1: Tornado (85px, quét 50px/s suốt 2.0s, chỉ đánh địch mặt đất, gây Định Thân & Câm Lặng diện rộng, CD 5s - Phím 1)">🌪️ Chiêu 1: Tornado (Đất · CD 5s)</button>
-        <button id="btn-aoda-skill-2" style="background: #bd3a1d; border: 1px solid #ff7b72; color: #fff; font-weight: bold;" title="Chiêu 2: FireOrb (Cầu lửa 80px khóa trên đầu 20px -> rơi tự do chạm địch/scene nổ Starburst 20px, gây choáng 0.5s có VFX sao xoay đầu, CD 5s - Phím 2)">🔥 Chiêu 2: FireOrb (80px · Rơi Đầu 20px · Starburst 20px · Choáng 0.5s · CD 5s)</button>
+        <button id="btn-aoda-skill-1" style="background: #bd561d; border: 1px solid #f0883e; color: #fff; font-weight: bold;" title="Chiêu 1: Tornado (85px, xuất hiện và tồn tại xoay đúng 2.0s tại chỗ rồi mới tắt, chỉ đánh địch mặt đất, gây Định Thân & Câm Lặng diện rộng, CD 5s - Phím 1)">🌪️ Chiêu 1: Tornado (Xoay 2.0s Tại Chỗ · Đất · CD 5s)</button>
         <button class="secondary small" id="btn-aoda-switch-platform" style="border-color: #3fb950; color: #3fb950; font-weight: bold;" title="Chuyển Aoda giữa 3 phân vùng: Sau Cây Cao (Zone 1) ➔ Bệ Giữa (Zone 2) ➔ Vách Đá (Zone 3)">📍 Vị Trí: Sau Cây Cao (Bấm Đổi Bệ)</button>
         <button class="secondary small" id="btn-aoda-turn" title="Quay đầu Aoda 180° đối xứng qua trục neo">🔄 Aoda Quay Đầu</button>
         <button class="secondary small" id="btn-aoda-test-ko" style="border-color: #f85149; color: #ff7b72;" title="Thử nghiệm hoạt ảnh Aoda Gục Ngã (Frame 47..65)">💀 Test Aoda Gục Ngã (KO)</button>
@@ -613,9 +614,7 @@
         <label style="background: #0d1117; padding: 4px 8px; border-radius: 4px; border: 1px solid #3fb950; cursor: pointer;">
           <input type="checkbox" id="chk-show-env" checked> <b style="color: #3fb950;">🗺️ Hiện Ranh Giới Môi Trường (Zone 1, 2, 3)</b>
         </label>
-        <label style="background: #0d1117; padding: 4px 8px; border-radius: 4px; border: 1px solid #a371f7; cursor: pointer;">
-          <input type="checkbox" id="chk-ground-dummy" checked> <b style="color: #d2a8ff;">🎯 Hiện Hình Nhân Mặt Đất (Bệ Giữa)</b>
-        </label>
+
       </div>
 
       <!-- Fine-Tuning Sliders -->
