@@ -1,0 +1,51 @@
+{
+ "pack": "starburst_right",
+ "source": "itch VFX Collection Vol 8 GIF 1920x1080",
+ "source_frames_rotated": [
+  10,
+  11,
+  12,
+  13,
+  14,
+  15,
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9
+ ],
+ "fps": 20,
+ "frame_ms": 50,
+ "frame_count": 15,
+ "width": 632,
+ "height": 820,
+ "crop": [
+  1288,
+  160,
+  1920,
+  980
+ ],
+ "frames": [
+  "frame_001.png",
+  "frame_002.png",
+  "frame_003.png",
+  "frame_004.png",
+  "frame_005.png",
+  "frame_006.png",
+  "frame_007.png",
+  "frame_008.png",
+  "frame_009.png",
+  "frame_010.png",
+  "frame_011.png",
+  "frame_012.png",
+  "frame_013.png",
+  "frame_014.png",
+  "frame_015.png"
+ ],
+ "method": "already pixel, exact bg key (34,28,26), no conversion",
+ "note": "rotated: pack f1=src f10 (form) ... f6=src f15 (peak) ... f14-15=src f8-9 (empty)"
+}

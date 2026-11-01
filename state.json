@@ -1,12 +1,11 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-10-31T15:10:00Z",
+  "updated_at_utc": "2026-11-01T08:59:00Z",
   "purpose": "Bộ nhớ bàn giao ngắn gọn cho agent; đối chiếu với mã, tài liệu và git status khi bắt đầu phiên.",
   "product_goal": {
     "source": "Yêu cầu của người dùng ngày 2026-10-31 (cập nhật lúc 15:10 UTC)",
-    "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mỗi model/class được đào tạo tư duy chiến đấu riêng biệt (Utility AI: di chuyển, bay, chọn mục tiêu, kích hoạt skill theo thời gian tối ưu, Tanker che chắn skill hiểm, Healer hồi máu đồng đội nguy cấp). 2 đội tranh giành 1 vật phẩm ở giữa map bằng cách đứng chiếm giữ liên tục trong 15s để chiến thắng. Vargost là nhân vật ĐẦU TIÊN ĐÃ ĐƯỢC NGƯỜI DÙNG PHÊ DUYỆT CHỐT HOÀN TOÀN (user_approved): Chuỗi hoạt ảnh 83 frame mượt mà, Chiêu Tối Thượng Blazing Halo (1100px/s), nổ diện rộng 91 frame, hệ thống di chuyển 2D Vector đa hướng, teleport đứng thẳng 0° khi lùi, Ống máu Gothic RPG phân màu chuẩn chiến thuật (Xanh lá tươi cho Đồng minh/Vargost, Đỏ ruby cho Kẻ địch, tăng tươi 15%, giảm 15% độ dày, cách đỉnh đầu 10px), Hoạt ảnh gục ngã KO tan biến đồng bộ cả thân thể lẫn thanh máu (0.3s Freeze -> Evaporating Dissolve bốc hơi 1.6s bay lên 30px và mờ dần -> 3.4s hồi sinh), Full-Body Whiteout Hit Flash lóe sáng toàn thân khi trúng đòn và Hit Impact VFX cải tiến rực rỡ.",
+    "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mỗi model/class được đào tạo tư duy chiến đấu riêng biệt (Utility AI: di chuyển, bay, chọn mục tiêu, kích hoạt skill theo thời gian tối ưu, Tanker che chắn skill hiểm, Healer hồi máu đồng đội nguy cấp). 2 đội tranh giành 1 vật phẩm ở giữa map bằng cách đứng chiếm giữ liên tục trong 15s để chiến thắng. Vargost là nhân vật ĐẦU TIÊN ĐÃ ĐƯỢC NGƯỜI DÙNG PHÊ DUYỆT CHỐT HOÀN TOÀN (user_approved): Chuỗi hoạt ảnh 83 frame mượt mà, Chiêu Tối Thượng Blazing Halo (1100px/s), nổ diện rộng 91 frame, hệ thống di chuyển 2D Vector đa hướng, teleport đứng thẳng 0° khi lùi, Ống máu Gothic RPG phân màu chuẩn chiến thuật (Xanh lá tươi cho Đồng minh/Vargost, Đỏ ruby cho Kẻ địch, tăng tươi 15%, giảm 15% độ dày, cách đỉnh đầu 10px), Hoạt ảnh gục ngã KO tan biến đồng bộ cả thân thể lẫn thanh máu (0.3s Freeze -> Evaporating Dissolve bốc hơi 1.6s bay lên 30px và mờ dần -> 3.4s hồi sinh), Full-Body Whiteout Hit Flash lóe sáng toàn thân khi trúng đòn và Hit Impact VFX cải tiến rực rỡ. Aoda là nhân vật thứ 2 (bộ binh 90px thuộc Team 2 · Kẻ Địch của Vargost) trang bị ống máu Đỏ Ruby, 2 kỹ năng: Chiêu 1 Tornado (85px, quét 50px/s đất, root & silence diện rộng, CD 5s, miễn nhiễm với mục tiêu bay) và Chiêu 2 FireOrb (cầu lửa 80px rơi từ đầu mục tiêu 20px xuống nổ Starburst 20px, choáng 0.5s có VFX ngôi sao xoay quanh đầu, CD 5s), Utility AI tự động nhắm mục tiêu gần nhất và chọn skill chuẩn theo mục tiêu trên không vs mặt đất, cơ chế nhảy bậc Parabol (Ledge Jumping) hạn chế chỉ nhảy khi mục tiêu ngoài tầm đánh > 420px và lật mặt tức thì không méo hình.",
     "open_questions": [
-      "Người dùng chọn nhân vật thứ 2 (Tanker, Healer, hay Melee Assassin trong 177 nhân vật) để tiến hành dựng hoạt ảnh, hitbox và bộ não Utility AI theo chuẩn tương tự Vargost",
       "Tọa độ và bán kính chính xác của vùng chứa vật phẩm 15s ở giữa map ngang",
       "Các chỉ số cơ bản cho Vargost và các nhân vật (HP, tầm đánh, cooldown skill, DPS)"
     ]
@@ -70,32 +69,56 @@
     "Asset/Scenes/amore_scale_test/README.md"
   ],
   "current_task": {
-    "title": "Chính Thức Chốt Toàn Bộ Asset & Logic Vargost, Đầy Đủ Chiến Đấu 2 Hướng, Ống Máu Gothic RPG 2 Phe & Chuẩn Bị Cho Nhân Vật Tiếp Theo",
-    "status": "completed",
+    "title": "Chuẩn Hóa Kích Thước FireOrb 80px, Nổ Starburst 20px, Khắc Phục Lỗi Hiển Thị Rơi & Giới Hạn Nhảy Bậc Cho Aoda (Lưu Tiến Độ Tạm Thời)",
+    "status": "in_progress_interim_push",
     "changes": [
-      "1. Người dùng chính thức nghiệm thu và chốt phiên Vargost: Toàn bộ asset, hoạt ảnh 83 frame (Idle + Blazing Halo), chuỗi kỹ năng bay đa hướng 2D vector, thân pháp biến ảnh pixel 3 nhịp xoay mặt 2.5D, cơ chế lật đối xứng 2 phe (Trái ⇋ Phải), ống máu Gothic RPG 2 màu phân định đồng minh/kẻ địch và hoạt ảnh gục ngã KO tan biến đồng bộ.",
-      "2. Hoàn thiện hệ thống ống máu Gothic RPG: Đầy đủ 2 bộ asset phân biệt phe Đồng Minh (Xanh Lá Ngọc Bảo tươi hơn 15%) và phe Kẻ Địch (Đỏ Ruby tươi hơn 15%), bảo tồn lõi ống thủy tinh rỗng khi trúng đòn, cơ chế Damage Ghost chớp sáng và dither pixel rụng tàn tro, cách đỉnh đầu và chóp sừng 10px, giảm 15% độ dày chuẩn tỷ lệ vàng mobile.",
-      "3. Hoàn thiện vòng đời KO và gục ngã: Đồng bộ tuyệt đối cả thân thể Vargost lẫn thanh máu trong 3 pha (Pha 1: Freeze 0.3s rung chấn -> Pha 2: Bốc hơi pixel 1.6s bay lên 30px và mờ dần -> Pha 3: Hư không hoàn toàn và hồi sinh ở 3.4s).",
-      "4. Đồng bộ mã nguồn Godot 4: vargost_character.gd và vargost_character.tscn hỗ trợ set_facing(dir), SpawnMarker2D đồng bộ, giới hạn tốc độ Y [100, 300]px/s, shader pixel_dissolve.gdshader.",
-      "5. Bộ unit test tự động hoàn chỉnh: tools/asset-viewer/vargost-combat-logic.test.mjs bao phủ 5 kịch bản chiến đấu (Teleport lùi, Đạn né trượt, Phản công giật lùi, Ống máu Gothic pixel dissolve, KO & Hồi sinh), đạt 8/8 tests pass 100%."
+      "1. Hạn chế nhảy bậc (Ledge Jumping): Aoda chỉ nhảy qua bệ khác khi mục tiêu ở xa hơn tầm đánh (hDistTarget > AODA_ATTACK_RANGE = 420px). Nếu mục tiêu trong tầm đánh (<= 420px), Aoda dừng lại ở mép bệ và chuyển sang IDLE để đứng thế thủ chiến đấu từ trên bệ chứ không nhảy bừa bãi.",
+      "2. Ép buộc logic Tornado đất: Chiêu 1 Tornado chỉ dùng cho kẻ địch mặt đất (!isFlying); khi kẻ địch đang bay (isFlying = true), Utility AI tự động đổi sang dùng FireOrb.",
+      "3. Tăng kích thước FireOrb lên 80px: Đáy quả cầu lửa khóa cách đỉnh đầu mục tiêu 20px (tâm cầu Y = targetHeadY - 20 - 40px).",
+      "4. Khắc phục triệt để lỗi không thấy FireOrb rơi: Đặt điều kiện va chạm chỉ kiểm tra sau khi cầu rơi tối thiểu 12px (tránh nổ ngay frame 1 do tâm cầu đặt gần bán kính va chạm) và xét chuẩn va chạm đáy cầu (orbBottomY >= targetHeadY). Quả cầu 80px rơi vút xuống rõ ràng đẹp mắt.",
+      "5. Thu nhỏ hiệu ứng nổ Starburst còn 20px: Đổi từ scale 0.95x của Vargost sang kích thước cố định 20px chuẩn theo yêu cầu.",
+      "6. Khắc phục tầm ngắm Utility AI: Sử dụng khoảng cách ngang hDist = |target.x - aodaX| thay cho khoảng cách không gian 3D, khắc phục tình trạng độ cao bay của Vargost (~680px) khiến AI không kích hoạt chiêu thức.",
+      "7. Cập nhật giao diện nút bấm và tài liệu cấu hình aoda_actions.json đồng bộ kích thước FireOrb 80px và Starburst 20px.",
+      "8. Bổ sung và cập nhật Unit Tests tự động: 16/16 bài test pass 100% (npm test)."
     ],
     "verification": [
-      "npm test: 8/8 bài kiểm thử unit test pass 100% trong 8.6s.",
-      "Godot 4.3 Headless CLI: PASS test_instantiate_vargost_scene.gd (kiểm tra instantiation, AnimatedSprite2D, SpawnMarker2D, set_facing cả 2 hướng -1 và +1).",
-      "node --check tools/asset-viewer/vargost-skill-test.js: PASS zero error.",
-      "HTTP Server 4173: Cung cấp đầy đủ asset UI health_bar_green.png, health_bar_blood.png, health_bar_empty.png, health_bar_glass.png (HTTP 200 OK)."
+      "16/16 bài unit test pass 100% (npm test không còn bất kỳ lỗi runtime nào).",
+      "node --check tools/asset-viewer/vargost-skill-test.js xác nhận cú pháp JavaScript chuẩn 100%.",
+      "Curl check kiểm tra HTTP 200 OK trên http://127.0.0.1:4173/vargost-skill-test.html.",
+      "Kiểm tra thực tế logic: Aoda dừng ở mép bệ khi địch trong tầm 420px, chỉ nhảy khi địch > 420px; FireOrb 80px rơi rõ ràng từ trên cao xuống và nổ 20px Starburst gây choáng 0.5s."
     ],
-    "remaining": [],
+    "remaining": [
+      "Chờ chỉ đạo công việc tiếp theo từ người dùng; toàn bộ tính năng Aoda hiện tại là phiên bản thử nghiệm phục vụ kiểm thử, chưa chốt chính thức."
+    ],
     "limitations": [
-      "Vargost đã hoàn thiện trọn vẹn 100% về mọi mặt hoạt ảnh, động học, UI máu và logic Utility AI, sẵn sàng đưa vào sàn đấu 3v3."
+      "Hoạt ảnh nhảy của Aoda hiện áp dụng động học Parabol kết hợp co giãn vật lý Squash & Stretch từ sprite frame chạy bộ; khi người dùng cung cấp riêng sprite pose nhảy sẽ nạp trực tiếp vào chuỗi."
     ],
     "next_steps": [
-      "Người dùng chọn nhân vật chiến đấu thứ 2 (Tanker, Healer, hay Melee Assassin trong 177 nhân vật) để tiến hành dựng hoạt ảnh, hitbox và bộ não Utility AI theo chuẩn tương tự Vargost.",
-      "Thiết lập sàn đấu 3v3 tranh vật phẩm 15s ở giữa map."
+      "Chờ chỉ đạo công việc tiếp theo từ người dùng."
     ]
   },
-  "working_tree_note": "Chốt toàn diện Vargost, hoàn tất kiểm thử 8/8 tests, sẵn sàng chọn nhân vật chiến đấu tiếp theo cho GodWar 3v3.",
+  "working_tree_note": "Lưu tiến độ phiên lên main theo yêu cầu người dùng; Aoda (Tornado đất, FireOrb 80px, nổ 20px, dừng mép bệ <=420px), 16/16 unit tests pass, chưa chốt chính thức.",
   "history": [
+    {
+      "title": "Khởi Chạy Localhost Asset Viewer Phục Vụ Kiểm Thử Hoạt Ảnh & Giao Tranh 2 Hướng",
+      "status": "completed",
+      "changes": [
+        "1. Khởi chạy daemon máy chủ Asset Viewer tại 0.0.0.0:4173 (tools/asset-viewer/server.mjs).",
+        "2. Xác minh hoạt động ổn định của toàn bộ 3 trang giao diện kiểm thử hoạt ảnh: http://localhost:4173/ (Asset Viewer tổng quan), http://localhost:4173/vargost-skill-test.html (Chuỗi hành động Vargost & Kính Lúp Đo Pixel 10x, chiến đấu 2 hướng Trái ⇋ Phải, ống máu Gothic RPG 2 màu, pixel dissolve KO) và http://localhost:4173/amore-scene.html (Thử tỷ lệ trên map ngang 1920x1080).",
+        "3. Chạy toàn bộ bộ test tự động npm test (8/8 pass 100%)."
+      ]
+    },
+    {
+      "title": "Chính Thức Chốt Toàn Bộ Asset & Logic Vargost, Đầy Đủ Chiến Đấu 2 Hướng, Ống Máu Gothic RPG 2 Phe & Chuẩn Bị Cho Nhân Vật Tiếp Theo",
+      "status": "completed",
+      "changes": [
+        "1. Người dùng chính thức nghiệm thu và chốt phiên Vargost: Toàn bộ asset, hoạt ảnh 83 frame (Idle + Blazing Halo), chuỗi kỹ năng bay đa hướng 2D vector, thân pháp biến ảnh pixel 3 nhịp xoay mặt 2.5D, cơ chế lật đối xứng 2 phe (Trái ⇋ Phải), ống máu Gothic RPG 2 màu phân định đồng minh/kẻ địch và hoạt ảnh gục ngã KO tan biến đồng bộ.",
+        "2. Hoàn thiện hệ thống ống máu Gothic RPG: Đầy đủ 2 bộ asset phân biệt phe Đồng Minh (Xanh Lá Ngọc Bảo tươi hơn 15%) và phe Kẻ Địch (Đỏ Ruby tươi hơn 15%), bảo tồn lõi ống thủy tinh rỗng khi trúng đòn, cơ chế Damage Ghost chớp sáng và dither pixel rụng tàn tro, cách đỉnh đầu và chóp sừng 10px, giảm 15% độ dày chuẩn tỷ lệ vàng mobile.",
+        "3. Hoàn thiện vòng đời KO và gục ngã: Đồng bộ tuyệt đối cả thân thể Vargost lẫn thanh máu trong 3 pha (Pha 1: Freeze 0.3s rung chấn -> Pha 2: Bốc hơi pixel 1.6s bay lên 30px và mờ dần -> Pha 3: Hư không hoàn toàn và hồi sinh ở 3.4s).",
+        "4. Đồng bộ mã nguồn Godot 4: vargost_character.gd và vargost_character.tscn hỗ trợ set_facing(dir), SpawnMarker2D đồng bộ, giới hạn tốc độ Y [100, 300]px/s, shader pixel_dissolve.gdshader.",
+        "5. Bộ unit test tự động hoàn chỉnh: tools/asset-viewer/vargost-combat-logic.test.mjs bao phủ 5 kịch bản chiến đấu (Teleport lùi, Đạn né trượt, Phản công giật lùi, Ống máu Gothic pixel dissolve, KO & Hồi sinh), đạt 8/8 tests pass 100%."
+      ]
+    },
     {
       "title": "Khắc Phục Lỗi Mất Nhân Vật/Mục Tiêu Sau 1s & Tách Biệt Physics Update Ra Khỏi drawScene",
       "status": "completed",

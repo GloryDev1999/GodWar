@@ -1,0 +1,37 @@
+{
+ "pack": "red_tornado",
+ "source": "itch GIF 1920x1080 (VFX COMPLETE SET)",
+ "source_frames": [
+  1,
+  15
+ ],
+ "fps": 16.67,
+ "frame_ms": 60,
+ "frame_count": 15,
+ "width": 700,
+ "height": 690,
+ "crop": [
+  0,
+  180,
+  700,
+  870
+ ],
+ "frames": [
+  "frame_001.png",
+  "frame_002.png",
+  "frame_003.png",
+  "frame_004.png",
+  "frame_005.png",
+  "frame_006.png",
+  "frame_007.png",
+  "frame_008.png",
+  "frame_009.png",
+  "frame_010.png",
+  "frame_011.png",
+  "frame_012.png",
+  "frame_013.png",
+  "frame_014.png",
+  "frame_015.png"
+ ],
+ "method": "native-res crop, hard bg key (34,28,26), hue gate + position rule for neutrals, NO downscale"
+}

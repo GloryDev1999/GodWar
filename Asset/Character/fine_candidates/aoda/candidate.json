@@ -1046,5 +1046,7 @@
   ],
   "status": "candidate_unreviewed",
   "method": "Exact uniform source cells; Scale2x edge rules using source RGBA colors; nearest resize to fixed original canvas for viewer.",
-  "limitations": "Interpolation cannot recover details absent from GIF. Fine silhouettes, effects, or flicker may change. Non-integer display scaling can create uneven pixel widths; compare every frame."
+  "limitations": "Interpolation cannot recover details absent from GIF. Fine silhouettes, effects, or flicker may change. Non-integer display scaling can create uneven pixel widths; compare every frame.",
+  "target_height_px": 90,
+  "display_scale": 0.3333333333333333
 }

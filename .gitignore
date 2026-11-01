@@ -14,3 +14,4 @@ __pycache__/
 
 # Temporary Colab artifacts
 .colab_cache/
+scratch/
