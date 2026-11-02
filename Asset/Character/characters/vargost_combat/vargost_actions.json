@@ -27,6 +27,12 @@
   "atlas_path": "Asset/Character/characters/vargost_combat/vargost_body_atlas.png",
   "projectile_atlas": "Asset/Character/characters/vargost_combat/projectile_sheet.png",
   "explosion_atlas": "Asset/Character/characters/vargost_combat/vfx_fire_explosion_sheet.png",
+  "explosion_frames": 91,
+  "explosion_cols": 13,
+  "explosion_rows": 7,
+  "explosion_frame_w": 128,
+  "explosion_frame_h": 66,
+  "explosion_scale": 1.5,
   "actions": {
     "idle": {
       "description": "Th\u1ebf \u0111\u1ee9ng th\u1edf l\u01a1 l\u1eedng v\u1edbi 2 v\u00f2ng l\u1eeda xoay \u1edf 2 tay, chu k\u1ef3 22 frame",

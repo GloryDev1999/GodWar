@@ -225,6 +225,18 @@ test('Vargost Combat Logic: Teleport Retreat, Evasive Dodge/Miss, and Enemy Coun
         throw new Error("Vargost không được vào HALO_WINDUP khi tầm nhìn bị vách đá cản trực diện!");
       }
     }
+
+    // Test 8: Tường Sau Lưng Khi Cự Ly Gần -> Bay Vọt Lên Bầu Trời Thoát Kẹt
+    const blockedBehind = isRetreatBlocked(mapX + 85 * mapScale, groundY, -1);
+    if (!blockedBehind) {
+      throw new Error("isRetreatBlocked phải trả về true khi sát vách tường trái");
+    }
+
+    // Test 9: Hiển thị Sprite Thánh Kiếm 90px từ Atlas 8x7
+    assets.swordObjective = { width: 3472, height: 4340 };
+    swordFrames = { total_frames: 55, cols: 8, rows: 7, frame_w: 434, frame_h: 620, anchor_px: [217, 619], target_height_px: 90 };
+    // Gọi drawScene không ném exception và vẽ thành công
+    drawScene(vargostX, vargostY, 0.016);
   `;
 
   runInContext(testLogic, context);

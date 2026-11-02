@@ -192,6 +192,76 @@ static func create_vargost_combat() -> Dictionary:
         "ai_combat_rules": manifest.ai_combat_rules
     }
 
+## Loads Aoda's official combat package (93 frames, Basic Attack, Tornado, KO, Move, 90px height)
+static func create_aoda_combat() -> Dictionary:
+    var manifest_path := "res://Asset/Character/characters/aoda_combat/aoda_actions.json"
+    var file := FileAccess.open(manifest_path, FileAccess.READ)
+    if file == null:
+        push_error("Cannot open " + manifest_path)
+        return {}
+    var manifest: Variant = JSON.parse_string(file.get_as_text())
+    if not manifest is Dictionary:
+        push_error("Invalid manifest: " + manifest_path)
+        return {}
+
+    var atlas_base: String = manifest.get("atlas_base_path", "Asset/Character/fine_candidates/aoda/")
+    var atlas_count: int = int(manifest.get("atlas_count", 11))
+    var atlases: Array = []
+    for i in range(atlas_count):
+        var pad := "%03d" % i
+        var tex := _load_texture_safe("res://" + atlas_base + "atlas_" + pad + ".png")
+        atlases.append(tex)
+
+    var frames_res := SpriteFrames.new()
+    frames_res.rename_animation("default", "idle")
+    frames_res.set_animation_speed("idle", 16.66)
+    frames_res.set_animation_loop("idle", true)
+
+    frames_res.add_animation("skill_1_tornado")
+    frames_res.set_animation_speed("skill_1_tornado", 16.66)
+    frames_res.set_animation_loop("skill_1_tornado", false)
+
+    frames_res.add_animation("ko")
+    frames_res.set_animation_speed("ko", 16.66)
+    frames_res.set_animation_loop("ko", false)
+
+    frames_res.add_animation("move")
+    frames_res.set_animation_speed("move", 16.66)
+    frames_res.set_animation_loop("move", true)
+
+    var frame_list: Array = manifest.get("frames", [])
+    for i in range(frame_list.size()):
+        var frame_data: Dictionary = frame_list[i]
+        var atlas_idx: int = int(frame_data.get("atlas", 0))
+        var region: Array = frame_data.region
+        if atlas_idx >= atlases.size() or atlases[atlas_idx] == null:
+            continue
+        var tile := AtlasTexture.new()
+        tile.atlas = atlases[atlas_idx]
+        tile.region = Rect2(region[0], region[1], region[2], region[3])
+        tile.filter_clip = true
+
+        # Idle: Frame 0..24
+        if i <= 24:
+            frames_res.add_frame("idle", tile)
+        # Skill 1 Tornado: Frame 24..46
+        if i >= 24 and i <= 46:
+            frames_res.add_frame("skill_1_tornado", tile)
+        # KO: Frame 46..64
+        if i >= 46 and i <= 64:
+            frames_res.add_frame("ko", tile)
+        # Move: Frame 65..86 (chu kỳ 22 frame mượt mà liên tục, triệt tiêu frame trống chớp tắt)
+        if i >= 65 and i <= 86:
+            frames_res.add_frame("move", tile)
+
+    return {
+        "frames": frames_res,
+        "display_scale": float(manifest.display_scale),
+        "anchor_px": Vector2(manifest.anchor_px[0], manifest.anchor_px[1]),
+        "target_height_px": float(manifest.target_height_px),
+        "actions": manifest.actions
+    }
+
 ## Loads a motion or reconstructed review candidate. Candidate metadata owns
 ## its timeline and regions; it must not be paired with the source catalog.
 static func create_animation_candidate(asset_id: String, candidate_kind: String) -> Dictionary:

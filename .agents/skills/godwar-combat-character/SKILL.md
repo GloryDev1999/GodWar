@@ -1,6 +1,6 @@
 ---
 name: godwar-combat-character
-description: Quy chuẩn kiến trúc xây dựng nhân vật chiến đấu (Combat Character) cho GodWar 3v3 Mobile Auto-battler; bắt buộc hỗ trợ xuất phát và tác chiến cả 2 hướng (Trái ➔ Phải và Phải ➔ Trái), lật đối xứng ngang quanh trục neo chân pivot, tự động đồng bộ SpawnMarker2D, đạn vector 2D, động học bay nghiêng thân và bộ não Utility AI.
+description: Quy chuẩn kiến trúc xây dựng nhân vật chiến đấu (Combat Character) cho GodWar 3v3 Mobile Auto-battler; bắt buộc hỗ trợ xuất phát và tác chiến cả 2 hướng (Trái ➔ Phải và Phải ➔ Trái), lật đối xứng ngang quanh trục neo chân pivot, tự động đồng bộ SpawnMarker2D, đạn vector 2D, động học bay nghiêng thân, hoạt ảnh nhảy liên tục không đơ hình tĩnh và bộ não Utility AI.
 ---
 
 # Quy chuẩn Xây dựng Nhân vật Chiến đấu (Combat Character) GodWar 3v3
@@ -104,6 +104,10 @@ func _physics_process(delta: float) -> void:
      - Khi quay mặt sang trái: Bay sang trái là **Tiến** (chúi $-25^\circ$), bay sang phải là **Lùi** (ngửa $+25^\circ$).
 3. **Vệt bóng mờ 2D (Motion Ghosts):**
    - Bóng mờ phát sinh tại vị trí thân nhân vật và kế thừa đúng `visual_facing` và `current_tilt` tại thời điểm đó.
+4. **Quy chuẩn Hoạt ảnh khi Di chuyển / Nhảy Vượt Bệ (Airborne / Ledge Jumping Traversal):**
+   - **TUYỆT ĐỐI KHÔNG KHÓA FRAME TĨNH KHI NHẢY (CẤM ĐỂ ẢNH ĐƠ):** Trong suốt quá trình nhân vật bay, nhảy bậc hoặc vượt địa hình (parabolic jump arc, lướt, nhảy vượt bệ đá), **hoạt ảnh sprite bắt buộc phải tiếp tục chạy liên tục** (advance frame theo chu kỳ di chuyển / chạy bộ / nhảy vút, ví dụ `animAccum += dt -> frameIndex++`).
+   - **Lỗi nghiêm cấm lặp lại:** Tuyệt đối không gán chết một frame index tĩnh (như `frameIndex = 25`) xuyên suốt thời gian nhảy, khiến nhân vật biến thành một bức ảnh tĩnh bị kéo rê qua lại trên màn hình ('giống hệt dùng bức ảnh kéo tới kéo lui').
+   - **Kết hợp biến dạng động học tự nhiên:** Kết hợp biến dạng squash & stretch nhẹ theo thời gian nhảy (lúc bật lên vút cao kéo giãn trục Y $+10..15\%$, lúc tiếp đất nhún hấp thụ xung lực squash Y $-15\%$, stretch X $+15\%$), trong khi các frame hoạt ảnh cử động tay chân, tà áo và cơ thể vẫn tiếp tục chuyển động sống động.
 
 ---
 

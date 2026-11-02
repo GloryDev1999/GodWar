@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-11-01T14:54:00Z",
+  "updated_at_utc": "2026-11-02T08:39:00Z",
   "purpose": "Bộ nhớ bàn giao ngắn gọn cho agent; đối chiếu với mã, tài liệu và git status khi bắt đầu phiên.",
   "product_goal": {
-    "source": "Yêu cầu của người dùng ngày 2026-10-31 và 2026-11-01 (cập nhật lúc 14:50 UTC)",
-    "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mục tiêu cốt lõi của trận đấu là chiếm giữ Cứ Điểm Thánh Kiếm (Asset/Character/vfx/sword.mp4) tại Bệ Giữa Platform 2 với kích thước chiều cao chuẩn hóa 90px: Đội nào đứng trong vùng tròn bán kính 135px liên tục trong 20s sẽ chiến thắng. Nếu cả 2 đội cùng trong vùng thì Tranh Chấp và tạm dừng đếm giờ; nếu không còn ai trong vùng thì thời gian lập tức reset về 0.0s. Trận đấu vận hành thuần túy giữa các tướng (đã xóa bỏ toàn bộ hình nhân tập luyện). Toàn bộ Utility AI vận hành xoay vòng: Ngoài vùng kiếm -> Tấn công tiến về kiếm; Trong vùng kiếm -> Phòng thủ cứ điểm. Sau khi tử trận, nhân vật hồi sinh tại căn cứ đội (Team 1 trên không bên trái, Team 2 tại Platform 1A) và xuất kích tiến về kiếm. Vargost là tướng Team 1 (user_approved): Trang bị cơ chế Vertical Upward Escape thoát kẹt địa hình lên không trung, Chiêu Tối Thượng Blazing Halo (1100px/s), di chuyển 2D Vector đa hướng, teleport đứng 0° khi lùi. Aoda là tướng Team 2: Chiêu 1 Tornado đất 85px (tồn tại xoay đúng 2.0s tại chỗ, CD 5s, miễn nhiễm mục tiêu bay), FireOrb đã xóa hoàn toàn; Utility AI tự động nhảy vượt bệ và tiến về chiếm Thánh Kiếm.",
+    "source": "Yêu cầu của người dùng ngày 2026-10-31, 2026-11-01 và 2026-11-02 (cập nhật lúc 05:40 UTC)",
+    "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mục tiêu cốt lõi của trận đấu là chiếm giữ Cứ Điểm Thánh Kiếm (sword_altar) tại Bệ Giữa Platform 2 với kích thước chiều cao chuẩn hóa 90px (Bệ đá đen, khăn đỏ, tinh thể tím/xanh, kiếm pha lê nhấp nhô và tia lửa tím): Đội nào đứng trong vùng tròn bán kính 135px liên tục trong 20s sẽ chiến thắng. Nếu cả 2 đội cùng trong vùng thì Tranh Chấp và tạm dừng đếm giờ; nếu không còn ai trong vùng thì thời gian lập tức reset về 0.0s. Trận đấu vận hành thuần túy giữa các tướng (đã xóa bỏ toàn bộ hình nhân tập luyện). Toàn bộ Utility AI vận hành xoay vòng: Ngoài vùng kiếm -> Tấn công tiến về kiếm; Trong vùng kiếm -> Phòng thủ cứ điểm. Sau khi tử trận, nhân vật hồi sinh tại căn cứ đội (Team 1 trên không bên trái, Team 2 tại Platform 1A) và xuất kích tiến về kiếm. Vargost là tướng Team 1 (user_approved): Pháp sư tầm xa ưu tiên bay trên bầu trời, cơ chế phát hiện tường sau lưng tự động bay vút lên trời thoát kẹt, tính khoảng cách 2D vector tránh hoảng loạn lùi kẹt khi bay trên Platform 2, kiểm tra LoS không bắn vào tường mà cơ động tìm góc bắn, Chiêu Tối Thượng Blazing Halo (1100px/s), di chuyển 2D Vector đa hướng, teleport đứng 0° khi lùi. Aoda là tướng Team 2: Chuẩn hóa 90px, thế thủ Idle tĩnh 25 frame (Index 0..24), Chiêu 1 Tornado đất 85px (tồn tại xoay đúng 2.0s tại chỗ, CD 5s, miễn nhiễm mục tiêu bay), đòn đánh thường và mana đã gỡ bỏ; Utility AI tự động nhảy vượt bệ và tiến về chiếm Thánh Kiếm, hỗ trợ xuất phát và tác chiến mượt mà ở mọi vị trí bệ (kể cả Platform 3A vách đá cao), hoạt ảnh nhảy liên tục chạy mượt mà không bị đơ hình tĩnh; mặt đất bệ cỏ được hạ 15px để chân cắm sâu vào đất đá thật sự không bị lơ lửng ngọn cỏ; không còn bóng đen dưới chân; vùng chiếm Thánh Kiếm không còn nền màu tím che khuất.",
     "open_questions": [
       "Kỹ năng mới thay thế cho FireOrb của Aoda (người dùng đang tìm kiếm)"
     ]
@@ -51,7 +51,7 @@
       "source": "tools/asset-viewer/vargost-skill-test.html"
     },
     {
-      "fact": "Đã thiết lập skill chuẩn hóa godwar-combat-character tại .agents/skills/godwar-combat-character/SKILL.md (tự động liên kết ~/.codex/skills) và cập nhật Hiến pháp AGENTS.md, godwar-add-character/SKILL.md: Mọi nhân vật chiến đấu tiếp theo bắt buộc tự động xây dựng hỗ trợ cả 2 hướng Trái ⇋ Phải đối xứng qua pivot neo, giới hạn tốc độ Y [100, 300] px/s, nội suy lật mặt 2.5D mượt mà và AI hạn chế đánh sau lưng.",
+      "fact": "Đã thiết lập skill chuẩn hóa godwar-combat-character tại .agents/skills/godwar-combat-character/SKILL.md (tự động liên kết ~/.codex/skills) và cập nhật Hiến pháp AGENTS.md, godwar-add-character/SKILL.md: Mọi nhân vật chiến đấu tiếp theo bắt buộc tự động xây dựng hỗ trợ cả 2 hướng Trái ⇋ Phải đối xứng qua pivot neo, giới hạn tốc độ Y [100, 300] px/s, hoạt ảnh di chuyển/nhảy vượt bệ phải liên tục chạy không gán frame tĩnh, nội suy lật mặt 2.5D mượt mà và AI hạn chế đánh sau lưng.",
       "source": ".agents/skills/godwar-combat-character/SKILL.md"
     }
   ],
@@ -59,6 +59,8 @@
     "AGENTS.md",
     ".agents/skills/godwar-combat-character/SKILL.md",
     ".agents/skills/godwar-add-character/SKILL.md",
+    ".agents/skills/godwar-pr-workflow/SKILL.md",
+    ".agents/skills/godwar-agent-safeguard/SKILL.md",
     "docs/approved-animations-20261031.md",
     "docs/approved-animations-20261030.md",
     "docs/approved-animations-20261029.md",
@@ -68,35 +70,240 @@
     "Asset/Scenes/amore_scale_test/README.md"
   ],
   "current_task": {
-    "title": "Xóa Bỏ 2 Hình Nhân Tập Luyện, Chuẩn Hóa Thánh Kiếm (sword.mp4) Chiều Cao 90px Tại Trung Tâm Platform 2",
+    "title": "Thể Chế Hóa Chính Sách Quản Lý GIF Gốc (Owner Lưu Trữ Cục Bộ - Dùng 1 Lần Trên Repo) Vào Hiến Pháp AGENTS.md & Hệ Thống Skill",
     "status": "completed",
     "changes": [
-      "1. Xóa bỏ hoàn toàn 2 hình nhân tập luyện: Đã gỡ bỏ Ground Dummy (hình nhân gỗ Platform 2) và Moving Dummy (hình nhân di động pixel) khỏi canvas render, vòng lặp cập nhật, thanh máu và giao diện điều khiển (chk-moving-target, chk-ground-dummy, btn-enemy-dash, btn-enemy-attack).",
-      "2. Trận đấu chuyển sang thuần giao tranh 1v1 giữa các Tướng (Vargost Team 1 vs Aoda Team 2): Vargost nhắm thẳng Aoda (hoặc Thánh Kiếm khi Aoda tử trận); Aoda nhắm thẳng Vargost (khi Vargost hạ cánh) hoặc tiến về chiếm Thánh Kiếm.",
-      "3. Chuẩn hóa Cứ Điểm Thánh Kiếm (Asset/Character/vfx/sword.mp4): Xuất hiện tại trung tâm Bệ Giữa Platform 2 (SWORD_X = mapX + 226 * mapScale, SWORD_Y = mapY + 194 * mapScale) với kích thước chiều cao chuẩn hóa đúng 90px (targetSwordH = 90.0, swScale = 90.0/158.0, drawH = 90px * zoom/0.7), cập nhật frames.json target_height_px: 90.",
-      "4. Vùng chiếm đóng 135px ghi nhận thuần túy 2 phe: Team 1 (Vargost) vs Team 2 (Aoda) tranh đoạt liên tục 20s chiến thắng.",
-      "5. Bổ sung bài unit test số 21 xác nhận chuẩn hóa 90px và loại bỏ hình nhân; toàn bộ 21/21 unit tests pass 100%."
+      "1. Cập nhật Hiến pháp AGENTS.md: Ghi nhận chính sách chính thức do người dùng (Owner) phê duyệt ngày 2026-11-02: Toàn bộ GIF gốc được người dùng lưu trữ an toàn tại máy cá nhân (local). GIF đưa lên repo chỉ dùng 1 lần duy nhất để bóc tách frame và đóng gói Atlas PNG; sau khi hoàn tất có thể xóa file GIF gốc khỏi repo để tối ưu dung lượng (phục vụ mục tiêu mở rộng gần 300 nhân vật). Khi cần bóc tách lại, agent bắt buộc phải hỏi Owner cung cấp lại.",
+      "2. Cập nhật Skill .agents/skills/godwar-agent-safeguard/SKILL.md tại Quy tắc 2: Chuyển đổi từ cấm xóa sang quy tắc quản lý GIF dùng 1 lần, chỉ dẫn agent mới hiểu rõ cơ chế lưu trữ local của Owner và quyền xóa GIF sau khi bóc tách frame thành atlas.",
+      "3. Cập nhật Skill .agents/skills/godwar-add-character/SKILL.md tại điều 9: Chuẩn hóa bước xóa GIF nguồn sau khi đóng gói hoàn chỉnh Bộ Asset Chuẩn Godot.",
+      "4. Chạy kiểm thử tự động: 25/25 bài tests npm test pass 100%."
     ],
     "verification": [
-      "21/21 bài unit test tự động pass 100% (npm test).",
-      "node --check tools/asset-viewer/vargost-skill-test.js xác nhận cú pháp JavaScript hợp lệ 100%.",
-      "HTTP 200 OK trên http://127.0.0.1:4173/vargost-skill-test.html và asset Thánh Kiếm.",
-      "Server thử nghiệm cục bộ đang chạy tại http://127.0.0.1:4173/vargost-skill-test.html."
+      "npm test: 25/25 bài kiểm thử pass 100%.",
+      "AGENTS.md, godwar-agent-safeguard và godwar-add-character đã được cập nhật đồng bộ.",
+      "ls -la ~/.codex/skills/godwar-agent-safeguard/SKILL.md: đồng bộ song mã 100%."
     ],
     "remaining": [
-      "Người dùng chưa chốt phiên bản phát hành cuối cùng; sẽ tiếp tục tinh chỉnh vào ngày mai.",
-      "Tìm và tích hợp 1 kỹ năng mới thay thế cho FireOrb của Aoda."
+      "Hỏi người dùng xem có muốn agent tiến hành dọn dẹp các tệp GIF gốc hiện tại trong Asset/Character/vfx/*.gif ngay bây giờ hay để dành cho phiên dọn dẹp tổng thể."
     ],
     "limitations": [
-      "Chiêu 2 của Aoda hiện đang để trống theo yêu cầu người dùng để chuẩn bị tích hợp kỹ năng mới."
+      "Toàn bộ tiến độ hoàn thiện mã nguồn và cập nhật chính sách đang nằm ở working tree trên Codespace; cần commit & push lên remote."
     ],
     "next_steps": [
-      "Tiếp tục tinh chỉnh theo phản hồi của người dùng vào phiên làm việc ngày mai.",
-      "Hỗ trợ người dùng tích hợp kỹ năng mới thay thế cho FireOrb khi người dùng cung cấp ý tưởng/asset."
+      "Người dùng duyệt và xác nhận commit & push toàn bộ working tree lên origin/main.",
+      "Áp dụng quy tắc xóa GIF dùng 1 lần cho hơn 100 nhân vật tiếp theo được đưa vào dự án."
     ]
   },
-  "working_tree_note": "Phiên làm việc tạm dừng theo yêu cầu của người dùng (chưa chốt cuối cùng, ngày mai sửa tiếp); toàn bộ mã nguồn, asset Thánh Kiếm 90px và 21/21 tests pass 100% đã được commit và push lên nhánh main.",
+  "working_tree_note": "Chính sách GIF gốc lưu trữ local & dùng 1 lần trên repo đã được thể chế hóa hoàn tất; 25/25 tests pass 100%.",
   "history": [
+    {
+      "title": "Xây Dựng Skill godwar-agent-safeguard Bảo Vệ Tệp Dự Án & Định Hướng AI Agent Trên Máy Tính Mới",
+      "status": "completed",
+      "changes": [
+        "1. Tạo mới Skill chuẩn hóa .agents/skills/godwar-agent-safeguard/SKILL.md: Thiết lập 5 điều cấm kỵ tuyệt đối (Cấm tạo file backup rác _old/_copy; Cấm ghi đè/xóa GIF gốc; Cấm commit thẳng vào main; Cấm xóa lịch sử state.json; Cấm báo xong khi chưa test), quy trình 6 bước an toàn cho Agent mới và checklist kiểm chứng.",
+        "2. Cập nhật Hiến pháp AGENTS.md tại mục Bộ nhớ dự án và bàn giao phiên: Bổ sung quy định bắt buộc mọi agent trên môi trường mới phải tuân thủ godwar-agent-safeguard và godwar-pr-workflow.",
+        "3. Cập nhật docs/dual-agent-guide.md và đồng bộ symlink ~/.codex/skills/godwar-agent-safeguard/SKILL.md cho cả Codex CLI và AGY CLI.",
+        "4. Chạy kiểm thử tự động: 25/25 bài tests npm test pass 100%."
+      ],
+      "verification": [
+        "npm test: 25/25 bài kiểm thử pass 100%.",
+        "ls -la ~/.codex/skills/godwar-agent-safeguard/SKILL.md: tồn tại và đồng bộ 100%.",
+        "AGENTS.md và docs/dual-agent-guide.md đã được cập nhật điều khoản ràng buộc."
+      ],
+      "remaining": [
+        "Thực hiện commit và push toàn bộ working tree hiện tại lên origin/main khi người dùng cho phép."
+      ],
+      "limitations": [
+        "Các thay đổi hoàn thiện Aoda, Thánh Kiếm và 2 Skill mới hiện đang ở working tree; cần push lên GitHub để máy khác có thể clone về."
+      ],
+      "next_steps": [
+        "Người dùng duyệt và ra lệnh commit & push toàn bộ thay đổi lên origin/main.",
+        "Trên máy tính mới, người dùng chỉ cần clone repo về và bảo agent mới: Đọc AGENTS.md và làm theo skill godwar-agent-safeguard."
+      ]
+    },
+    {
+      "title": "Giải Đáp Quy Trình Merge Pull Request Từ Máy Tính Khác & Xây Dựng Skill godwar-pr-workflow Chuẩn Hóa Phát Triển Đa Thiết Bị",
+      "status": "completed",
+      "changes": [
+        "1. Trả lời chi tiết và phân tích toàn diện câu hỏi của người dùng về việc clone repo sang máy khác, chỉnh sửa và merge PR: Khẳng định hoàn toàn KHÔNG BỊ ẢNH HƯỞNG nếu tuân thủ đúng quy trình nhánh (feature branch), nhưng cảnh báo 4 điểm rủi ro cốt lõi (Working tree hiện tại của Codespace chưa push lên remote, xung đột state.json, xung đột binary asset, và vi phạm quy chuẩn hiến pháp AGENTS.md).",
+        "2. Xây dựng Skill chuẩn hóa .agents/skills/godwar-pr-workflow/SKILL.md: Thiết lập quy chuẩn 4 bước phát triển đa máy (Máy A push sạch -> Máy B checkout feature branch -> Chạy checklist kiểm chứng npm test & Godot CLI -> Mở PR và merge an toàn -> Đồng bộ ngược lại máy A).",
+        "3. Bổ sung cẩm nang giải quyết xung đột (Conflict Resolution Guide): Hướng dẫn chi tiết cách merge state.json bảo toàn lịch sử và cách xử lý xung đột tệp nhị phân asset (PNG atlas/GIF) bằng git checkout --ours / --theirs.",
+        "4. Đồng bộ hệ thống skill song mã: Tự động liên kết ~/.codex/skills/godwar-pr-workflow/SKILL.md và cập nhật docs/dual-agent-guide.md.",
+        "5. Toàn bộ 25/25 unit tests npm test pass 100%, Godot CLI pass 100%."
+      ],
+      "verification": [
+        "npm test: 25/25 bài kiểm thử pass 100%.",
+        "godot --headless -s tools/test_instantiate_aoda_scene.gd: PASS 100% (exit code 0).",
+        "godot --headless -s tools/test_instantiate_vargost_scene.gd: PASS 100% (exit code 0).",
+        "Kiểm tra symlink: ls -la ~/.codex/skills/godwar-pr-workflow/SKILL.md: tồn tại và đồng bộ 100%."
+      ],
+      "remaining": [
+        "Hỏi người dùng có muốn commit và push toàn bộ tiến độ làm việc hiện tại trên Codespace lên GitHub trước khi chuyển sang làm việc trên máy khác hay không."
+      ],
+      "limitations": [
+        "Hiện tại nhánh main trên máy Codespace đang có uncommitted changes; nếu clone máy khác ngay bây giờ sẽ bị thiếu code hoàn thiện Aoda và Thánh Kiếm."
+      ],
+      "next_steps": [
+        "Người dùng xem hướng dẫn và quyết định có muốn agent commit & push toàn bộ working tree hiện tại lên origin/main hay không.",
+        "Người dùng tham khảo skill godwar-pr-workflow trên máy mới khi thao tác clone, tạo branch và mở PR."
+      ]
+    },
+    {
+      "title": "Truy Vết Và Khắc Phục Triệt Để Lỗi Hoạt Ảnh Aoda Chớp Tắt Khi Di Chuyển (Frame 93 Index 92 Bị Trống Hình / 0 Pixels) & Chuẩn Hóa Chu Kỳ Chạy 22 Frame Mượt Mà",
+      "status": "completed",
+      "changes": [
+        "1. Truy vết nguyên nhân Aoda thỉnh thoảng bị chớp tắt / mất hình khi di chuyển: Quét toàn bộ 93 frame của Aoda trong Asset/Character/characters/aoda_combat/aoda_actions.json và fine_candidates/aoda, phát hiện Frame 93 (0-based Index 92) tại atlas 10 region [1200, 0, 600, 600] hoàn toàn rỗng (0 pixels, 100% transparent, bbox=None). Do nguyên bản aoda.gif frame 93 là frame ngăn cách rỗng chỉ chứa màu nền (4, 50, 71), khi tách nền trở thành trong suốt. Trong khi đó, chuỗi move trước đây cấu hình start_frame: 65, end_frame: 92, khiến mỗi khi aodaFrameIndex chạy đến 92 (sau mỗi ~1.68s chạy), nhân vật bị mất hình trong đúng 60ms trước khi lặp lại 65, tạo cảm giác giật chớp tắt khó chịu.",
+        "2. Phân tích chu kỳ chạy bộ và tối ưu vòng lặp: Phân tích 28 frame (65..92) của Aoda: Index 65..72 là Chu kỳ 1 (8 frame); Index 73..79 là Chu kỳ 2 (7 frame); Index 80..86 là Chu kỳ 3 (7 frame); Index 87..91 là Chu kỳ 4 dở dang (chỉ có 5 frame, thiếu bước 6 và 7). Frame 86 là tư thế bước chân lướt (Step 7), chuyển sang Frame 65 là tư thế tiếp đất (Step 1) hoàn toàn liền mạch pixel-by-pixel (độ lệch sai số giống hệt bước lặp giữa các chu kỳ). Do đó, chuẩn hóa chuỗi chạy move gồm trọn vẹn 3 chu kỳ hoàn chỉnh (Frame 66..87 · Index 65..86, tổng cộng 22 frame), loại bỏ chu kỳ 4 cụt ngủn và triệt tiêu hoàn toàn việc chạm vào frame rỗng 92.",
+        "3. Sửa chữa trực tiếp asset atlas_010.png: Theo đúng hiến pháp AGENTS.md (sửa trực tiếp, không tạo backup thừa), vá vùng region [1200, 0, 600, 600] trên Asset/Character/fine_candidates/aoda/atlas_010.png và Asset/Character/measured_atlas_pilots/aoda/atlas_010.png bằng sprite hợp lệ của bước 6 (Step 6, bbox 198, 264, 456, 516), bảo đảm không còn bất kỳ ô atlas nào bị trống hình.",
+        "4. Đồng bộ mã nguồn Godot 4 & Web Viewer: Cập nhật scripts/animation/gif_atlas_library.gd nạp frame 65..86 cho animation move trong SpriteFrames; cập nhật tools/asset-viewer/vargost-skill-test.js tự động tuần hoàn aodaFrameIndex trong [65, 86] ở cả trạng thái MOVE, JUMP và LANDING.",
+        "5. Bổ sung bài kiểm thử tự động số 25 trong tools/asset-viewer/aoda-combat-logic.test.mjs: Kiểm tra toàn bộ 22 frame của chuỗi move đều có ảnh hợp lệ, kiểm tra atlas_010.png region [1200, 0, 600, 600] không rỗng và kiểm tra logic clamp [65, 86]. Toàn bộ 25/25 tests pass 100%."
+      ],
+      "verification": [
+        "npm test: 25/25 bài kiểm thử pass 100%.",
+        "godot --headless -s tools/test_instantiate_aoda_scene.gd: PASS 100% (exit code 0).",
+        "godot --headless -s tools/test_instantiate_vargost_scene.gd: PASS 100% (exit code 0).",
+        "node --check tools/asset-viewer/vargost-skill-test.js: cú pháp JavaScript hợp lệ 100%.",
+        "curl -s -I http://127.0.0.1:4173/vargost-skill-test.html: HTTP 200 OK."
+      ],
+      "remaining": [
+        "Tìm và tích hợp 1 kỹ năng mới thay thế cho FireOrb của Aoda theo ý tưởng người dùng."
+      ],
+      "limitations": [
+        "Chiêu 2 của Aoda hiện đang để trống theo yêu cầu người dùng để chuẩn bị tích hợp kỹ năng mới."
+      ],
+      "next_steps": [
+        "Người dùng mở http://localhost:4173/vargost-skill-test.html quan sát Aoda chạy tuần tra qua lại trên các bệ, xác nhận chuyển động chạy hoàn toàn liên tục, mượt mà, không còn hiện tượng chớp tắt nháy hình ở cuối chu kỳ.",
+        "Người dùng đưa ra ý tưởng hoặc asset cho kỹ năng mới thay thế FireOrb của Aoda."
+      ]
+    },
+    {
+      "title": "Khắc Phục Lỗi Aoda Đứng Khung Hình Khi Đổi Vị Trí Xuất Phát (Platform 3A Ledge Freeze) & Chìm Chân Xuống Cỏ ~15px (Ground Grass Penetration)",
+      "status": "completed",
+      "changes": [
+        "1. Truy vết nguyên nhân Aoda đứng khung hình ở vị trí ảnh image copy 3.png: Trong tools/asset-viewer/vargost-skill-test.js, hàm getAdjacentPlatform(plat, facing) bị thiếu hoàn toàn nhánh xử lý cho Platform 3A (plat_3a), 3B, 3C. Khi người dùng bấm 'Đổi vị trí xuất phát' sang Platform 3A (Vách Đá Cao) và nhân vật chạy về hướng bên trái để chiếm Thánh Kiếm, Aoda chạm mép minLedge. Do hàm trả về null, code chuyển sang aodaState = 'IDLE'; aodaFrameIndex = 0;. Frame tiếp theo, do chưa vào vùng kiếm nên chuyển lại 'MOVE', tạo thành vòng lặp vô tận 1 frame khiến Aoda bị 'đứng khung hình' vĩnh viễn ở frame 0 với dòng chữ '(🛑 Thủ tĩnh tại mép bệ)'.",
+        "2. Khắc phục lỗi chuyển bệ: Bổ sung đầy đủ kết nối 2 chiều trong getAdjacentPlatform cho plat_3a, plat_3b, plat_3c và plat_2. Khi Aoda ở plat_3a nhìn sang trái (facing < 0), hàm trả về Platform 2 ({ platform: plat_2, targetX: maxX - 30 }), cho phép Aoda thực hiện cú nhảy parabol tiếp đất mượt mà trực tiếp xuống bệ Thánh Kiếm.",
+        "3. Tự động quay mặt về Thánh Kiếm trong btnAodaSwitchPlatform: Khi đổi bệ xuất phát, tự động thiết lập aodaFacing = (SWORD_X > aodaX) ? 1 : -1; và aodaVisualFacing = aodaFacing, đồng thời tự động kích hoạt isPlaying = true nếu đang tạm dừng.",
+        "4. Khắc phục lỗi chân lơ lửng trên ngọn cỏ (~15px): Phân tích map.png (512x352) tại tỷ lệ mapScale = 2.625 (1920x1080 với zoom 0.7), ngọn cỏ cao 6 map pixel (tương đương 6 * 2.625 = 15.75px trên màn hình). Do trước đây surfaces đặt y ngay ở chóp ngọn cỏ khiến chân nhân vật lơ lửng trên không như đang bay thấp. Đã hạ thấp cao độ mặt đất của các bệ có cỏ trong ENV_ZONES thêm 6 map pixel: plat_1_top (220 -> 226), plat_1a (254 -> 260), plat_1b (286 -> 292), plat_3a (94 -> 100), plat_3b (127 -> 130), plat_3c (158 -> 164), đồng thời cập nhật polygon va chạm tương ứng, giúp chân nhân vật cắm sâu thật sự vào nền đất đá bên dưới cỏ.",
+        "5. Bổ sung bài kiểm thử tự động trong tools/asset-viewer/aoda-combat-logic.test.mjs: Kiểm tra getAdjacentPlatform trả về plat_2 khi ở plat_3a, kiểm tra toàn bộ cao độ bệ cỏ đã được hạ 6 map pixel và kiểm tra tự động quay mặt. 24/24 tests pass 100%."
+      ],
+      "verification": [
+        "npm test: 24/24 bài kiểm thử pass 100%.",
+        "godot --headless -s tools/test_instantiate_aoda_scene.gd: PASS 100% (exit code 0).",
+        "godot --headless -s tools/test_instantiate_vargost_scene.gd: PASS 100% (exit code 0).",
+        "node --check tools/asset-viewer/vargost-skill-test.js: cú pháp JavaScript hợp lệ 100%.",
+        "curl -s -I http://127.0.0.1:4173/vargost-skill-test.html: HTTP 200 OK."
+      ],
+      "remaining": [
+        "Tìm và tích hợp 1 kỹ năng mới thay thế cho FireOrb của Aoda theo ý tưởng người dùng."
+      ],
+      "limitations": [
+        "Chiêu 2 của Aoda hiện đang để trống theo yêu cầu người dùng để chuẩn bị tích hợp kỹ năng mới."
+      ],
+      "next_steps": [
+        "Người dùng mở http://localhost:4173/vargost-skill-test.html, bấm '📍 Vị Trí: Platform 3A' để quan sát Aoda tự động quay mặt sang trái, chạy ra mép và tung người nhảy parabol ngoạn mục đáp xuống Platform 2 tranh đoạt Thánh Kiếm mà không còn bị đứng khung hình.",
+        "Quan sát bước chạy của nhân vật trên tất cả các bệ cỏ đã cắm sâu vững chắc trên nền đất thật sự (~15px sâu hơn ngọn cỏ).",
+        "Người dùng đưa ra ý tưởng hoặc asset cho kỹ năng mới thay thế FireOrb của Aoda."
+      ]
+    },
+    {
+      "title": "Khắc Phục Lỗi Hoạt Ảnh Nhảy Đơ Hình Của Aoda (Cho Phép Animation Playback Liên Tục Suốt Quỹ Đạo Nhảy & Tiếp Đất) & Bổ Sung Quy Chuẩn Vào Skill godwar-combat-character và AGENTS.md",
+      "status": "completed",
+      "changes": [
+        "1. Truy vết chính xác nguyên nhân nhảy đơ hình: Trong tools/asset-viewer/vargost-skill-test.js tại trạng thái JUMP, code cũ đã gán cứng aodaFrameIndex = 25 trên mỗi frame dt và aodaFrameIndex = 26 khi LANDING, khiến nhân vật bị khóa chết vào 1 bức ảnh tĩnh duy nhất trượt theo quỹ đạo parabol ('giống hệt dùng bước ảnh kéo tới kéo lui').",
+        "2. Khắc phục dứt điểm lỗi đơ hình: Xóa bỏ hoàn toàn việc gán cứng frame tĩnh 25/26; bổ sung logic aodaAnimAccum += dt -> frameIndex++ (chạy vòng lặp cử động qua chuỗi chạy/nhảy frame 65..92) liên tục trong suốt toàn bộ thời gian trên không của quỹ đạo nhảy (0.48s) và pha nhún chân tiếp đất hấp thụ xung lực (0.12s), giữ nguyên biến dạng squash & stretch động học tự nhiên.",
+        "3. Bổ sung quy chuẩn nghiêm ngặt vào Skill .agents/skills/godwar-combat-character/SKILL.md (mục 4.4): Quy định rõ 'TUYỆT ĐỐI KHÔNG KHÓA FRAME TĨNH KHI NHẢY (CẤM ĐỂ ẢNH ĐƠ)' đối với toàn bộ các nhân vật chiến đấu tiếp theo của GodWar 3v3.",
+        "4. Cập nhật Hiến pháp AGENTS.md tại mục 'Mục tiêu sản phẩm': Bổ sung quy định bắt buộc hoạt ảnh khi di chuyển hoặc nhảy vượt bệ phải liên tục chuyển động, tuyệt đối không gán frame tĩnh gây đơ hình kéo rê.",
+        "5. Bổ sung unit test tự động trong tools/asset-viewer/aoda-combat-logic.test.mjs: Xác nhận không còn mã gán cứng aodaFrameIndex = 25/26 trong JUMP/LANDING, mô phỏng frame bước nhảy liên tục tiến frame và kiểm tra quy chuẩn tồn tại trong SKILL.md. Toàn bộ 23/23 tests pass 100%."
+      ]
+    },
+    {
+      "title": "Loại Bỏ Hoàn Toàn Đòn Đánh Thường Của Aoda (Frame 16..23), Khôi Phục Idle 25 Frame & Chuẩn Hóa Chiêu 1 Tornado Cooldown 5s Không Cần Mana",
+      "status": "completed",
+      "changes": [
+        "1. Cập nhật Asset/Character/characters/aoda_combat/aoda_actions.json: Xóa bỏ hoàn toàn action basic_attack theo yêu cầu người dùng, khôi phục idle về trọn vẹn 25 frame (Frame 1..25, Index 0..24), xóa mana_cost: 100 ở skill_1_tornado.",
+        "2. Cập nhật giao diện viewer tools/asset-viewer/vargost-skill-test.html: Gỡ bỏ nút Đánh Thường, khôi phục nút Chiêu 1 về Tornado CD 5s.",
+        "3. Cập nhật logic JavaScript tools/asset-viewer/vargost-skill-test.js: Loại bỏ biến aodaMana, aodaMaxMana, phím tắt Digit3, xóa bỏ trạng thái BASIC_ATTACK và xóa toàn bộ thanh Mana dưới HP bar của Aoda.",
+        "4. Cập nhật Utility AI và Godot 4 Node aoda_character.gd."
+      ]
+    },
+    {
+      "title": "Tích Hợp Hoạt Ảnh Đánh Thường Cho Aoda (Frame 16..23), Cơ Chế Mana Tích Nộ (+25 Mana/Hit), Khẳng Định Khả Năng Thao Tác Godot CLI Và Xây Dựng Node Aoda Chuẩn GodWar 3v3",
+      "status": "completed",
+      "changes": [
+        "1. Trả lời câu hỏi người dùng về Godot CLI: Agent hoàn toàn thao tác được Godot CLI trong môi trường hiện tại (/home/codespace/.local/bin/godot --headless, phiên bản 4.3.stable).",
+        "2. Khảo sát hoạt ảnh đánh thường trong source GIF gốc (aoda.gif): Trong 93 frame gốc tách thử 8 frame Frame 16..23.",
+        "3. Thử nghiệm hệ thống Mana 0/100 nạp Tornado.",
+        "4. Xây dựng Character Node Godot 4 cho Aoda và test_instantiate_aoda_scene.gd."
+      ]
+    },
+    {
+      "title": "Khắc Phục Vòng Lặp Teleport Lùi Kẹt Tường (Bay Vọt Lên Trời Thoát Kẹt), Kiểm Tra Line-of-Sight Không Bắn Vào Tường, Chuẩn Hóa Ưu Tiên Bay Vargost & Hiển Thị Thánh Kiếm 90px",
+      "status": "completed",
+      "changes": [
+        "1. Khắc phục lỗi kẹt vòng lặp teleport lùi: Bổ sung hàm isRetreatBlocked(fromX, fromY, retreatDir); khi địch áp sát cự ly gần (<150px) mà sau lưng là tường, Vargost hiểu và tự động bay vọt lên bầu trời (targetVargostY = skyCeilingY + 12*scale) để thoát kẹt và tấn công từ trên cao; cập nhật triggerTeleport hỗ trợ forceFlying / chuyển trạng thái bay khi targetY trên không, triệt tiêu việc bị ép về groundY.",
+        "2. Kiểm tra Line-of-Sight (LoS) cho AI trước khi tung chiêu: Trong vòng lặp Utility AI tự động, khi cự ly trong tầm bắn [150, 550], AI dùng raycastEnvCollision kiểm tra đường đạn; nếu bị tường chặn thì TUYỆT ĐỐI KHÔNG TẤN CÔNG bừa bãi, chuyển sang LOS_EVASIVE bay lên cao (hoặc bay hạ thấp nếu địch núp góc tường) để tìm góc bắn thông suốt.",
+        "3. Chuẩn hóa ưu tiên bay cho Vargost (Pháp sư tầm xa): Vargost luôn ngự trị trên bầu trời (isFlying = true); tự động cất cánh khi ở mặt đất trừ khi một mình chiếm Thánh Kiếm (Aoda chết); xóa bỏ việc tự hạ cánh vu vơ trong tuần tra.",
+        "4. Khắc phục lỗi hiển thị Thánh Kiếm: Loại bỏ điều kiện sai swordFrames.frames (vốn undefined), chuẩn hóa giải mã atlas 8x7 (frame 107x158, 55 frame) vẽ trực tiếp từ assets.swordObjective chuẩn xác 90px kèm hào quang vàng kim và đung đưa lơ lửng.",
+        "5. Bổ sung bài unit test 8 & 9 trong vargost-combat-logic.test.mjs; toàn bộ 21/21 unit tests pass 100%."
+      ],
+      "verification": [
+        "npm test: 21/21 bài kiểm thử pass 100%.",
+        "node --check tools/asset-viewer/vargost-skill-test.js: cú pháp JavaScript hợp lệ 100%.",
+        "curl -s -I http://127.0.0.1:4173/vargost-skill-test.html -> HTTP 200 OK."
+      ]
+    },
+    {
+      "title": "Sửa Chu Trình Kỹ Năng Lốc Xoáy (Tornado) Của Aoda: Bắt Đầu Hoạt Ảnh (Frame 0..3) -> Tồn Tại Xoay Đỉnh Cao Trong Đúng 2.0s (Frame 4..9 Loop) -> Tan Biến (Frame 10..14)",
+      "status": "completed",
+      "changes": [
+        "1. Tách bạch hoàn toàn 3 pha hoạt ảnh của Tornado (vfx_red_tornado 15 frame):",
+        "   - Pha EMERGE (0.24s): Bắt đầu mọc lên từ mặt đất, chạy tuần tự frame 0 -> 1 -> 2 -> 3 (mỗi frame 0.06s).",
+        "   - Pha SPIN (2.0s): Tồn tại xoay lốc đỉnh cao, chạy vòng lặp mượt mà giữa các frame 4..9 (Frame 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 4 -> 5...) liên tục trong đúng 2.0 giây, triệt tiêu hoàn toàn hiện tượng xuất hiện rồi tan biến bị lặp lại trong 2s.",
+        "   - Pha DISSIPATE (0.30s): Sau khi hết 2.0s tồn tại, lốc vỡ vụn và mờ dần qua các frame 10 -> 11 -> 12 -> 13 -> 14 rồi biến mất hoàn toàn.",
+        "2. Sửa Tornado Windup Preview: Trong lúc Aoda tụ lực (frame 25..29), chỉ hiển thị vòng ma pháp đỏ tụ năng lượng dưới mặt đất, không vẽ đè frame lốc xoáy gây trùng lặp.",
+        "3. Cập nhật unit test trong aoda-combat-logic.test.mjs mô phỏng chính xác thuật toán bước frame: xác nhận frameIndex trong pha SPIN luôn nằm trong [4, 9] suốt 2.0s và chỉ chuyển sang DISSIPATE sau 2.0s; 21/21 tests pass 100%."
+      ],
+      "verification": [
+        "npm test: 21/21 bài kiểm thử pass 100%.",
+        "node --check tools/asset-viewer/vargost-skill-test.js: cú pháp JavaScript hợp lệ 100%.",
+        "curl -s -I http://127.0.0.1:4173/vargost-skill-test.html -> HTTP 200 OK."
+      ]
+    },
+    {
+      "title": "Khởi Chạy Localhost Asset Viewer (Cổng 4173) Phục Vụ Kiểm Thử Hoạt Ảnh & Giao Tranh",
+      "status": "completed",
+      "changes": [
+        "1. Chạy toàn bộ 21/21 bài kiểm thử tự động (npm test) đạt tỷ lệ pass 100%.",
+        "2. Khởi chạy máy chủ HTTP Asset Viewer chế độ nền daemon tại 0.0.0.0:4173 (tools/asset-viewer/server.mjs).",
+        "3. Xác minh phản hồi HTTP 200 OK trên toàn bộ 3 trang giao diện kiểm thử:",
+        "   - http://127.0.0.1:4173/ (Asset Viewer tổng quan)",
+        "   - http://127.0.0.1:4173/vargost-skill-test.html (Test hoạt ảnh chiến đấu 1v1 Vargost vs Aoda, Thánh Kiếm 90px Platform 2, Utility AI)",
+        "   - http://127.0.0.1:4173/amore-scene.html (Thử tỷ lệ Amore/Vargost trên map 1920x1080)."
+      ],
+      "verification": [
+        "npm test: 21/21 bài kiểm thử pass 100%.",
+        "curl -s -I http://127.0.0.1:4173/ -> HTTP/1.1 200 OK",
+        "curl -s -I http://127.0.0.1:4173/vargost-skill-test.html -> HTTP/1.1 200 OK",
+        "curl -s -I http://127.0.0.1:4173/amore-scene.html -> HTTP/1.1 200 OK"
+      ]
+    },
+    {
+      "title": "Xóa Bỏ 2 Hình Nhân Tập Luyện, Chuẩn Hóa Thánh Kiếm (sword.mp4) Chiều Cao 90px Tại Trung Tâm Platform 2",
+      "status": "completed",
+      "changes": [
+        "1. Xóa bỏ hoàn toàn 2 hình nhân tập luyện: Đã gỡ bỏ Ground Dummy (hình nhân gỗ Platform 2) và Moving Dummy (hình nhân di động pixel) khỏi canvas render, vòng lặp cập nhật, thanh máu và giao diện điều khiển (chk-moving-target, chk-ground-dummy, btn-enemy-dash, btn-enemy-attack).",
+        "2. Trận đấu chuyển sang thuần giao tranh 1v1 giữa các Tướng (Vargost Team 1 vs Aoda Team 2): Vargost nhắm thẳng Aoda (hoặc Thánh Kiếm khi Aoda tử trận); Aoda nhắm thẳng Vargost (khi Vargost hạ cánh) hoặc tiến về chiếm Thánh Kiếm.",
+        "3. Chuẩn hóa Cứ Điểm Thánh Kiếm (Asset/Character/vfx/sword.mp4): Xuất hiện tại trung tâm Bệ Giữa Platform 2 (SWORD_X = mapX + 226 * mapScale, SWORD_Y = mapY + 194 * mapScale) với kích thước chiều cao chuẩn hóa đúng 90px (targetSwordH = 90.0, swScale = 90.0/158.0, drawH = 90px * zoom/0.7), cập nhật frames.json target_height_px: 90.",
+        "4. Vùng chiếm đóng 135px ghi nhận thuần túy 2 phe: Team 1 (Vargost) vs Team 2 (Aoda) tranh đoạt liên tục 20s chiến thắng.",
+        "5. Bổ sung bài unit test số 21 xác nhận chuẩn hóa 90px và loại bỏ hình nhân; toàn bộ 21/21 unit tests pass 100%."
+      ],
+      "verification": [
+        "21/21 bài unit test tự động pass 100% (npm test).",
+        "node --check tools/asset-viewer/vargost-skill-test.js xác nhận cú pháp JavaScript hợp lệ 100%.",
+        "HTTP 200 OK trên http://127.0.0.1:4173/vargost-skill-test.html và asset Thánh Kiếm.",
+        "Server thử nghiệm cục bộ đang chạy tại http://127.0.0.1:4173/vargost-skill-test.html."
+      ]
+    },
     {
       "title": "Khởi Chạy Localhost Asset Viewer (Cổng 4173) Phục Vụ Kiểm Thử Hoạt Ảnh & Giao Tranh",
       "status": "completed",
@@ -679,19 +886,48 @@
       ]
     },
     {
-      "title": "Ước tính dung lượng thêm 40 nhân vật",
+      "title": "Cập nhật bóng dưới chân Aoda thành hình tròn màu #595964 theo image.png mẫu",
       "status": "completed",
       "changes": [
-        "Ước tính theo dung lượng lô 20 GIF gần nhất, không thay đổi asset."
+        "Phân tích image.png mẫu người dùng cung cấp (56x47, 45 pixel màu #595964 dưới chân Aoda).",
+        "Cập nhật tools/asset-viewer/vargost-skill-test.js: Thay thế bóng elip đen mờ cũ bằng bóng hình tròn đặc màu #595964 (ctx.arc với bán kính chuẩn 16px ở zoom 0.7) neo đúng tâm chân Aoda.",
+        "Xử lý cơ chế động học khi nhảy: Khi Aoda nhảy Parabol (aodaState === 'JUMP'), bóng được chiếu xuống mặt đất bên dưới (shadowOffsetY = arc) và thu nhỏ nhẹ theo độ cao, khi tiếp đất trở về vị trí sát chân.",
+        "Bổ sung unit test trong tools/asset-viewer/aoda-combat-logic.test.mjs: Kiểm tra màu sắc #595964, dạng hình tròn ctx.arc, tính toán độ cao rơi bóng và thu nhỏ khi nhảy."
       ],
       "verification": [
-        "du: clip Forge 1.000 MB, atlas nguồn 88 MB, atlas hiện hành 82 MB, ba thư mục lưu 172 MB, review 19 MB cho lô gần nhất; ít nhất khoảng 1,36 GB cho 20."
+        "node --check tools/asset-viewer/vargost-skill-test.js: Cú pháp JS hợp lệ 100%.",
+        "npm test: Toàn bộ 22/22 unit tests pass 100% (bao gồm bài test mới Aoda Feet Shadow: Circular Disc Shape & Exact Hex Color #595964).",
+        "curl -s -I http://127.0.0.1:4173/vargost-skill-test.html: HTTP 200 OK."
       ],
       "remaining": [],
       "limitations": [
-        "Ước tính phụ thuộc độ dài GIF, kích thước, số bản thử và clip; không phải dung lượng APK hay Git remote."
+        "Màu bóng #595964 hiện tại áp dụng cho Aoda trong viewer; các nhân vật tiếp theo sẽ đồng bộ theo chuẩn này nếu người dùng yêu cầu."
       ],
-      "next_steps": []
+      "next_steps": [
+        "Chờ phản hồi từ người dùng về kỹ năng mới thay thế FireOrb của Aoda hoặc tinh chỉnh thêm nếu cần."
+      ]
+    },
+    {
+      "title": "Xóa bóng dưới chân Aoda, xóa vòng tím Thánh Kiếm và khắc phục đơ hoạt ảnh ở Frame 19",
+      "status": "completed",
+      "changes": [
+        "Xóa bỏ hoàn toàn vệt hình tròn màu đen to dưới chân Aoda trong tools/asset-viewer/vargost-skill-test.js (khối Shadow under feet), chân nhân vật hiển thị sạch sẽ trực tiếp trên bệ đá.",
+        "Xóa bỏ vòng nền tròn màu tím (rgba(180, 100, 255, 0.22)) bao quanh cứ điểm Thánh Kiếm trên Platform 2, giữ thanh kiếm nguyên bản trên bệ đá đen và khăn đỏ.",
+        "Khắc phục triệt để lỗi kẹt đơ hoạt ảnh ở Frame 19 khi 2 nhân vật giao tranh: Bổ sung trạng thái LOS_EVASIVE vào Frame Progression (dòng 2200), thêm timeout 0.8s tránh kẹt vĩnh viễn khi địa hình che khuất góc bắn, và bổ sung fallback an toàn cho spriteScale trong spawnBlazingHaloProjectile.",
+        "Cập nhật bài unit test Aoda Feet Clean Appearance & Holy Sword Clean Aura & Animation Freeze Fix trong tools/asset-viewer/aoda-combat-logic.test.mjs."
+      ],
+      "verification": [
+        "node --check tools/asset-viewer/vargost-skill-test.js: Cú pháp JavaScript hợp lệ 100%.",
+        "npm test: Toàn bộ 22/22 unit tests pass 100%.",
+        "curl -s -I http://127.0.0.1:4173/vargost-skill-test.html: HTTP 200 OK, asset viewer vận hành trơn tru."
+      ],
+      "remaining": [],
+      "limitations": [
+        "Kỹ năng thay thế FireOrb của Aoda đang chờ người dùng cung cấp."
+      ],
+      "next_steps": [
+        "Chờ người dùng kiểm duyệt giao diện không bóng chân Aoda, không hào quang tím Thánh Kiếm và độ mượt khi giao tranh."
+      ]
     }
   ]
 }

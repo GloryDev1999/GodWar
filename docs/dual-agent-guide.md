@@ -63,6 +63,9 @@ npm test
    ```
 3. **Kỹ năng hiện hành**:
    - `godwar-add-character` ([SKILL.md](file:///workspaces/GodWar/.agents/skills/godwar-add-character/SKILL.md)): Tự động kích hoạt khi có yêu cầu "Thêm char mới" hoặc nhập GIF nhân vật. Tự động kiểm tra hash, tách nền 2 đợt, đo chiều cao tham chiếu, đóng atlas Godot và tạo clip Sprite Forge.
+   - `godwar-combat-character` ([SKILL.md](file:///workspaces/GodWar/.agents/skills/godwar-combat-character/SKILL.md)): Quy chuẩn xây dựng nhân vật chiến đấu 3v3 Auto-battler, hỗ trợ xuất phát và tác chiến cả 2 hướng Trái ⇋ Phải đối xứng qua pivot neo chân.
+   - `godwar-agent-safeguard` ([SKILL.md](file:///workspaces/GodWar/.agents/skills/godwar-agent-safeguard/SKILL.md)): Cẩm nang tự vệ và bảo vệ tệp dự án dành cho AI agent trên máy tính/môi trường mới; 5 điều cấm kỵ, quy tắc không tạo file rác/backup, quy trình 6 bước và checklist kiểm chứng an toàn.
+   - `godwar-pr-workflow` ([SKILL.md](file:///workspaces/GodWar/.agents/skills/godwar-pr-workflow/SKILL.md)): Quy chuẩn đồng bộ đa máy (Multi-Machine Sync), phân nhánh tính năng, xử lý xung đột tệp nhị phân asset / `state.json`, kiểm tra chất lượng và tạo / hợp nhất Pull Request an toàn cho GodWar.
 
 ---
 
