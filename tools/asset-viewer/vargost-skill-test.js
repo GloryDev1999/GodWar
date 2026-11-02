@@ -3942,11 +3942,8 @@ function drawScene(targetX, targetY, dt) {
       if (t.facing < 0) ctx.scale(-1, 1);
       ctx.globalAlpha = animAlpha;
 
-      // Quầng sáng rực lửa dưới chân lốc xoáy
-      ctx.fillStyle = 'rgba(255, 60, 0, 0.35)';
-      ctx.beginPath();
-      ctx.ellipse(0, 0, 24 * (zoom / 0.7), 8 * (zoom / 0.7), 0, 0, Math.PI * 2);
-      ctx.fill();
+      // Bỏ quầng đổ bóng/vòng lửa dưới chân theo yêu cầu người dùng
+      // (giữ nguyên frame xoay và quầng sáng thân)
 
       // Vẽ frame lốc xoáy đã khử sạch viền vuông
       ctx.globalCompositeOperation = 'source-over';
@@ -4117,8 +4114,11 @@ function drawScene(targetX, targetY, dt) {
 
     ctx.restore();
 
-    // Gothic Health Bar của Aoda (Chiều cao 90px, đỉnh đầu cách ~92px)
-    const aodaBarY = aodaY - 95 * (zoom / 0.7);
+    // Gothic Health Bar của Aoda (Chiều cao 90px, đỉnh đầu cách ~72px, đáy ống máu cách đỉnh đầu đúng 10px)
+    const aodaBarScale = (zoom / 0.7);
+    const aodaGothicBarH = 75 * aodaBarScale * (50 / 240) * 0.85;
+    const aodaHeadTopY = aodaY - 72 * aodaBarScale;
+    const aodaBarY = aodaHeadTopY - aodaGothicBarH - 10 * aodaBarScale;
     let aodaStatusText = '';
     if (aodaIsDead) {
       aodaStatusText = (aodaDeathTimer < 0.3) ? '💀 GỤC NGÃ' : '💨 TAN BIẾN VÀO HƯ KHÔNG';

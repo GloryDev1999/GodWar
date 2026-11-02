@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-11-02T14:37:00Z",
+  "updated_at_utc": "2026-11-02T15:20:00Z",
   "purpose": "Bộ nhớ bàn giao ngắn gọn cho agent; đối chiếu với mã, tài liệu và git status khi bắt đầu phiên.",
   "product_goal": {
     "source": "Yêu cầu của người dùng ngày 2026-10-31, 2026-11-01 và 2026-11-02",
@@ -11,7 +11,7 @@
   },
   "verified_context": [
     {
-      "fact": "Đã xuất và cài đặt thành công APK v1.0.9 (code 10) tại build/GodWar-debug.apk và kiểm chứng thực tế 100% trên Ramus Cloud Android Emulator qua cầu nối ADB 127.0.0.1:44803. Đã có link tương tác trực tiếp: https://ramus.dev/share#rshr_LJsRnINQnkBeOAhd3HankR6jO4QdCuDVwwofXre5Se0",
+      "fact": "Đã xuất và kiểm chứng thành công APK v1.1.0 (code 11) tại build/GodWar-debug.apk và live-test trên Ramus Cloud Android Emulator: 1) Toàn màn hình siêu rộng thích ứng động ('aspect=expand', không còn vệt đen 2 bên mép trên Redmi K70E 20:9); 2) Xoay mặt 2 nhân vật siêu tốc đánh lừa thị giác (x3+ speed, dt*50.0) kèm hiệu ứng Pixel Dissolve/Ember Burst khi Vargost lật qua 0; 3) Khóa cứng đường bay đạn Blazing Halo (locked straight vector, không bị uốn cong) và va chạm nổ trên vách đá địa hình Scene 1, 2, 3; 4) Khắc phục triệt để lỗi kẹt vòng lặp nhấp nháy tại Platform 3A (thêm cú nhảy hồi quy về Platform 2); 5) Đưa thanh máu đỏ của Aoda hạ thấp về chuẩn sát đỉnh đầu đúng 10px (cách chân 72px + 10px); 6) Hoạt ảnh bay & teleport của Vargost mượt mà 60fps không bị đơ frame; 7) Bỏ quầng đổ bóng elip dưới chân lốc xoáy của Aoda; 8) Hoạt ảnh KO của Aoda kẹp chặt ở frame 58 trên đất, không tràn sang frame di chuyển; 9) Ẩn toàn bộ tia ngắm/vòng định hướng trên mobile APK.",
       "source": "build/GodWar-debug.apk"
     },
     {

@@ -63,6 +63,8 @@ var vargost_target_air_x: float = 400.0
 var vargost_target_air_y: float = 330.0
 var vargost_ai_timer: float = 0.0
 var vargost_scale: float = 0.872
+var halo_locked_target: Vector2 = Vector2.ZERO
+var env_polygons: Array[PackedVector2Array] = []
 
 # Aoda State & Visuals (Chuẩn 90px Melee Fighter)
 var aoda_cur_platform_id: String = "plat_1a"
@@ -138,9 +140,83 @@ func _ready() -> void:
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 
 	_load_all_textures()
+	_init_env_polygons()
 	_init_positions()
 	setup_holy_sword()
 	setup_top_hud()
+
+func _init_env_polygons() -> void:
+	env_polygons.clear()
+	# Zone 1: Platform 1 & Vách Đá Trái
+	env_polygons.append(PackedVector2Array([
+		Vector2(MAP_X + 0.0 * MAP_SCALE, MAP_Y + 226.0 * MAP_SCALE),
+		Vector2(MAP_X + 36.0 * MAP_SCALE, MAP_Y + 226.0 * MAP_SCALE),
+		Vector2(MAP_X + 36.0 * MAP_SCALE, MAP_Y + 260.0 * MAP_SCALE),
+		Vector2(MAP_X + 128.0 * MAP_SCALE, MAP_Y + 260.0 * MAP_SCALE),
+		Vector2(MAP_X + 128.0 * MAP_SCALE, MAP_Y + 292.0 * MAP_SCALE),
+		Vector2(MAP_X + 228.0 * MAP_SCALE, MAP_Y + 292.0 * MAP_SCALE),
+		Vector2(MAP_X + 228.0 * MAP_SCALE, MAP_Y + 351.0 * MAP_SCALE),
+		Vector2(MAP_X + 0.0 * MAP_SCALE, MAP_Y + 351.0 * MAP_SCALE)
+	]))
+	# Zone 2: Bệ Đá Giữa (Platform 2)
+	env_polygons.append(PackedVector2Array([
+		Vector2(MAP_X + 188.0 * MAP_SCALE, MAP_Y + 194.0 * MAP_SCALE),
+		Vector2(MAP_X + 260.0 * MAP_SCALE, MAP_Y + 194.0 * MAP_SCALE),
+		Vector2(MAP_X + 260.0 * MAP_SCALE, MAP_Y + 245.0 * MAP_SCALE),
+		Vector2(MAP_X + 235.0 * MAP_SCALE, MAP_Y + 275.0 * MAP_SCALE),
+		Vector2(MAP_X + 205.0 * MAP_SCALE, MAP_Y + 275.0 * MAP_SCALE),
+		Vector2(MAP_X + 188.0 * MAP_SCALE, MAP_Y + 245.0 * MAP_SCALE)
+	]))
+	# Zone 3: Vách Đá Phải (Platform 3)
+	env_polygons.append(PackedVector2Array([
+		Vector2(MAP_X + 286.0 * MAP_SCALE, MAP_Y + 100.0 * MAP_SCALE),
+		Vector2(MAP_X + 422.0 * MAP_SCALE, MAP_Y + 100.0 * MAP_SCALE),
+		Vector2(MAP_X + 422.0 * MAP_SCALE, MAP_Y + 130.0 * MAP_SCALE),
+		Vector2(MAP_X + 488.0 * MAP_SCALE, MAP_Y + 130.0 * MAP_SCALE),
+		Vector2(MAP_X + 488.0 * MAP_SCALE, MAP_Y + 164.0 * MAP_SCALE),
+		Vector2(MAP_X + 511.0 * MAP_SCALE, MAP_Y + 164.0 * MAP_SCALE),
+		Vector2(MAP_X + 511.0 * MAP_SCALE, MAP_Y + 351.0 * MAP_SCALE),
+		Vector2(MAP_X + 284.0 * MAP_SCALE, MAP_Y + 351.0 * MAP_SCALE),
+		Vector2(MAP_X + 284.0 * MAP_SCALE, MAP_Y + 286.0 * MAP_SCALE),
+		Vector2(MAP_X + 348.0 * MAP_SCALE, MAP_Y + 286.0 * MAP_SCALE),
+		Vector2(MAP_X + 348.0 * MAP_SCALE, MAP_Y + 250.0 * MAP_SCALE),
+		Vector2(MAP_X + 375.0 * MAP_SCALE, MAP_Y + 250.0 * MAP_SCALE),
+		Vector2(MAP_X + 375.0 * MAP_SCALE, MAP_Y + 205.0 * MAP_SCALE),
+		Vector2(MAP_X + 350.0 * MAP_SCALE, MAP_Y + 175.0 * MAP_SCALE),
+		Vector2(MAP_X + 305.0 * MAP_SCALE, MAP_Y + 175.0 * MAP_SCALE),
+		Vector2(MAP_X + 286.0 * MAP_SCALE, MAP_Y + 120.0 * MAP_SCALE)
+	]))
+
+func _line_intersect(p1: Vector2, p2: Vector2, p3: Vector2, p4: Vector2) -> Variant:
+	var denom := (p4.y - p3.y) * (p2.x - p1.x) - (p4.x - p3.x) * (p2.y - p1.y)
+	if absf(denom) < 1e-6:
+		return null
+	var ua := ((p4.x - p3.x) * (p1.y - p3.y) - (p4.y - p3.y) * (p1.x - p3.x)) / denom
+	var ub := ((p2.x - p1.x) * (p1.y - p3.y) - (p2.y - p1.y) * (p1.x - p3.x)) / denom
+	if ua >= 0.0 and ua <= 1.0 and ub >= 0.0 and ub <= 1.0:
+		return Vector2(p1.x + ua * (p2.x - p1.x), p1.y + ua * (p2.y - p1.y))
+	return null
+
+func _raycast_env(p1: Vector2, p2: Vector2) -> Variant:
+	var closest_hit: Variant = null
+	var min_d := INF
+	for poly in env_polygons:
+		var n := poly.size()
+		for i in range(n):
+			var j := (i + n - 1) % n
+			var hit: Variant = _line_intersect(p1, p2, poly[j], poly[i])
+			if hit != null:
+				var d: float = p1.distance_to(hit)
+				if d < min_d:
+					min_d = d
+					closest_hit = hit
+	return closest_hit
+
+func _is_point_in_env(pt: Vector2) -> bool:
+	for poly in env_polygons:
+		if Geometry2D.is_point_in_polygon(pt, poly):
+			return true
+	return false
 
 func _load_all_textures() -> void:
 	map_texture = Library._load_texture_safe("res://Asset/Scenes/amore_scale_test/map.png")
@@ -255,10 +331,16 @@ func setup_top_hud() -> void:
 	ui_bar.add_theme_stylebox_override("fill", sb_bar)
 	top_vbox.add_child(ui_bar)
 
-	# 2. HÀNG NÚT ĐIỀU KHIỂN CẢM ỨNG KIỂM THỬ Ở ĐÁY MÀN HÌNH (Khớp 100% mẫu ảnh image copy 6.png)
+	# 2. HÀNG NÚT ĐIỀU KHIỂN CẢM ỨNG KIỂM THỬ Ở ĐÁY MÀN HÌNH (Khớp 100% mẫu ảnh image copy 6.png, co giãn toàn màn hình)
 	var bot_panel := PanelContainer.new()
-	bot_panel.position = Vector2(40, 995)
-	bot_panel.custom_minimum_size = Vector2(1840, 65)
+	bot_panel.anchor_left = 0.0
+	bot_panel.anchor_right = 1.0
+	bot_panel.anchor_top = 1.0
+	bot_panel.anchor_bottom = 1.0
+	bot_panel.offset_left = 24.0
+	bot_panel.offset_right = -24.0
+	bot_panel.offset_top = -80.0
+	bot_panel.offset_bottom = -15.0
 	var sb_bot := StyleBoxFlat.new()
 	sb_bot.bg_color = Color(0.06, 0.08, 0.12, 0.92)
 	sb_bot.border_color = Color(0.25, 0.32, 0.42, 0.8)
@@ -352,7 +434,8 @@ func _on_btn_halo_pressed() -> void:
 	if vargost_state == "IDLE":
 		vargost_state = "HALO_WINDUP"
 		vargost_frame_index = 44
-		show_toast("🔥 Vargost: Kích hoạt Blazing Halo đại cầu lửa!")
+		halo_locked_target = Vector2(aoda_x, aoda_y - 45.0) if not aoda_is_dead else Vector2(SWORD_X, SWORD_Y - 20.0)
+		show_toast("🔥 Vargost: Kích hoạt Blazing Halo (Khóa đường bay)!")
 
 func _on_btn_tornado_pressed() -> void:
 	if not aoda_is_dead:
@@ -431,9 +514,13 @@ func _update_vargost(dt: float) -> void:
 	if vargost_hit_flash > 0.0:
 		vargost_hit_flash -= dt
 
-	# Xoay mặt 2.5D mượt mà
+	# Xoay mặt 2.5D siêu tốc đánh lừa thị giác (x3+ speed) kèm hiệu ứng Pixel Dissolve
 	if absf(vargost_visual_facing - vargost_facing) > 0.02:
-		vargost_visual_facing = move_toward(vargost_visual_facing, vargost_facing, dt * 12.0)
+		var prev_vf := vargost_visual_facing
+		vargost_visual_facing = move_toward(vargost_visual_facing, vargost_facing, dt * 50.0)
+		if signf(prev_vf) != signf(vargost_visual_facing) and prev_vf != 0.0:
+			var h_off := sin(vargost_hover_timer * 3.2) * 8.0
+			_spawn_ember_burst(Vector2(vargost_x, vargost_y + h_off), 8)
 	else:
 		vargost_visual_facing = vargost_facing
 
@@ -458,7 +545,6 @@ func _update_vargost(dt: float) -> void:
 			if teleport_timer >= 0.25:
 				is_vargost_teleporting = false
 				vargost_alpha = 1.0
-		return
 
 	# 1. Bay lượn chiến thuật:
 	# Nếu Aoda tử trận hoặc cần tranh chấp cứ điểm: Vargost sà thấp tiến về bệ giữa Thánh Kiếm!
@@ -479,15 +565,15 @@ func _update_vargost(dt: float) -> void:
 		var retreat_x := clampf(vargost_x - vargost_facing * 180.0, 200.0, 750.0)
 		var retreat_y := randf_range(260.0, 360.0)
 		_trigger_vargost_teleport(retreat_x, retreat_y)
-		return
 
 	var move_vec := Vector2(vargost_target_air_x - vargost_x, vargost_target_air_y - vargost_y)
 	if move_vec.length() > 5.0 and vargost_state == "IDLE":
 		var dir := move_vec.normalized()
-		vargost_x += dir.x * 220.0 * dt
-		vargost_y += dir.y * 140.0 * dt
+		var fly_speed := 380.0 * (MAP_SCALE / 2.625)
+		vargost_x += dir.x * fly_speed * dt
+		vargost_y += dir.y * (fly_speed * 0.6) * dt
 		var target_tilt := signf(dir.x) * deg_to_rad(25.0)
-		vargost_tilt = lerp_angle(vargost_tilt, target_tilt, dt * 8.0)
+		vargost_tilt = lerp_angle(vargost_tilt, target_tilt, dt * 10.0)
 
 		# Sinh Bóng Mờ Chuyển Động 2D (Motion Ghosts) khi bay
 		ghost_spawn_timer += dt
@@ -520,8 +606,8 @@ func _update_vargost(dt: float) -> void:
 		elif vargost_state == "HALO_WINDUP":
 			vargost_frame_index += 1
 			if vargost_frame_index >= 68:
-				# PHÓNG ĐẠI CẦU LỬA @ 1100px/s (Frame 68)
-				_spawn_blazing_halo_projectile(aoda_x, aoda_y - 45.0)
+				# PHÓNG ĐẠI CẦU LỬA @ 1100px/s (Frame 68) THEO ĐÚNG ĐƯỜNG BAY ĐÃ KHÓA
+				_spawn_blazing_halo_projectile(halo_locked_target.x, halo_locked_target.y)
 				vargost_state = "HALO_RECOVERY"
 		elif vargost_state == "HALO_RECOVERY":
 			vargost_frame_index += 1
@@ -536,6 +622,7 @@ func _update_vargost(dt: float) -> void:
 	elif not aoda_is_dead and vargost_state == "IDLE":
 		vargost_state = "HALO_WINDUP"
 		vargost_frame_index = 44 # Bắt đầu windup
+		halo_locked_target = Vector2(aoda_x, aoda_y - 45.0)
 
 func _trigger_vargost_teleport(target_x: float, target_y: float) -> void:
 	if is_vargost_teleporting:
@@ -613,9 +700,9 @@ func _update_aoda(dt: float) -> void:
 	if aoda_tornado_cooldown > 0.0:
 		aoda_tornado_cooldown -= dt
 
-	# Xoay mặt 2.5D mượt mà
+	# Xoay mặt Aoda siêu tốc (x3+ speed) đánh lừa thị giác
 	if absf(aoda_visual_facing - aoda_facing) > 0.02:
-		aoda_visual_facing = move_toward(aoda_visual_facing, aoda_facing, dt * 12.0)
+		aoda_visual_facing = move_toward(aoda_visual_facing, aoda_facing, dt * 50.0)
 	else:
 		aoda_visual_facing = aoda_facing
 
@@ -625,7 +712,9 @@ func _update_aoda(dt: float) -> void:
 		aoda_frame_timer += dt
 		if aoda_frame_timer >= 0.06:
 			aoda_frame_timer -= 0.06
-			if aoda_frame_index < 64:
+			# Chạy hoạt ảnh ngã gục từ frame 46 -> 58 (tư thế gục ngã trên đất)
+			# Dừng ở frame 58, tuyệt đối không tràn qua frame 64 blank hoặc 65 move!
+			if aoda_frame_index < 58:
 				aoda_frame_index += 1
 
 		# Hạt tàn tro pixel bốc hơi vào hư không khi tan biến (0.3s -> 2.0s)
@@ -816,6 +905,10 @@ func _get_adjacent_platform(plat_id: String, facing: float) -> Variant:
 		elif facing > 0:
 			var p3a: Dictionary = PLATFORMS["plat_3a"]
 			return {"platform_id": "plat_3a", "target_x": p3a["minX"] + 35.0, "target_y": p3a["y"]}
+	elif plat_id == "plat_3a":
+		if facing < 0:
+			var p2: Dictionary = PLATFORMS["plat_2"]
+			return {"platform_id": "plat_2", "target_x": p2["maxX"] - 30.0, "target_y": p2["y"]}
 	return null
 
 # -------------------------------------------------------------
@@ -921,25 +1014,36 @@ func _update_projectiles(dt: float) -> void:
 	var to_remove: Array[Dictionary] = []
 	for p in active_projectiles:
 		p["life"] = float(p["life"]) - dt
+		var prev_pos := Vector2(float(p["x"]), float(p["y"]))
 		p["x"] = float(p["x"]) + float(p["vx"]) * dt
 		p["y"] = float(p["y"]) + float(p["vy"]) * dt
+		var curr_pos := Vector2(float(p["x"]), float(p["y"]))
 
 		p["spin_timer"] = float(p["spin_timer"]) + dt
 		if p["spin_timer"] >= 0.035:
 			p["spin_timer"] -= 0.035
 			p["spin_frame"] = (int(p["spin_frame"]) + 1) % 8
 
+		# Va chạm với Địa hình (Vách đá Scene 1, 2, 3)
+		var env_hit: Variant = _raycast_env(prev_pos, curr_pos)
+		if env_hit != null or _is_point_in_env(curr_pos):
+			var hit_pt: Vector2 = env_hit if env_hit != null else curr_pos
+			_spawn_explosion(hit_pt.x, hit_pt.y)
+			_spawn_hit_impact(hit_pt.x, hit_pt.y, signf(float(p["vx"])))
+			to_remove.append(p)
+			continue
+
 		# Va chạm với Aoda
 		if not aoda_is_dead:
 			var target_pos := Vector2(aoda_x, aoda_y - 45.0)
-			if Vector2(p["x"], p["y"]).distance_to(target_pos) < 55.0:
+			if curr_pos.distance_to(target_pos) < 55.0:
 				_spawn_hit_impact(aoda_x, aoda_y - 45.0)
 				_damage_aoda(35.0)
 				_spawn_explosion(aoda_x, aoda_y)
 				to_remove.append(p)
 				continue
 
-		if p["life"] <= 0.0 or p["x"] < 0 or p["x"] > 1920:
+		if p["life"] <= 0.0 or p["x"] < -100.0 or p["x"] > 2020.0:
 			to_remove.append(p)
 
 	for p in to_remove:
@@ -1134,8 +1238,10 @@ func _reset_match() -> void:
 # RENDER TẤT CẢ PHẦN TỬ LÊN MÀN HÌNH (GOTHIC RPG HEALTH BARS, NO CIRCLE)
 # -------------------------------------------------------------
 func _draw() -> void:
-	# 1. Nền trời xanh map bao phủ
-	draw_rect(Rect2(0, 0, 1920, 1080), Color("78a6cf"))
+	# 1. Nền trời xanh map bao phủ toàn bộ màn hình động (chống viền đen trên màn hình siêu dài K70E 20:9)
+	var vp := get_viewport_rect().size
+	var sky_w := maxf(1920.0, vp.x) + 1000.0
+	draw_rect(Rect2(-500.0, -200.0, sky_w, maxf(1080.0, vp.y) + 400.0), Color("78a6cf"))
 
 	# 2. Bản đồ địa hình 1920x1080 tràn viền
 	if map_texture != null:
@@ -1146,14 +1252,10 @@ func _draw() -> void:
 	# 3. Thanh Tiến Trình Chiếm Giữ Thánh Kiếm Bay Nổi Trên Platform 2 (Khớp 100% Web Tool)
 	_draw_sword_capture_bar()
 
-	# 4. Tornado Windup Preview Vòng Ma Pháp Dưới Đất
-	_draw_tornado_windup_preview()
+	# BỎ TIA NGẮM & VÒNG ĐỊNH HƯỚNG TRÊN BẢN MOBILE (Chỉ hiển thị trên test tool Web)
 
-	# 5. Vẽ Red Tornado (85px kèm vòng lửa ground flame disc)
+	# 5. Vẽ Red Tornado (85px kèm quét sàn 2.0s)
 	_draw_tornadoes()
-
-	# 6. Tia ngắm đường đạn Blazing Halo & Tâm ngắm Aim Reticle
-	_draw_trajectory_line()
 
 	# 7. Vẽ Vargost (Nhân vật bay lượn, bóng mờ 2D, nghiêng 25 độ)
 	_draw_vargost()
@@ -1375,7 +1477,6 @@ func _draw_aoda() -> void:
 func _draw_tornadoes() -> void:
 	if tornado_tex == null:
 		return
-	var sc_factor := MAP_SCALE / 2.625
 	for t in active_tornadoes:
 		var f_idx: int = t["frame_index"]
 		var col := f_idx % 4
@@ -1390,14 +1491,9 @@ func _draw_tornadoes() -> void:
 			elif f_idx >= 14:
 				anim_alpha = 0.45
 
-		# 1. Quầng sáng rực lửa dưới chân lốc xoáy (Flame Disc)
-		var pts := PackedVector2Array()
-		for i in range(20):
-			var ang := float(i) * TAU / 20.0
-			pts.append(Vector2(float(t["x"]) + cos(ang) * 24.0 * sc_factor, float(t["y"]) + sin(ang) * 8.0 * sc_factor))
-		draw_colored_polygon(pts, Color(1.0, 0.24, 0.0, 0.35 * anim_alpha))
+		# Bỏ quầng đổ bóng/vòng lửa dưới chân theo yêu cầu người dùng
 
-		# 2. Sprite lốc xoáy
+		# Sprite lốc xoáy
 		draw_set_transform(Vector2(t["x"], t["y"]), 0.0, Vector2(t_facing * sc, sc))
 		draw_texture_rect_region(tornado_tex, Rect2(-350.0, -690.0, 700.0, 690.0), src_rect, Color(1.0, 1.0, 1.0, anim_alpha))
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -1448,7 +1544,7 @@ func _draw_gothic_health_bars() -> void:
 		_draw_single_gothic_bar(vargost_x, v_top_y, vargost_hp, VARGOST_MAX_HP, vargost_damage_ghosts, v_label, v_sub, "green", v_bar_w, vargost_alpha)
 
 	# 2. Aoda Gothic Bar:
-	# Chiều cao 90px, đỉnh đầu cách ~95px, đáy ống máu nằm sát đầu!
+	# Chiều cao 90px, đỉnh đầu cách ~72px, đáy ống máu nằm sát đầu đúng 10px!
 	var a_bar_w := 75.0 * v_scale
 	var a_bar_h := a_bar_w * (50.0 / 240.0) * 0.85
 	var a_draw_y := aoda_y
@@ -1461,7 +1557,8 @@ func _draw_gothic_health_bars() -> void:
 			a_draw_y += -25.0 * dissolve_prog * v_scale
 			a_alpha = maxf(0.0, 1.0 - dissolve_prog)
 
-	var a_top_y := a_draw_y - 95.0 * v_scale - a_bar_h
+	var a_head_top_y := a_draw_y - 72.0 * v_scale
+	var a_top_y := a_head_top_y - a_bar_h - 10.0 * v_scale
 	if a_alpha > 0.01:
 		var a_label := "Aoda (T2) · %d/%d HP" % [int(aoda_hp), int(AODA_MAX_HP)]
 		var a_sub := "(🏃 Chạy bộ (Phải ▶))" if aoda_facing > 0 else "(🏃 Chạy bộ (◀ Trái))"
@@ -1588,8 +1685,8 @@ func _draw_damage_texts() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed:
 		var click_pos: Vector2 = event.position
-		# Bỏ qua click nếu chạm vào hàng nút điều khiển ở đáy màn hình (Y >= 980)
-		if click_pos.y >= 980.0:
+		# Bỏ qua click nếu chạm vào hàng nút điều khiển ở đáy màn hình
+		if click_pos.y >= get_viewport_rect().size.y - 90.0:
 			return
 
 		if click_pos.y < 500.0:
