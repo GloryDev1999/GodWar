@@ -94,6 +94,14 @@ func take_damage(amount: float) -> void:
 	hp = maxf(0.0, hp - amount)
 	if hp <= 0.0:
 		die()
+	else:
+		_flash_hit()
+
+func _flash_hit() -> void:
+	if sprite != null:
+		var tw := create_tween()
+		sprite.modulate = Color(2.5, 2.5, 2.5, 1.0)
+		tw.tween_property(sprite, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.16)
 
 func die() -> void:
 	is_dead = true

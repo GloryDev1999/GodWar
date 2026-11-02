@@ -7,7 +7,7 @@ import path from 'node:path';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const uiRoot = path.join(root, 'tools/asset-viewer');
 const assetRoot = path.join(root, 'Asset/Character');
-const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.gif': 'image/gif', '.png': 'image/png', '.jpg': 'image/jpeg', '.mp4': 'video/mp4' };
+const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.gif': 'image/gif', '.png': 'image/png', '.jpg': 'image/jpeg', '.mp4': 'video/mp4', '.apk': 'application/vnd.android.package-archive' };
 
 function inside(base, target) {
   const relative = path.relative(base, target);
@@ -74,6 +74,7 @@ export function createAssetServer() {
       catch { res.writeHead(400).end('Invalid URL'); return; }
       let file;
       if (decoded === '/') file = path.join(uiRoot, 'index.html');
+      else if (decoded === '/build/GodWar-debug.apk' || decoded === '/GodWar-debug.apk') file = path.join(root, 'build/GodWar-debug.apk');
       else if (['/app.js', '/style.css', '/render-frame.mjs', '/timing.mjs', '/height-profile.mjs', '/amore-scene.html', '/amore-scene.js', '/vargost-skill-test.html', '/vargost-skill-test.js'].includes(decoded)) file = path.join(uiRoot, decoded.slice(1));
       else if (decoded === '/Asset/Scenes/amore_scale_test/map.png') file = path.join(root, 'Asset/Scenes/amore_scale_test/map.png');
       else if (decoded.startsWith('/Asset/Character/measured_atlas_pilots/')) {
@@ -92,7 +93,17 @@ export function createAssetServer() {
       } else { res.writeHead(404).end('Not found'); return; }
       const info = await stat(file);
       if (!info.isFile()) { res.writeHead(404).end('Not found'); return; }
-      res.writeHead(200, { 'Content-Type': mime[path.extname(file).toLowerCase()] || 'application/octet-stream', 'Content-Length': info.size, 'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff' });
+      const ext = path.extname(file).toLowerCase();
+      const headers = {
+        'Content-Type': mime[ext] || 'application/octet-stream',
+        'Content-Length': info.size,
+        'Cache-Control': 'no-cache',
+        'X-Content-Type-Options': 'nosniff'
+      };
+      if (ext === '.apk') {
+        headers['Content-Disposition'] = 'attachment; filename="GodWar-debug.apk"';
+      }
+      res.writeHead(200, headers);
       if (req.method === 'HEAD') res.end(); else createReadStream(file).on('error', () => res.destroy()).pipe(res);
     } catch (error) {
       if (!res.headersSent) res.writeHead(error.code === 'ENOENT' ? 404 : 500).end(error.code === 'ENOENT' ? 'Not found' : 'Server error');

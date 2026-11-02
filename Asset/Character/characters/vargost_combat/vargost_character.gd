@@ -133,6 +133,12 @@ func _on_animation_finished() -> void:
         auto_cooldown = 3.2
         play_anim("idle")
 
+func take_damage(_amount: float) -> void:
+    if sprite != null:
+        var tw := create_tween()
+        sprite.modulate = Color(2.5, 2.5, 2.5, 1.0)
+        tw.tween_property(sprite, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.16)
+
 func play_anim(anim_name: String) -> void:
     if sprite != null and sprite.sprite_frames != null and sprite.sprite_frames.has_animation(anim_name):
         sprite.play(anim_name)

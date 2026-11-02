@@ -7,17 +7,25 @@ config_version=5
 [application]
 
 config/name="GodWar"
+run/main_scene="res://Asset/Scenes/battle_arena/battle_arena_3v3.tscn"
 config/features=PackedStringArray("4.3", "Mobile")
 config/icon="res://icon.svg"
+run/max_fps=60
+
+[physics]
+
+common/physics_ticks_per_second=60
+common/max_physics_steps_per_frame=8
 
 [display]
 
-window/size/viewport_width=1080
-window/size/viewport_height=1920
+window/size/viewport_width=1920
+window/size/viewport_height=1080
 window/size/mode=0
 window/stretch/mode="canvas_items"
-window/stretch/aspect="keep_width"
-window/handheld/orientation=1
+window/stretch/aspect="keep"
+window/handheld/orientation=4
+window/vsync/vsync_mode=1
 
 [rendering]
 

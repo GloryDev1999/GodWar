@@ -459,23 +459,28 @@ let deathTimer = 0;
 
 // Offscreen Canvas for Full-Body Whiteout Hit Flash (Lóe sáng toàn thân trắng tinh khi trúng đòn)
 const flashCanvas = (typeof document !== 'undefined' && typeof document.createElement === 'function') ? document.createElement('canvas') : null;
-if (flashCanvas) { flashCanvas.width = 200; flashCanvas.height = 200; }
+if (flashCanvas) { flashCanvas.width = 700; flashCanvas.height = 700; }
 const flashCtx = flashCanvas ? flashCanvas.getContext('2d', { willReadFrequently: true }) : null;
 
-function renderFullBodyFlash(targetCtx, sx, sy, sw, sh, dx, dy, dw, dh, flashAlpha) {
-  if (!flashCtx || !assets.vargost) return;
-  flashCtx.clearRect(0, 0, 200, 200);
-  flashCtx.drawImage(assets.vargost, sx, sy, sw, sh, 0, 0, 200, 200);
+function renderFullBodyFlash(targetCtx, sx, sy, sw, sh, dx, dy, dw, dh, flashAlpha, customSourceImg = null) {
+  const sourceImg = customSourceImg || (assets && assets.vargost);
+  if (!flashCtx || !sourceImg) return;
+  if (flashCanvas.width < sw || flashCanvas.height < sh) {
+    flashCanvas.width = Math.max(flashCanvas.width, sw);
+    flashCanvas.height = Math.max(flashCanvas.height, sh);
+  }
+  flashCtx.clearRect(0, 0, sw, sh);
+  flashCtx.drawImage(sourceImg, sx, sy, sw, sh, 0, 0, sw, sh);
   flashCtx.save();
   flashCtx.globalCompositeOperation = 'source-in';
   // Chớp nhấp nháy 2 nhịp sắc sảo: Trắng tinh -> Đỏ cam rực rỡ
   flashCtx.fillStyle = (Math.floor(hoverTimer * 45) % 2 === 0) ? '#ffffff' : '#ff4d4d';
-  flashCtx.fillRect(0, 0, 200, 200);
+  flashCtx.fillRect(0, 0, sw, sh);
   flashCtx.restore();
 
   targetCtx.save();
   targetCtx.globalAlpha = Math.min(1.0, flashAlpha);
-  targetCtx.drawImage(flashCanvas, 0, 0, 200, 200, dx, dy, dw, dh);
+  targetCtx.drawImage(flashCanvas, 0, 0, sw, sh, dx, dy, dw, dh);
   targetCtx.restore();
 }
 
@@ -4087,13 +4092,17 @@ function drawScene(targetX, targetY, dt) {
           frameW, frameH
         );
 
-        // Whiteout hit flash khi trúng đòn
+        // Whiteout hit flash khi trúng đòn (Lóe sáng toàn thân chuẩn xác, triệt tiêu khung chữ nhật thô)
         if (aodaHitFlash > 0) {
-          ctx.save();
-          ctx.globalAlpha = Math.min(0.85, aodaHitFlash * 2.0);
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(-anchorX + 150 * aodaScale, -anchorY + 120 * aodaScale, 300 * aodaScale, 380 * aodaScale);
-          ctx.restore();
+          const aFlashAlpha = Math.min(1.0, aodaHitFlash / 0.16);
+          renderFullBodyFlash(
+            ctx,
+            regX, regY, regW, regH,
+            -anchorX, -anchorY,
+            frameW, frameH,
+            aFlashAlpha,
+            atlasImg
+          );
         }
 
         // Stun indicator
