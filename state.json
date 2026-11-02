@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-11-02T08:39:00Z",
+  "updated_at_utc": "2026-11-02T08:42:00Z",
   "purpose": "Bộ nhớ bàn giao ngắn gọn cho agent; đối chiếu với mã, tài liệu và git status khi bắt đầu phiên.",
   "product_goal": {
     "source": "Yêu cầu của người dùng ngày 2026-10-31, 2026-11-01 và 2026-11-02 (cập nhật lúc 05:40 UTC)",
@@ -76,7 +76,8 @@
       "1. Cập nhật Hiến pháp AGENTS.md: Ghi nhận chính sách chính thức do người dùng (Owner) phê duyệt ngày 2026-11-02: Toàn bộ GIF gốc được người dùng lưu trữ an toàn tại máy cá nhân (local). GIF đưa lên repo chỉ dùng 1 lần duy nhất để bóc tách frame và đóng gói Atlas PNG; sau khi hoàn tất có thể xóa file GIF gốc khỏi repo để tối ưu dung lượng (phục vụ mục tiêu mở rộng gần 300 nhân vật). Khi cần bóc tách lại, agent bắt buộc phải hỏi Owner cung cấp lại.",
       "2. Cập nhật Skill .agents/skills/godwar-agent-safeguard/SKILL.md tại Quy tắc 2: Chuyển đổi từ cấm xóa sang quy tắc quản lý GIF dùng 1 lần, chỉ dẫn agent mới hiểu rõ cơ chế lưu trữ local của Owner và quyền xóa GIF sau khi bóc tách frame thành atlas.",
       "3. Cập nhật Skill .agents/skills/godwar-add-character/SKILL.md tại điều 9: Chuẩn hóa bước xóa GIF nguồn sau khi đóng gói hoàn chỉnh Bộ Asset Chuẩn Godot.",
-      "4. Chạy kiểm thử tự động: 25/25 bài tests npm test pass 100%."
+      "4. Chạy kiểm thử tự động: 25/25 bài tests npm test pass 100%.",
+      "5. Đã commit (93612eb0) và push thành công lên origin/main trên GitHub. Nhánh main hoàn toàn đồng bộ, sẵn sàng cho việc clone trên máy khác."
     ],
     "verification": [
       "npm test: 25/25 bài kiểm thử pass 100%.",
@@ -94,7 +95,7 @@
       "Áp dụng quy tắc xóa GIF dùng 1 lần cho hơn 100 nhân vật tiếp theo được đưa vào dự án."
     ]
   },
-  "working_tree_note": "Chính sách GIF gốc lưu trữ local & dùng 1 lần trên repo đã được thể chế hóa hoàn tất; 25/25 tests pass 100%.",
+  "working_tree_note": "Nhánh main đã được push sạch sẽ lên origin/main (Commit 93612eb0). Working tree sạch 100%, 25/25 tests pass 100%.",
   "history": [
     {
       "title": "Xây Dựng Skill godwar-agent-safeguard Bảo Vệ Tệp Dự Án & Định Hướng AI Agent Trên Máy Tính Mới",
