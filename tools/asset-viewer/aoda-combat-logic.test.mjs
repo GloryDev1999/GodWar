@@ -83,12 +83,14 @@ test('Tornado Ground-Only Aerial Immunity & Multi-target AoE', () => {
     'All ground enemies in AoE must be hit by Tornado');
 });
 
-test('Tornado 2.0s Duration & Static In-Place Spinning Lifecycle (Emerge -> Spin 2.0s -> Dissipate)', () => {
-  // Chu trình hoạt ảnh Tornado: Xuất hiện (Frame 0..3) -> Tồn tại xoay đúng 2.0s tại chỗ (Frame 4..9 loop) -> Tan biến (Frame 10..14)
+test('Tornado 2.0s Duration & Forward Straight-Line Ground Sweep Lifecycle (Emerge -> Spin 2.0s -> Dissipate)', () => {
+  // Chu trình hoạt ảnh Tornado: Xuất hiện (Frame 0..3) -> Tồn tại xoay đúng 2.0s càn quét 1 đường thẳng về phía trước (Frame 4..9 loop) -> Tan biến (Frame 10..14)
   const tornado = {
     originX: 500,
     x: 500,
     y: 800,
+    facing: 1,
+    vx: 140,
     phase: 'EMERGE',
     frameIndex: 0,
     frameTimer: 0,
@@ -111,7 +113,7 @@ test('Tornado 2.0s Duration & Static In-Place Spinning Lifecycle (Emerge -> Spin
         }
       }
     } else if (t.phase === 'SPIN') {
-      t.x = t.originX;
+      t.x += (t.vx || 0) * dt;
       t.spinElapsed += dt;
       if (t.frameTimer >= 0.06) {
         t.frameTimer -= 0.06;
@@ -126,7 +128,6 @@ test('Tornado 2.0s Duration & Static In-Place Spinning Lifecycle (Emerge -> Spin
         t.frameTimer = 0;
       }
     } else if (t.phase === 'DISSIPATE') {
-      t.x = t.originX;
       if (t.frameTimer >= 0.06) {
         t.frameTimer -= 0.06;
         t.frameIndex++;
@@ -147,6 +148,7 @@ test('Tornado 2.0s Duration & Static In-Place Spinning Lifecycle (Emerge -> Spin
 
   // 2. Pha SPIN: Tồn tại xoay trong 2.0 giây
   // Trong suốt 2.0s này, frameIndex CHỈ ĐƯỢC PHÉP nằm trong [4, 9] (không tan biến, không xuất hiện lại)
+  // Và Tornado càn quét 1 đường thẳng về phía trước theo hướng xuất chiêu
   const dtSim = 0.03; // bước 30ms
   const steps2s = Math.floor(2.0 / dtSim);
   for (let s = 0; s < steps2s; s++) {
@@ -154,7 +156,7 @@ test('Tornado 2.0s Duration & Static In-Place Spinning Lifecycle (Emerge -> Spin
     if (tornado.phase === 'SPIN') {
       assert.ok(tornado.frameIndex >= 4 && tornado.frameIndex <= 9,
         `Frame index during SPIN must stay in range [4, 9], got ${tornado.frameIndex}`);
-      assert.equal(tornado.x, tornado.originX, 'Tornado must remain stationary at origin');
+      assert.ok(tornado.x > tornado.originX, 'Tornado sweeps forward in a straight line across ground during SPIN');
     }
   }
 

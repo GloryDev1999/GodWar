@@ -119,6 +119,22 @@ var vargost_is_glitch_flash: bool = false
 var vargost_alpha: float = 1.0
 var ember_particles: Array[Dictionary] = []
 
+# Character Views & Shader Materials for 100% Crisp Hit Flash (Single Source of Truth)
+class CharacterView extends Node2D:
+	var draw_cb: Callable
+	func _draw() -> void:
+		if draw_cb.is_valid():
+			draw_cb.call(self)
+
+var vargost_view: CharacterView
+var aoda_view: CharacterView
+var ui_view: CharacterView
+var vargost_mat: ShaderMaterial
+var aoda_mat: ShaderMaterial
+var aoda_manifest_frames: Array = []
+var vargost_teleport_escape_timer: float = 0.0
+const SPEED_SLOW: float = 100.0
+
 # Trạng thái cứ điểm Thánh Kiếm
 var capture_team: int = 0
 var capture_timer: float = 0.0
@@ -144,8 +160,44 @@ func _ready() -> void:
 	_load_all_textures()
 	_init_env_polygons()
 	_init_positions()
+	_init_render_layers()
 	setup_holy_sword()
 	setup_top_hud()
+
+func _init_render_layers() -> void:
+	var flash_shader := Shader.new()
+	flash_shader.code = """shader_type canvas_item;
+uniform float hit_flash : hint_range(0.0, 1.0) = 0.0;
+uniform vec4 flash_color : source_color = vec4(1.0, 1.0, 1.0, 1.0);
+void fragment() {
+	vec4 tex = texture(TEXTURE, UV);
+	if (hit_flash > 0.0) {
+		COLOR = vec4(mix(tex.rgb, flash_color.rgb, hit_flash), tex.a * COLOR.a);
+	} else {
+		COLOR = tex * COLOR;
+	}
+}
+"""
+	vargost_mat = ShaderMaterial.new()
+	vargost_mat.shader = flash_shader
+	vargost_view = CharacterView.new()
+	vargost_view.name = "VargostView"
+	vargost_view.material = vargost_mat
+	vargost_view.draw_cb = _draw_vargost
+	add_child(vargost_view)
+
+	aoda_mat = ShaderMaterial.new()
+	aoda_mat.shader = flash_shader
+	aoda_view = CharacterView.new()
+	aoda_view.name = "AodaView"
+	aoda_view.material = aoda_mat
+	aoda_view.draw_cb = _draw_aoda
+	add_child(aoda_view)
+
+	ui_view = CharacterView.new()
+	ui_view.name = "UIView"
+	ui_view.draw_cb = _draw_ui_layer
+	add_child(ui_view)
 
 func _init_env_polygons() -> void:
 	env_polygons.clear()
@@ -240,6 +292,14 @@ func _load_all_textures() -> void:
 		var at := Library._load_texture_safe("res://Asset/Character/fine_candidates/aoda/atlas_" + pad + ".png")
 		aoda_atlases.append(at)
 	tornado_tex = Library._load_texture_safe("res://Asset/Character/characters/aoda_combat/vfx_red_tornado/atlas.png")
+
+	# Parse Aoda candidate manifest for exact 100% frame-to-atlas mapping (Eliminates all flickering)
+	var json_file := FileAccess.open("res://Asset/Character/fine_candidates/aoda/candidate.json", FileAccess.READ)
+	if json_file:
+		var json_text := json_file.get_as_text()
+		var json_res = JSON.parse_string(json_text)
+		if json_res is Dictionary and json_res.has("frames"):
+			aoda_manifest_frames = json_res["frames"]
 
 func _init_positions() -> void:
 	# Vargost: Xuất phát trên không bên trái
@@ -507,6 +567,12 @@ func _physics_process(delta: float) -> void:
 	_update_capture(delta)
 
 	queue_redraw()
+	if vargost_view:
+		vargost_view.queue_redraw()
+	if aoda_view:
+		aoda_view.queue_redraw()
+	if ui_view:
+		ui_view.queue_redraw()
 
 # -------------------------------------------------------------
 # LOGIC VARGOST (MAGE BAY LƯỢN, BÓNG MỜ 2D, TELEPORT & BLAZING HALO 1100 px/s)
@@ -515,6 +581,22 @@ func _update_vargost(dt: float) -> void:
 	vargost_hover_timer += dt
 	if vargost_hit_flash > 0.0:
 		vargost_hit_flash -= dt
+		if vargost_mat:
+			var flash_intensity := clampf(vargost_hit_flash / 0.18, 0.0, 1.0)
+			var flash_col := Color.WHITE if int(vargost_hover_timer * 45.0) % 2 == 0 else Color("#ff4d4d")
+			vargost_mat.set_shader_parameter("hit_flash", flash_intensity)
+			vargost_mat.set_shader_parameter("flash_color", flash_col)
+	else:
+		if vargost_mat:
+			vargost_mat.set_shader_parameter("hit_flash", 0.0)
+
+	# Thoát hiểm sau khi dính đòn (hiển thị trọn vẹn lóe sáng và giật lùi trước khi biến ảnh)
+	if vargost_teleport_escape_timer > 0.0:
+		vargost_teleport_escape_timer -= dt
+		if vargost_teleport_escape_timer <= 0.0 and not is_vargost_teleporting and vargost_state == "IDLE":
+			var retreat_x := clampf(vargost_x - vargost_facing * 180.0, 200.0, 750.0)
+			var retreat_y := randf_range(240.0, 360.0)
+			_trigger_vargost_teleport(retreat_x, retreat_y)
 
 	# Xoay mặt 2.5D siêu tốc đánh lừa thị giác (x3+ speed) kèm hiệu ứng Pixel Dissolve
 	if absf(vargost_visual_facing - vargost_facing) > 0.02:
@@ -589,30 +671,40 @@ func _update_vargost(dt: float) -> void:
 		var retreat_y := randf_range(250.0, 340.0)
 		_trigger_vargost_teleport(retreat_x, retreat_y)
 
+	# Đang trong thời gian chờ hồi chiêu (khoảng nghỉ): Nếu đã bay tới điểm đích, tự động chọn điểm tuần tra chậm xung quanh
 	var move_vec := Vector2(vargost_target_air_x - vargost_x, vargost_target_air_y - vargost_y)
-	if move_vec.length() > 8.0 and vargost_state == "IDLE" and not is_vargost_teleporting:
+	if move_vec.length() <= 12.0 and vargost_state == "IDLE" and not aoda_is_dead and not is_vargost_teleporting:
+		vargost_target_air_x = randf_range(260.0, 480.0)
+		vargost_target_air_y = randf_range(260.0, 350.0)
+		move_vec = Vector2(vargost_target_air_x - vargost_x, vargost_target_air_y - vargost_y)
+
+	if move_vec.length() > 6.0 and vargost_state == "IDLE" and not is_vargost_teleporting:
 		var dir := move_vec.normalized()
 		# QUY CHUẨN DI CHUYỂN: Nếu hướng di chuyển là LÙI (dir.x * vargost_facing < -0.2):
 		# Vargost KHÔNG bay lùi ngửa người, mà kích hoạt TELEPORT LÙI (Thân đứng 0°)!
 		if dir.x * vargost_facing < -0.2:
 			_trigger_vargost_teleport(vargost_target_air_x, vargost_target_air_y)
 		else:
-			# Hướng TIẾN: Bay tiến nghiêng +25 độ ở tốc độ vừa phải chuẩn xác (~300 px/s)
-			var fly_speed := 300.0
+			# Trong khoảng nghỉ chờ hồi chiêu -> Bay chậm xung quanh theo mức tốc độ tối thiểu SPEED_SLOW (100 px/s)
+			# Khi cơ động chiến đấu / chiếm kiếm -> Tốc độ nhanh 300 px/s
+			var is_cooling_down: bool = (vargost_auto_cooldown > 0.0 and not aoda_is_dead)
+			var fly_speed: float = SPEED_SLOW if is_cooling_down else 300.0
 			vargost_x += dir.x * fly_speed * dt
 			vargost_y += dir.y * (fly_speed * 0.6) * dt
-			var target_tilt := vargost_facing * deg_to_rad(25.0)
+			var tilt_max: float = 12.0 if is_cooling_down else 25.0
+			var target_tilt := vargost_facing * deg_to_rad(tilt_max)
 			vargost_tilt = lerp_angle(vargost_tilt, target_tilt, dt * 10.0)
 
 			# Sinh Bóng Mờ Chuyển Động 2D (Motion Ghosts) khi bay tiến
 			ghost_spawn_timer += dt
-			if ghost_spawn_timer >= 0.07:
+			var ghost_interval := 0.12 if is_cooling_down else 0.07
+			if ghost_spawn_timer >= ghost_interval:
 				ghost_spawn_timer = 0.0
 				var h_off := sin(vargost_hover_timer * 3.2) * 8.0
 				motion_ghosts.append({
 					"x": vargost_x,
 					"y": vargost_y + h_off,
-					"alpha": 0.45,
+					"alpha": 0.30 if is_cooling_down else 0.45,
 					"tilt": vargost_tilt,
 					"facing": vargost_visual_facing,
 					"frame": vargost_frame_index
@@ -726,6 +818,14 @@ func _spawn_blazing_halo_projectile(target_x: float, target_y: float) -> void:
 func _update_aoda(dt: float) -> void:
 	if aoda_hit_flash > 0.0:
 		aoda_hit_flash -= dt
+		if aoda_mat:
+			var flash_intensity := clampf(aoda_hit_flash / 0.18, 0.0, 1.0)
+			var flash_col := Color.WHITE if int(Time.get_ticks_msec() / 25) % 2 == 0 else Color("#ff4d4d")
+			aoda_mat.set_shader_parameter("hit_flash", flash_intensity)
+			aoda_mat.set_shader_parameter("flash_color", flash_col)
+	else:
+		if aoda_mat:
+			aoda_mat.set_shader_parameter("hit_flash", 0.0)
 	if aoda_tornado_cooldown > 0.0:
 		aoda_tornado_cooldown -= dt
 
@@ -1017,10 +1117,8 @@ func _update_tornadoes(dt: float) -> void:
 					t["hit_cooldown"] = 0.6
 					_spawn_hit_impact(v_pos.x, v_pos.y - 25.0, -vargost_facing)
 					_damage_vargost(25.0)
-					# Vargost dính đòn -> Kích hoạt Teleport thoát kẹt ngay lập tức!
-					var retreat_x := clampf(vargost_x - vargost_facing * 180.0, 200.0, 750.0)
-					var retreat_y := randf_range(240.0, 360.0)
-					_trigger_vargost_teleport(retreat_x, retreat_y)
+					# Cho Vargost trúng đòn hiển thị lóa sáng và giật lùi nhẹ 0.22s trước khi kích hoạt Teleport thoát hiểm!
+					vargost_teleport_escape_timer = 0.22
 
 			if t["spin_elapsed"] >= float(t["spin_duration"]):
 				t["phase"] = "DISSIPATE"
@@ -1274,41 +1372,32 @@ func _draw() -> void:
 	if map_texture != null:
 		draw_texture_rect(map_texture, Rect2(0.0, MAP_Y, 1920.0, 352.0 * MAP_SCALE), false)
 
-	# BỎ VÒNG TRÒN KHOANH VẬT PHẨM THEO YÊU CẦU NGƯỜI DÙNG (Giữ khoảng cách, chỉ bỏ UI vòng tròn)
-
-	# 3. Thanh Tiến Trình Chiếm Giữ Thánh Kiếm Bay Nổi Trên Platform 2 (Khớp 100% Web Tool)
-	_draw_sword_capture_bar()
-
-	# BỎ TIA NGẮM & VÒNG ĐỊNH HƯỚNG TRÊN BẢN MOBILE (Chỉ hiển thị trên test tool Web)
-
-	# 5. Vẽ Red Tornado (85px kèm quét sàn 2.0s)
+	# 3. Vẽ Red Tornado (85px kèm quét sàn 2.0s theo 1 đường thẳng)
 	_draw_tornadoes()
 
-	# 7. Vẽ Vargost (Nhân vật bay lượn, bóng mờ 2D, nghiêng 25 độ)
-	_draw_vargost()
-
-	# 8. Vẽ Aoda (Nhân vật 90px chạy nhảy tuần tra bệ)
-	_draw_aoda()
-
-	# 9. Vẽ Projectile Blazing Halo (1100 px/s)
+	# 4. Vẽ Projectile Blazing Halo (1100 px/s)
 	_draw_projectiles()
 
-	# 10. Vẽ Explosion VFX
+	# 5. Vẽ Explosion VFX (Nổ mặt đất/vách đá nằm dưới nhân vật như Single Source of Truth Web Tool)
 	_draw_explosions()
 
-	# 11. Vẽ Hit Impact VFX (Kim cương 4 cánh Cross Spark & Vòng Shockwave)
-	_draw_hit_impacts()
+func _draw_ui_layer(canvas: CanvasItem) -> void:
+	# 1. Vẽ Hit Impact VFX (Kim cương 4 cánh Cross Spark & Vòng Shockwave bùng nổ trên người)
+	_draw_hit_impacts(canvas)
 
-	# 12. Vẽ Hạt Tàn Tro Pixel Lửa (Ember Particles)
-	_draw_ember_particles()
+	# 2. Vẽ Hạt Tàn Tro Pixel Lửa (Ember Particles)
+	_draw_ember_particles(canvas)
 
-	# 13. Vẽ Thanh Máu Gothic RPG Chuẩn Xác Trên Đầu Nhân Vật (Chuẩn Chiều Cao 10px Sát Đầu, 2 Dòng Nhãn, Damage Ghost)
-	_draw_gothic_health_bars()
+	# 3. Thanh Tiến Trình Chiếm Giữ Thánh Kiếm Bay Nổi Trên Platform 2 (Khớp 100% Web Tool)
+	_draw_sword_capture_bar(canvas)
 
-	# 14. Vẽ Số Sát Thương Bay Lên
-	_draw_damage_texts()
+	# 4. Vẽ Thanh Máu Gothic RPG Chuẩn Xác Trên Đầu Nhân Vật (Chuẩn Chiều Cao 10px Sát Đầu, 2 Dòng Nhãn, Damage Ghost)
+	_draw_gothic_health_bars(canvas)
 
-func _draw_sword_capture_bar() -> void:
+	# 5. Vẽ Số Sát Thương Bay Lên
+	_draw_damage_texts(canvas)
+
+func _draw_sword_capture_bar(canvas: CanvasItem) -> void:
 	if capture_timer > 0.0 or is_contested:
 		var bar_w := 130.0
 		var bar_h := 12.0
@@ -1317,20 +1406,20 @@ func _draw_sword_capture_bar() -> void:
 		var prog := clampf(capture_timer / CAPTURE_TARGET, 0.0, 1.0)
 
 		# Nền đen bán trong suốt
-		draw_rect(Rect2(bar_x - 2, bar_y - 2, bar_w + 4, bar_h + 4), Color(0.04, 0.05, 0.08, 0.88))
+		canvas.draw_rect(Rect2(bar_x - 2, bar_y - 2, bar_w + 4, bar_h + 4), Color(0.04, 0.05, 0.08, 0.88))
 
 		# Ruột tiến trình chiếm giữ
 		var fill_col := Color("#f0883e") if is_contested else (Color("#58a6ff") if capture_team == 1 else Color("#ff7b72"))
 		if prog > 0.001:
-			draw_rect(Rect2(bar_x, bar_y, bar_w * prog, bar_h), fill_col)
+			canvas.draw_rect(Rect2(bar_x, bar_y, bar_w * prog, bar_h), fill_col)
 
 		# Viền kim loại hoàng gia vàng #d29922
-		draw_rect(Rect2(bar_x - 2, bar_y - 2, bar_w + 4, bar_h + 4), Color("#d29922"), false, 1.5)
+		canvas.draw_rect(Rect2(bar_x - 2, bar_y - 2, bar_w + 4, bar_h + 4), Color("#d29922"), false, 1.5)
 
 		# Chữ số hiển thị tiến trình
 		var default_font := ThemeDB.fallback_font
 		var time_str := "⚔️ %.1fs / 15.0s" % capture_timer
-		draw_string(default_font, Vector2(SWORD_X - 100.0, bar_y - 5.0), time_str, HORIZONTAL_ALIGNMENT_CENTER, 200, 11, Color.WHITE)
+		canvas.draw_string(default_font, Vector2(SWORD_X - 100.0, bar_y - 5.0), time_str, HORIZONTAL_ALIGNMENT_CENTER, 200, 11, Color.WHITE)
 
 func _draw_tornado_windup_preview() -> void:
 	if aoda_state == "SKILL_1_WINDUP":
@@ -1364,7 +1453,7 @@ func _draw_trajectory_line() -> void:
 		draw_line(Vector2(end_pt.x - 10.0, end_pt.y), Vector2(end_pt.x + 10.0, end_pt.y), line_col, 2.0)
 		draw_line(Vector2(end_pt.x, end_pt.y - 10.0), Vector2(end_pt.x, end_pt.y + 10.0), line_col, 2.0)
 
-func _draw_hit_impacts() -> void:
+func _draw_hit_impacts(canvas: CanvasItem) -> void:
 	var scale_factor := MAP_SCALE / 2.625
 	for imp in active_hit_impacts:
 		var life: float = float(imp["life"])
@@ -1374,32 +1463,32 @@ func _draw_hit_impacts() -> void:
 		var pos := Vector2(float(imp["x"]), float(imp["y"]))
 		var rot: float = float(imp["rotation"])
 
-		draw_set_transform(pos, rot, Vector2.ONE)
+		canvas.draw_set_transform(pos, rot, Vector2.ONE)
 
 		# 0. Impact Flash Burst Disc
 		if t < 0.45:
 			var burst_alpha := (1.0 - t / 0.45) * alpha
-			draw_circle(Vector2.ZERO, (20.0 * (t / 0.45)) * scale_factor, Color(1, 1, 1, burst_alpha * 0.95))
+			canvas.draw_circle(Vector2.ZERO, (20.0 * (t / 0.45)) * scale_factor, Color(1, 1, 1, burst_alpha * 0.95))
 
 		# 1. Shockwave bùng nở
 		var wave_radius := (10.0 + t * 68.0) * scale_factor
 		var wave_col := Color(1.0, 0.92, 0.75, alpha * 0.9)
 		var line_w := maxf(1.5, (4.5 - t * 3.5) * scale_factor)
-		draw_arc(Vector2.ZERO, wave_radius, 0.0, TAU, 32, wave_col, line_w)
+		canvas.draw_arc(Vector2.ZERO, wave_radius, 0.0, TAU, 32, wave_col, line_w)
 
 		# 2. Cross Spark (Kim cương 4 cánh)
 		var spark_scale := (t / 0.3) if (t < 0.3) else (1.0 - (t - 0.3) / 0.7)
 		var arm_len_x := (75.0 * spark_scale) * scale_factor
 		var arm_len_y := (52.0 * spark_scale) * scale_factor
 
-		_draw_cross_spark(arm_len_x * 1.15, arm_len_y * 1.15, Color(1.0, 0.35, 0.0, alpha * 0.8))
-		_draw_cross_spark(arm_len_x, arm_len_y, Color(1.0, 0.88, 0.31, alpha * 0.95))
-		_draw_cross_spark(arm_len_x * 0.65, arm_len_y * 0.65, Color(1.0, 1.0, 1.0, alpha))
-		draw_circle(Vector2.ZERO, 8.0 * spark_scale * scale_factor, Color(1, 1, 1, alpha))
+		_draw_cross_spark(canvas, arm_len_x * 1.15, arm_len_y * 1.15, Color(1.0, 0.35, 0.0, alpha * 0.8))
+		_draw_cross_spark(canvas, arm_len_x, arm_len_y, Color(1.0, 0.88, 0.31, alpha * 0.95))
+		_draw_cross_spark(canvas, arm_len_x * 0.65, arm_len_y * 0.65, Color(1.0, 1.0, 1.0, alpha))
+		canvas.draw_circle(Vector2.ZERO, 8.0 * spark_scale * scale_factor, Color(1, 1, 1, alpha))
 
-		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		canvas.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
-func _draw_cross_spark(rx: float, ry: float, col: Color) -> void:
+func _draw_cross_spark(canvas: CanvasItem, rx: float, ry: float, col: Color) -> void:
 	var waist_x := rx * 0.12
 	var waist_y := ry * 0.12
 	var pts := PackedVector2Array([
@@ -1412,16 +1501,16 @@ func _draw_cross_spark(rx: float, ry: float, col: Color) -> void:
 		Vector2(-rx, 0),
 		Vector2(-waist_x, -waist_y)
 	])
-	draw_colored_polygon(pts, col)
+	canvas.draw_colored_polygon(pts, col)
 
-func _draw_ember_particles() -> void:
+func _draw_ember_particles(canvas: CanvasItem) -> void:
 	for ep in ember_particles:
 		var col: Color = ep["color"]
 		col.a = float(ep["alpha"])
 		var sz: float = float(ep["size"])
-		draw_rect(Rect2(float(ep["x"]), float(ep["y"]), sz, sz), col)
+		canvas.draw_rect(Rect2(float(ep["x"]), float(ep["y"]), sz, sz), col)
 
-func _draw_vargost() -> void:
+func _draw_vargost(canvas: CanvasItem) -> void:
 	if vargost_atlas_tex == null:
 		return
 	var anchor_offset := Vector2(-105.0, -162.0)
@@ -1435,10 +1524,10 @@ func _draw_vargost() -> void:
 		var g_render_facing: float = float(g["facing"])
 		if absf(g_render_facing) < 0.35:
 			g_render_facing = 0.35 * signf(g_render_facing if g_render_facing != 0.0 else 1.0)
-		draw_set_transform(g_pos, float(g["tilt"]), Vector2(g_render_facing * vargost_scale, vargost_scale))
+		canvas.draw_set_transform(g_pos, float(g["tilt"]), Vector2(g_render_facing * vargost_scale, vargost_scale))
 		var g_col_mod := Color(1.0, 0.45, 0.15, float(g["alpha"]))
-		draw_texture_rect_region(vargost_atlas_tex, Rect2(anchor_offset.x, anchor_offset.y, 200, 200), g_src, g_col_mod)
-		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		canvas.draw_texture_rect_region(vargost_atlas_tex, Rect2(anchor_offset.x, anchor_offset.y, 200, 200), g_src, g_col_mod)
+		canvas.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 	if vargost_dissolve_factor >= 0.99 or vargost_alpha <= 0.001:
 		return
@@ -1453,11 +1542,9 @@ func _draw_vargost() -> void:
 	if absf(render_facing) < 0.35:
 		render_facing = 0.35 * signf(render_facing if render_facing != 0.0 else vargost_facing)
 	var turn_squash_y := 1.0 + (1.0 - absf(vargost_visual_facing)) * 0.10
-	draw_set_transform(draw_pos, vargost_tilt, Vector2(render_facing * vargost_scale, turn_squash_y * vargost_scale))
+	canvas.draw_set_transform(draw_pos, vargost_tilt, Vector2(render_facing * vargost_scale, turn_squash_y * vargost_scale))
 
 	var mod_color := Color(1.0, 1.0, 1.0, vargost_alpha)
-	if vargost_hit_flash > 0.0:
-		mod_color = Color(3.0, 3.0, 3.0, vargost_alpha)
 
 	if vargost_dissolve_factor > 0.04:
 		# HIỆU ỨNG DỊCH CHUYỂN TỨC THỜI (PIXEL DISSOLVE SCANLINE SLICES khớp 100% vargost-skill-test.js)
@@ -1472,27 +1559,36 @@ func _draw_vargost() -> void:
 			var jitter_x := sin(float(i) * 0.9 + vargost_hover_timer * 35.0) * vargost_dissolve_factor * 16.0
 			var s_rect := Rect2(src_rect.position.x, src_rect.position.y + slice_y, 200.0, slice_h)
 			var d_rect := Rect2(anchor_offset.x + jitter_x, anchor_offset.y + slice_y, 200.0, slice_h)
-			draw_texture_rect_region(vargost_atlas_tex, d_rect, s_rect, mod_color)
+			canvas.draw_texture_rect_region(vargost_atlas_tex, d_rect, s_rect, mod_color)
 
 		if vargost_is_glitch_flash:
-			draw_texture_rect_region(vargost_atlas_tex, Rect2(anchor_offset.x, anchor_offset.y, 200, 200), src_rect, Color(2.5, 2.5, 2.0, 0.45))
+			canvas.draw_texture_rect_region(vargost_atlas_tex, Rect2(anchor_offset.x, anchor_offset.y, 200, 200), src_rect, Color(2.5, 2.5, 2.0, 0.45))
 	else:
-		draw_texture_rect_region(vargost_atlas_tex, Rect2(anchor_offset.x, anchor_offset.y, 200, 200), src_rect, mod_color)
+		canvas.draw_texture_rect_region(vargost_atlas_tex, Rect2(anchor_offset.x, anchor_offset.y, 200, 200), src_rect, mod_color)
 
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	canvas.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
-func _draw_aoda() -> void:
+func _draw_aoda(canvas: CanvasItem) -> void:
 	if aoda_atlases.is_empty():
 		return
 
-	var atlas_idx := aoda_frame_index / 8
-	var local_idx := aoda_frame_index % 8
+	# Lấy atlas index và vùng region chuẩn xác 100% từ candidate manifest (hoàn toàn triệt tiêu giật/nhấp nháy)
+	var safe_idx := clampi(aoda_frame_index, 0, 92)
+	var atlas_idx := safe_idx / 9
+	var src_rect: Rect2
+	if not aoda_manifest_frames.is_empty() and safe_idx < aoda_manifest_frames.size():
+		var f_data: Dictionary = aoda_manifest_frames[safe_idx]
+		atlas_idx = int(f_data.get("atlas", atlas_idx))
+		var reg: Array = f_data.get("region", [0, 0, 600, 600])
+		src_rect = Rect2(reg[0], reg[1], reg[2], reg[3])
+	else:
+		var local_idx := safe_idx % 9
+		var reg_x := (local_idx % 3) * 600
+		var reg_y := (local_idx / 3) * 600
+		src_rect = Rect2(reg_x, reg_y, 600, 600)
+
 	if atlas_idx >= aoda_atlases.size() or aoda_atlases[atlas_idx] == null:
 		return
-
-	var reg_x := (local_idx % 4) * 600
-	var reg_y := (local_idx / 4) * 600
-	var src_rect := Rect2(reg_x, reg_y, 600, 600)
 
 	var draw_y := aoda_y
 	var aoda_alpha := 1.0
@@ -1511,14 +1607,12 @@ func _draw_aoda() -> void:
 	if absf(a_render_facing) < 0.35:
 		a_render_facing = 0.35 * signf(a_render_facing if a_render_facing != 0.0 else aoda_facing)
 	var a_squash_y := 1.0 + (1.0 - absf(aoda_visual_facing)) * 0.10
-	draw_set_transform(Vector2(aoda_x, draw_y), 0.0, Vector2(a_render_facing * aoda_scale, a_squash_y * aoda_scale))
+	canvas.draw_set_transform(Vector2(aoda_x, draw_y), 0.0, Vector2(a_render_facing * aoda_scale, a_squash_y * aoda_scale))
 	var anchor_offset := Vector2(-333.0, -504.0)
 	var mod_color := Color(1.0, 1.0, 1.0, aoda_alpha)
-	if aoda_hit_flash > 0.0:
-		mod_color = Color(3.0, 3.0, 3.0, aoda_alpha)
 
-	draw_texture_rect_region(aoda_atlases[atlas_idx], Rect2(anchor_offset.x, anchor_offset.y, 600, 600), src_rect, mod_color)
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	canvas.draw_texture_rect_region(aoda_atlases[atlas_idx], Rect2(anchor_offset.x, anchor_offset.y, 600, 600), src_rect, mod_color)
+	canvas.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 func _draw_tornadoes() -> void:
 	if tornado_tex == null:
@@ -1570,7 +1664,7 @@ func _draw_explosions() -> void:
 # -------------------------------------------------------------
 # THANH MÁU GOTHIC RPG (LÕI THỦY TINH + KHUNG KIM LOẠI XANH / ĐỎ - CHUẨN ĐỘ CAO TEST TOOL)
 # -------------------------------------------------------------
-func _draw_gothic_health_bars() -> void:
+func _draw_gothic_health_bars(canvas: CanvasItem) -> void:
 	var v_scale := MAP_SCALE / 2.625
 	var hover_offset := sin(vargost_hover_timer * 3.2) * 8.0
 
@@ -1587,7 +1681,7 @@ func _draw_gothic_health_bars() -> void:
 			v_sub = "(🔥 Vận Blazing Halo)"
 		elif vargost_hit_flash > 0.0:
 			v_sub = "(⚡ Bị trúng đòn)"
-		_draw_single_gothic_bar(vargost_x, v_top_y, vargost_hp, VARGOST_MAX_HP, vargost_damage_ghosts, v_label, v_sub, "green", v_bar_w, vargost_alpha)
+		_draw_single_gothic_bar(canvas, vargost_x, v_top_y, vargost_hp, VARGOST_MAX_HP, vargost_damage_ghosts, v_label, v_sub, "green", v_bar_w, vargost_alpha)
 
 	# 2. Aoda Gothic Bar:
 	# Chiều cao 90px, đỉnh đầu cách ~72px, đáy ống máu nằm sát đầu đúng 10px!
@@ -1618,9 +1712,9 @@ func _draw_gothic_health_bars() -> void:
 			a_sub = "(🦘 Đang nhảy bệ)"
 		elif aoda_hit_flash > 0.0:
 			a_sub = "(⚡ Bị trúng đòn)"
-		_draw_single_gothic_bar(aoda_x, a_top_y, aoda_hp, AODA_MAX_HP, aoda_damage_ghosts, a_label, a_sub, "red", a_bar_w, a_alpha)
+		_draw_single_gothic_bar(canvas, aoda_x, a_top_y, aoda_hp, AODA_MAX_HP, aoda_damage_ghosts, a_label, a_sub, "red", a_bar_w, a_alpha)
 
-func _draw_single_gothic_bar(center_x: float, top_y: float, current_hp: float, max_hp: float, ghosts: Array[Dictionary], label_text: String, sub_text: String, theme: String, custom_width: float, alpha_mod: float = 1.0) -> void:
+func _draw_single_gothic_bar(canvas: CanvasItem, center_x: float, top_y: float, current_hp: float, max_hp: float, ghosts: Array[Dictionary], label_text: String, sub_text: String, theme: String, custom_width: float, alpha_mod: float = 1.0) -> void:
 	var bar_w := custom_width
 	var bar_h := bar_w * (50.0 / 240.0) * 0.85 # Tỷ lệ chuẩn Gothic 240x50 thanh mảnh
 	var bar_x := center_x - bar_w / 2.0
@@ -1634,9 +1728,9 @@ func _draw_single_gothic_bar(center_x: float, top_y: float, current_hp: float, m
 
 	# Lớp 1: Khung kim loại rỗng
 	if tex_bar_empty != null:
-		draw_texture_rect(tex_bar_empty, Rect2(bar_x, bar_y, bar_w, bar_h), false, Color(1, 1, 1, alpha_mod))
+		canvas.draw_texture_rect(tex_bar_empty, Rect2(bar_x, bar_y, bar_w, bar_h), false, Color(1, 1, 1, alpha_mod))
 	else:
-		draw_rect(Rect2(bar_x, bar_y, bar_w, bar_h), Color(0.05, 0.07, 0.09, alpha_mod))
+		canvas.draw_rect(Rect2(bar_x, bar_y, bar_w, bar_h), Color(0.05, 0.07, 0.09, alpha_mod))
 
 	# Lớp 2: Dải máu lỏng hiện tại (Xanh ngọc / Đỏ máu)
 	var ratio := clampf(current_hp / max_hp, 0.0, 1.0)
@@ -1644,11 +1738,11 @@ func _draw_single_gothic_bar(center_x: float, top_y: float, current_hp: float, m
 	if ratio > 0.001:
 		if liquid_tex != null:
 			var src_w := 202.0 * ratio
-			draw_texture_rect_region(liquid_tex, Rect2(blood_x, blood_y, blood_w * ratio, blood_h), Rect2(17, 14, src_w, 17), Color(1, 1, 1, alpha_mod))
+			canvas.draw_texture_rect_region(liquid_tex, Rect2(blood_x, blood_y, blood_w * ratio, blood_h), Rect2(17, 14, src_w, 17), Color(1, 1, 1, alpha_mod))
 		else:
 			var fill_color := Color("#10f06a") if theme == "green" else Color("#ff1a1a")
 			fill_color.a = alpha_mod
-			draw_rect(Rect2(blood_x, blood_y, blood_w * ratio, blood_h), fill_color)
+			canvas.draw_rect(Rect2(blood_x, blood_y, blood_w * ratio, blood_h), fill_color)
 
 	# Lớp 3: Đoạn Máu Bị Trừ (Damage Ghosts: Sáng Lên Đột Ngột 0.12s -> Pixel Dissolve 0.42s)
 	for ghost in ghosts:
@@ -1669,9 +1763,9 @@ func _draw_single_gothic_bar(center_x: float, top_y: float, current_hp: float, m
 
 		if g_timer < flash_dur:
 			if liquid_tex != null:
-				draw_texture_rect_region(liquid_tex, Rect2(ghost_dx, blood_y, ghost_dw, blood_h), Rect2(ghost_sx, 14, ghost_sw, 17), Color(1, 1, 1, alpha_mod))
+				canvas.draw_texture_rect_region(liquid_tex, Rect2(ghost_dx, blood_y, ghost_dw, blood_h), Rect2(ghost_sx, 14, ghost_sw, 17), Color(1, 1, 1, alpha_mod))
 			var flash_col := Color(0.9, 1.0, 0.95, 0.95 * alpha_mod) if theme == "green" else Color(1.0, 1.0, 0.9, 0.95 * alpha_mod)
-			draw_rect(Rect2(ghost_dx, blood_y, ghost_dw, blood_h), flash_col)
+			canvas.draw_rect(Rect2(ghost_dx, blood_y, ghost_dw, blood_h), flash_col)
 		else:
 			var g_dissolve := clampf((g_timer - flash_dur) / dissolve_dur, 0.0, 1.0)
 			var p_size := 2.5
@@ -1698,36 +1792,36 @@ func _draw_single_gothic_bar(center_x: float, top_y: float, current_hp: float, m
 					var s_ph := (ph / blood_h) * 17.0
 
 					if liquid_tex != null:
-						draw_texture_rect_region(liquid_tex, Rect2(px, py, pw, ph), Rect2(s_px, s_py, s_pw, s_ph), Color(1, 1, 1, alpha_mod))
+						canvas.draw_texture_rect_region(liquid_tex, Rect2(px, py, pw, ph), Rect2(s_px, s_py, s_pw, s_ph), Color(1, 1, 1, alpha_mod))
 					else:
 						var p_color := Color("#22c55e") if theme == "green" else Color("#ff4444")
 						p_color.a = alpha_mod
-						draw_rect(Rect2(px, py, pw, ph), p_color)
+						canvas.draw_rect(Rect2(px, py, pw, ph), p_color)
 
 	# Lớp 4: Lớp kính thủy tinh phản chiếu
 	if tex_bar_glass != null:
-		draw_texture_rect(tex_bar_glass, Rect2(bar_x, bar_y, bar_w, bar_h), false, Color(1, 1, 1, alpha_mod))
+		canvas.draw_texture_rect(tex_bar_glass, Rect2(bar_x, bar_y, bar_w, bar_h), false, Color(1, 1, 1, alpha_mod))
 
 	# Lớp 5: Nhãn tên và thông số máu phía trên thanh máu
 	var default_font := ThemeDB.fallback_font
 	var font_col := Color("#aff5b4") if theme == "green" else Color("#ffa657")
 	font_col.a = alpha_mod
-	draw_string(default_font, Vector2(center_x - 120.0, bar_y - 6.0), label_text, HORIZONTAL_ALIGNMENT_CENTER, 240, 11, font_col)
+	canvas.draw_string(default_font, Vector2(center_x - 120.0, bar_y - 6.0), label_text, HORIZONTAL_ALIGNMENT_CENTER, 240, 11, font_col)
 
 	# Nhãn trạng thái động bên dưới
 	if sub_text != "":
 		var sub_col := Color("#8b949e", alpha_mod)
-		draw_string(default_font, Vector2(center_x - 120.0, bar_y + bar_h + 13.0), sub_text, HORIZONTAL_ALIGNMENT_CENTER, 240, 10, sub_col)
+		canvas.draw_string(default_font, Vector2(center_x - 120.0, bar_y + bar_h + 13.0), sub_text, HORIZONTAL_ALIGNMENT_CENTER, 240, 10, sub_col)
 
-func _draw_damage_texts() -> void:
+func _draw_damage_texts(canvas: CanvasItem) -> void:
 	var default_font := ThemeDB.fallback_font
 	for t in active_damage_texts:
 		var col: Color = t["color"]
 		col.a = float(t["alpha"])
 		# Bóng đổ chữ
 		var shadow_col := Color(0, 0, 0, col.a * 0.75)
-		draw_string(default_font, Vector2(float(t["x"]) - 29.0, float(t["y"]) + 1.0), str(t["text"]), HORIZONTAL_ALIGNMENT_CENTER, 60, 20, shadow_col)
-		draw_string(default_font, Vector2(float(t["x"]) - 30.0, float(t["y"])), str(t["text"]), HORIZONTAL_ALIGNMENT_CENTER, 60, 20, col)
+		canvas.draw_string(default_font, Vector2(float(t["x"]) - 29.0, float(t["y"]) + 1.0), str(t["text"]), HORIZONTAL_ALIGNMENT_CENTER, 60, 20, shadow_col)
+		canvas.draw_string(default_font, Vector2(float(t["x"]) - 30.0, float(t["y"])), str(t["text"]), HORIZONTAL_ALIGNMENT_CENTER, 60, 20, col)
 
 # -------------------------------------------------------------
 # CẢM ỨNG MÀN HÌNH CAN THIỆP

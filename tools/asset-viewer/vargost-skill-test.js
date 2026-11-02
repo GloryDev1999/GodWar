@@ -1124,6 +1124,7 @@ function spawnRedTornado(x, y, facing) {
     x: spawnX,
     y: spawnY,
     facing: facing,
+    vx: facing * 140 * (mapScale / 2.625), // Di chuyển càn quét 1 đường thẳng về phía trước theo quy chuẩn đồng bộ APK
     phase: 'EMERGE', // 'EMERGE' (bắt đầu mọc lên, frame 0..3) -> 'SPIN' (tồn tại xoay đỉnh cao 2.0s, frame 4..9) -> 'DISSIPATE' (tan biến, frame 10..14)
     frameIndex: 0,
     frameTimer: 0,
@@ -2962,7 +2963,8 @@ function update(timestamp) {
           }
         }
       } else if (t.phase === 'SPIN' || t.phase === 'ACTIVE') {
-        t.x = t.originX; // Tồn tại vững vàng tại chỗ
+        // Red Tornado di chuyển càn quét 1 đường thẳng về phía trước theo quy chuẩn đồng bộ APK
+        t.x += (t.vx || (t.facing * 140 * (mapScale / 2.625))) * dt;
         t.spinElapsed = (t.spinElapsed || 0) + dt;
 
         // Vòng lặp xoay lốc đỉnh cao: Frame 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 4 -> 5...

@@ -153,3 +153,16 @@ Mỗi khi tạo công cụ kiểm thử trực quan trên Web Viewer (cổng 417
    - Trên bản Godot Mobile APK: Toàn bộ tia ngắm, vòng tròn định hướng, tâm ngắm và vòng quầng lửa/đổ bóng hình elip dưới chân kỹ năng diện rộng (như lốc xoáy) **phải được ẩn đi hoàn toàn**. Giao diện mobile chỉ giữ lại nhân vật, sprite kỹ năng thực tế, hiệu ứng va chạm nổ và thanh máu Gothic RPG.
 3. **Thích ứng Đa Màn hình (Dynamic Aspect Ratio):**
    - Toàn bộ background và UI phải hỗ trợ chế độ `expand`, không để xuất hiện viền đen hai bên mép trên các thiết bị màn hình dài (Redmi K70E tỉ lệ 20:9 hoặc tương đương).
+
+---
+
+## 8. Quy chuẩn Hit Flash Silhouette, Quỹ Đạo Kỹ Năng & Tuần Tra Chậm Khi Hồi Chiêu
+
+1. **Hiệu ứng Lóa Sáng Khi Trúng Đòn (Hit Flash Whiteout Silhouette):**
+   - Khi trúng đòn, toàn bộ sprite nhân vật phải biến đổi sang silhouette trắng tinh `#ffffff` / đỏ cam `#ff4d4d` bằng ShaderMaterial trong tối thiểu 0.2s để người chơi nhận biết phản hồi va chạm rõ rệt.
+   - Thứ tự vẽ (render layer) bắt buộc phải đặt nhân vật nằm TRÊN hiệu ứng nổ mặt đất (Explosion VFX) để khói lửa không che mất nhân vật.
+   - Với nhân vật có kỹ năng thoát kẹt (như Teleport của Vargost), bắt buộc duy trì độ trễ Hit Reaction tối thiểu 0.2s để người xem kịp quan sát hiệu ứng chớp sáng trước khi biến ảnh.
+2. **Quỹ Đạo Kỹ Năng Quét Sàn 1 Đường Thẳng (Straight-Line Ground Sweep):**
+   - Các kỹ năng lốc xoáy / sóng năng lượng càn quét mặt đất bắt buộc di chuyển tịnh tiến theo 1 đường thẳng cố định về phía trước (`vx = facing * speed`), đồng bộ 100% giữa Web Test Tool và Godot Engine.
+3. **Tuần Tra Chậm Trong Khoảng Nghỉ Của Xạ Thủ (Marksman Cooldown Slow Patrol):**
+   - Xạ thủ đánh xa trong thời gian chờ hồi chiêu (khoảng nghỉ) không được đứng im tại chỗ; bắt buộc duy trì tuần tra chậm xung quanh không phận an toàn ở tốc độ tối thiểu (`SPEED_SLOW = 100px/s`) kèm nghiêng thân nhẹ $\pm 10^\circ$.
