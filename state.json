@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-11-02T15:20:00Z",
+  "updated_at_utc": "2026-11-02T16:13:00Z",
   "purpose": "Bộ nhớ bàn giao ngắn gọn cho agent; đối chiếu với mã, tài liệu và git status khi bắt đầu phiên.",
   "product_goal": {
     "source": "Yêu cầu của người dùng ngày 2026-10-31, 2026-11-01 và 2026-11-02",
@@ -11,7 +11,7 @@
   },
   "verified_context": [
     {
-      "fact": "Đã xuất và kiểm chứng thành công APK v1.1.0 (code 11) tại build/GodWar-debug.apk và live-test trên Ramus Cloud Android Emulator: 1) Toàn màn hình siêu rộng thích ứng động ('aspect=expand', không còn vệt đen 2 bên mép trên Redmi K70E 20:9); 2) Xoay mặt 2 nhân vật siêu tốc đánh lừa thị giác (x3+ speed, dt*50.0) kèm hiệu ứng Pixel Dissolve/Ember Burst khi Vargost lật qua 0; 3) Khóa cứng đường bay đạn Blazing Halo (locked straight vector, không bị uốn cong) và va chạm nổ trên vách đá địa hình Scene 1, 2, 3; 4) Khắc phục triệt để lỗi kẹt vòng lặp nhấp nháy tại Platform 3A (thêm cú nhảy hồi quy về Platform 2); 5) Đưa thanh máu đỏ của Aoda hạ thấp về chuẩn sát đỉnh đầu đúng 10px (cách chân 72px + 10px); 6) Hoạt ảnh bay & teleport của Vargost mượt mà 60fps không bị đơ frame; 7) Bỏ quầng đổ bóng elip dưới chân lốc xoáy của Aoda; 8) Hoạt ảnh KO của Aoda kẹp chặt ở frame 58 trên đất, không tràn sang frame di chuyển; 9) Ẩn toàn bộ tia ngắm/vòng định hướng trên mobile APK.",
+      "fact": "Đã xuất và kiểm chứng thành công APK v1.1.1 (code 12) tại build/GodWar-debug.apk: 1) Triệt tiêu hoàn toàn mảng màn hình xanh bên phải trên Redmi K70E bằng cấu hình window/stretch/aspect='ignore', bản đồ và địa hình tự động co giãn vừa khít 100% màn hình thiết bị không còn viền thừa hay vệt đen; 2) Chuẩn hóa tư duy xạ thủ đánh xa cho Vargost: Khi Aoda còn sống, Vargost giữ cự ly an toàn [260, 480], liên tục phóng Blazing Halo từ xa; tuyệt đối không bay vào bệ kiếm tranh chấp, chỉ khi Aoda tử trận mới bay tới chiếm Thánh Kiếm; 3) Vargost di chuyển lùi áp dụng TELEPORT thay vì bay lùi kéo rê; tốc độ bay tiến chuẩn hóa 300px/s kèm nghiêng thân +25°; 4) Tái hiện chuẩn xác 1:1 hiệu ứng Teleport Pixel Dissolve qua 50 lát cắt scanline slices cao 4px kèm glitch flash trong 0.38s khớp Web test tool; 5) Khắc phục lỗi Aoda nhấp nháy hoạt ảnh và đè chữ: Aoda thủ tĩnh tại bệ kiếm mang trạng thái IDLE ('🛑 Thủ tĩnh tại bệ kiếm'); nâng thanh tiến trình chiếm giữ Thánh Kiếm lên SWORD_Y - 148px tránh hoàn toàn việc đè lên thanh máu của nhân vật; 6) Đã dọn dẹp sạch toàn bộ file rác ảnh chụp màn hình cũ và file .import thừa.",
       "source": "build/GodWar-debug.apk"
     },
     {

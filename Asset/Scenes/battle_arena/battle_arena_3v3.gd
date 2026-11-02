@@ -114,6 +114,8 @@ var teleport_timer: float = 0.0
 var teleport_target_x: float = 0.0
 var teleport_target_y: float = 0.0
 var teleport_target_facing: float = 1.0
+var vargost_dissolve_factor: float = 0.0
+var vargost_is_glitch_flash: bool = false
 var vargost_alpha: float = 1.0
 var ember_particles: Array[Dictionary] = []
 
@@ -524,70 +526,97 @@ func _update_vargost(dt: float) -> void:
 	else:
 		vargost_visual_facing = vargost_facing
 
-	# 0. Xử lý Thân pháp biến ảnh Teleport (3 pha: Tàng hình -> Dịch chuyển -> Xuất hiện lại)
+	# 0. Xử lý Thân pháp biến ảnh Teleport (3 pha chuẩn 0.38s Single Source of Truth Web Tool)
 	if is_vargost_teleporting:
 		teleport_timer += dt
-		if teleport_step == 1:
-			# Pha 1: Tan biến trong chùm hạt tàn tro (0.12s)
-			vargost_alpha = maxf(0.0, 1.0 - teleport_timer / 0.12)
-			if teleport_timer >= 0.12:
+		var t := teleport_timer
+		if t < 0.14:
+			# Pha 1: Tan rã lát cắt (Dissolve Out) + Glitch Blink chớp tắt
+			teleport_step = 1
+			vargost_dissolve_factor = clampf(t / 0.14, 0.0, 1.0)
+			vargost_is_glitch_flash = sin(t * 55.0) > 0.2
+			if randf() < 0.35:
+				var h_off := sin(vargost_hover_timer * 3.2) * 8.0
+				_spawn_ember_burst(Vector2(vargost_x + randf_range(-15.0, 15.0), vargost_y + h_off + randf_range(-20.0, 20.0)), 1)
+		elif t < 0.22:
+			# Pha 2: Tàng hình trong hư không (Void Shift) + Dịch chuyển tức thời + Lật hướng
+			if teleport_step != 2:
 				teleport_step = 2
 				vargost_x = teleport_target_x
 				vargost_y = teleport_target_y
 				vargost_facing = teleport_target_facing
 				vargost_visual_facing = teleport_target_facing
 				vargost_tilt = 0.0 # Thân đứng 0 độ uy nghiêm!
-				_spawn_ember_burst(Vector2(vargost_x, vargost_y + sin(vargost_hover_timer * 3.2) * 8.0), 14)
-		elif teleport_step == 2:
-			# Pha 2 & 3: Tái tạo thân thể từ tàn tro pixel (0.12s -> 0.25s)
-			var prog := (teleport_timer - 0.12) / 0.13
-			vargost_alpha = clampf(prog, 0.0, 1.0)
-			if teleport_timer >= 0.25:
-				is_vargost_teleporting = false
-				vargost_alpha = 1.0
+				var h_off := sin(vargost_hover_timer * 3.2) * 8.0
+				_spawn_ember_burst(Vector2(vargost_x, vargost_y + h_off), 10)
+			vargost_dissolve_factor = 1.0 # Hoàn toàn tàng hình
+			vargost_is_glitch_flash = false
+		elif t < 0.38:
+			# Pha 3: Tụ lại lát cắt pixel (Re-materialize) từ hư không
+			teleport_step = 3
+			var p3 := (t - 0.22) / 0.16
+			vargost_dissolve_factor = maxf(0.0, 1.0 - p3)
+			vargost_is_glitch_flash = (p3 < 0.4) and (sin(t * 60.0) > 0.4)
+		else:
+			is_vargost_teleporting = false
+			teleport_step = 0
+			vargost_dissolve_factor = 0.0
+			vargost_is_glitch_flash = false
+			vargost_alpha = 1.0
+	else:
+		vargost_dissolve_factor = 0.0
+		vargost_is_glitch_flash = false
 
-	# 1. Bay lượn chiến thuật:
-	# Nếu Aoda tử trận hoặc cần tranh chấp cứ điểm: Vargost sà thấp tiến về bệ giữa Thánh Kiếm!
-	# Bình thường: Bay tuần tra khống chế không phận [300, 680], Y [260, 420]
+	# 1. Bay lượn chiến thuật: Vargost là XẠ THỦ TẦM XA
+	# QUY TẮC HIẾN PHÁP: Nếu Aoda còn sống, Vargost giữ cự ly tầm xa an toàn [260, 480], tấn công từ xa!
+	# TUYỆT ĐỐI KHÔNG bay vào bệ Thánh Kiếm khi địch đang phòng thủ! CHỈ KHI Aoda tử trận mới bay tới chiếm!
 	vargost_ai_timer -= dt
 	if vargost_ai_timer <= 0.0:
-		vargost_ai_timer = randf_range(2.0, 3.5)
-		if aoda_is_dead or (capture_team != 1 and capture_timer > 3.0):
-			vargost_target_air_x = randf_range(SWORD_X - 80.0, SWORD_X + 80.0)
-			vargost_target_air_y = randf_range(SWORD_Y - 140.0, SWORD_Y - 70.0) # Sà thấp tiếp cận bệ
+		vargost_ai_timer = randf_range(2.5, 4.0)
+		if aoda_is_dead:
+			# Kẻ địch đã gục -> Vargost bay tới bệ Thánh Kiếm chiếm cứ điểm!
+			vargost_target_air_x = randf_range(SWORD_X - 50.0, SWORD_X + 50.0)
+			vargost_target_air_y = randf_range(SWORD_Y - 120.0, SWORD_Y - 70.0)
 		else:
-			vargost_target_air_x = randf_range(300.0, 680.0)
-			vargost_target_air_y = randf_range(260.0, 420.0)
+			# Kẻ địch còn sống -> Vargost tuần tra không phận tầm xa [260, 480], Y [260, 360]
+			vargost_target_air_x = randf_range(260.0, 480.0)
+			vargost_target_air_y = randf_range(260.0, 360.0)
 
-	# Tự động né đòn / Giữ khoảng cách an toàn: Nếu Aoda áp sát quá gần (< 260px) -> Teleport lùi!
+	# Tự động né đòn / Giữ khoảng cách an toàn: Nếu Aoda áp sát (< 300px) -> Teleport lùi giữ cự ly!
 	var dist_to_aoda := Vector2(vargost_x, vargost_y).distance_to(Vector2(aoda_x, aoda_y))
-	if dist_to_aoda < 260.0 and not aoda_is_dead and vargost_state == "IDLE":
-		var retreat_x := clampf(vargost_x - vargost_facing * 180.0, 200.0, 750.0)
-		var retreat_y := randf_range(260.0, 360.0)
+	if dist_to_aoda < 300.0 and not aoda_is_dead and vargost_state == "IDLE" and not is_vargost_teleporting:
+		var retreat_x := clampf(vargost_x - vargost_facing * 160.0, 180.0, 420.0)
+		var retreat_y := randf_range(250.0, 340.0)
 		_trigger_vargost_teleport(retreat_x, retreat_y)
 
 	var move_vec := Vector2(vargost_target_air_x - vargost_x, vargost_target_air_y - vargost_y)
-	if move_vec.length() > 5.0 and vargost_state == "IDLE":
+	if move_vec.length() > 8.0 and vargost_state == "IDLE" and not is_vargost_teleporting:
 		var dir := move_vec.normalized()
-		var fly_speed := 380.0 * (MAP_SCALE / 2.625)
-		vargost_x += dir.x * fly_speed * dt
-		vargost_y += dir.y * (fly_speed * 0.6) * dt
-		var target_tilt := signf(dir.x) * deg_to_rad(25.0)
-		vargost_tilt = lerp_angle(vargost_tilt, target_tilt, dt * 10.0)
+		# QUY CHUẨN DI CHUYỂN: Nếu hướng di chuyển là LÙI (dir.x * vargost_facing < -0.2):
+		# Vargost KHÔNG bay lùi ngửa người, mà kích hoạt TELEPORT LÙI (Thân đứng 0°)!
+		if dir.x * vargost_facing < -0.2:
+			_trigger_vargost_teleport(vargost_target_air_x, vargost_target_air_y)
+		else:
+			# Hướng TIẾN: Bay tiến nghiêng +25 độ ở tốc độ vừa phải chuẩn xác (~300 px/s)
+			var fly_speed := 300.0
+			vargost_x += dir.x * fly_speed * dt
+			vargost_y += dir.y * (fly_speed * 0.6) * dt
+			var target_tilt := vargost_facing * deg_to_rad(25.0)
+			vargost_tilt = lerp_angle(vargost_tilt, target_tilt, dt * 10.0)
 
-		# Sinh Bóng Mờ Chuyển Động 2D (Motion Ghosts) khi bay
-		ghost_spawn_timer += dt
-		if ghost_spawn_timer >= 0.07:
-			ghost_spawn_timer = 0.0
-			var h_off := sin(vargost_hover_timer * 3.2) * 8.0
-			motion_ghosts.append({
-				"x": vargost_x,
-				"y": vargost_y + h_off,
-				"alpha": 0.45,
-				"tilt": vargost_tilt,
-				"facing": vargost_visual_facing,
-				"frame": vargost_frame_index
-			})
+			# Sinh Bóng Mờ Chuyển Động 2D (Motion Ghosts) khi bay tiến
+			ghost_spawn_timer += dt
+			if ghost_spawn_timer >= 0.07:
+				ghost_spawn_timer = 0.0
+				var h_off := sin(vargost_hover_timer * 3.2) * 8.0
+				motion_ghosts.append({
+					"x": vargost_x,
+					"y": vargost_y + h_off,
+					"alpha": 0.45,
+					"tilt": vargost_tilt,
+					"facing": vargost_visual_facing,
+					"frame": vargost_frame_index
+				})
 	else:
 		vargost_tilt = lerp_angle(vargost_tilt, 0.0, dt * 8.0)
 
@@ -1238,10 +1267,8 @@ func _reset_match() -> void:
 # RENDER TẤT CẢ PHẦN TỬ LÊN MÀN HÌNH (GOTHIC RPG HEALTH BARS, NO CIRCLE)
 # -------------------------------------------------------------
 func _draw() -> void:
-	# 1. Nền trời xanh map bao phủ toàn bộ màn hình động (chống viền đen trên màn hình siêu dài K70E 20:9)
-	var vp := get_viewport_rect().size
-	var sky_w := maxf(1920.0, vp.x) + 1000.0
-	draw_rect(Rect2(-500.0, -200.0, sky_w, maxf(1080.0, vp.y) + 400.0), Color("78a6cf"))
+	# 1. Nền trời xanh map bao phủ
+	draw_rect(Rect2(0, 0, 1920, 1080), Color("78a6cf"))
 
 	# 2. Bản đồ địa hình 1920x1080 tràn viền
 	if map_texture != null:
@@ -1286,7 +1313,7 @@ func _draw_sword_capture_bar() -> void:
 		var bar_w := 130.0
 		var bar_h := 12.0
 		var bar_x := SWORD_X - bar_w / 2.0
-		var bar_y := SWORD_Y - 95.0
+		var bar_y := SWORD_Y - 148.0 # Nâng cao hẳn 148px tránh đè lên thanh máu của bất kỳ nhân vật nào đứng ở bệ
 		var prog := clampf(capture_timer / CAPTURE_TARGET, 0.0, 1.0)
 
 		# Nền đen bán trong suốt
@@ -1413,7 +1440,7 @@ func _draw_vargost() -> void:
 		draw_texture_rect_region(vargost_atlas_tex, Rect2(anchor_offset.x, anchor_offset.y, 200, 200), g_src, g_col_mod)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
-	if vargost_alpha <= 0.001:
+	if vargost_dissolve_factor >= 0.99 or vargost_alpha <= 0.001:
 		return
 
 	var hover_offset := sin(vargost_hover_timer * 3.2) * 8.0
@@ -1432,7 +1459,26 @@ func _draw_vargost() -> void:
 	if vargost_hit_flash > 0.0:
 		mod_color = Color(3.0, 3.0, 3.0, vargost_alpha)
 
-	draw_texture_rect_region(vargost_atlas_tex, Rect2(anchor_offset.x, anchor_offset.y, 200, 200), src_rect, mod_color)
+	if vargost_dissolve_factor > 0.04:
+		# HIỆU ỨNG DỊCH CHUYỂN TỨC THỜI (PIXEL DISSOLVE SCANLINE SLICES khớp 100% vargost-skill-test.js)
+		var num_slices := 50
+		var slice_h := 4.0
+		for i in range(num_slices):
+			var slice_y := float(i) * slice_h
+			var slice_seed := (i * 37 + int(vargost_hover_timer * 35.0)) % 100
+			var slice_prob := float(slice_seed) / 100.0
+			if slice_prob < vargost_dissolve_factor * 0.82:
+				continue
+			var jitter_x := sin(float(i) * 0.9 + vargost_hover_timer * 35.0) * vargost_dissolve_factor * 16.0
+			var s_rect := Rect2(src_rect.position.x, src_rect.position.y + slice_y, 200.0, slice_h)
+			var d_rect := Rect2(anchor_offset.x + jitter_x, anchor_offset.y + slice_y, 200.0, slice_h)
+			draw_texture_rect_region(vargost_atlas_tex, d_rect, s_rect, mod_color)
+
+		if vargost_is_glitch_flash:
+			draw_texture_rect_region(vargost_atlas_tex, Rect2(anchor_offset.x, anchor_offset.y, 200, 200), src_rect, Color(2.5, 2.5, 2.0, 0.45))
+	else:
+		draw_texture_rect_region(vargost_atlas_tex, Rect2(anchor_offset.x, anchor_offset.y, 200, 200), src_rect, mod_color)
+
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 func _draw_aoda() -> void:
@@ -1564,8 +1610,12 @@ func _draw_gothic_health_bars() -> void:
 		var a_sub := "(🏃 Chạy bộ (Phải ▶))" if aoda_facing > 0 else "(🏃 Chạy bộ (◀ Trái))"
 		if aoda_is_dead:
 			a_sub = "(💀 Đã gục)"
+		elif aoda_state == "IDLE":
+			a_sub = "(🛑 Thủ tĩnh tại bệ kiếm)"
 		elif aoda_state == "SKILL_1_WINDUP":
 			a_sub = "(🌪️ Vận lốc xoáy)"
+		elif aoda_state == "JUMP":
+			a_sub = "(🦘 Đang nhảy bệ)"
 		elif aoda_hit_flash > 0.0:
 			a_sub = "(⚡ Bị trúng đòn)"
 		_draw_single_gothic_bar(aoda_x, a_top_y, aoda_hp, AODA_MAX_HP, aoda_damage_ghosts, a_label, a_sub, "red", a_bar_w, a_alpha)

@@ -3896,7 +3896,7 @@ function drawScene(targetX, targetY, dt) {
     const barW = 120 * (zoom / 0.7);
     const barH = 10 * (zoom / 0.7);
     const barX = SWORD_X - barW / 2;
-    const barY = SWORD_Y - 95 * (zoom / 0.7);
+    const barY = SWORD_Y - 148 * (zoom / 0.7); // Nâng cao 148px tránh đè lên thanh máu của nhân vật đứng ở bệ
     const progress = Math.min(1.0, swordCaptureTimer / SWORD_CAPTURE_REQUIRED);
 
     ctx.save();
