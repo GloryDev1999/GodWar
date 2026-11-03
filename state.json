@@ -1,15 +1,35 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-11-02T16:47:00Z",
+  "updated_at_utc": "2026-11-03T09:59:00Z",
   "purpose": "Bộ nhớ bàn giao ngắn gọn cho agent; đối chiếu với mã, tài liệu và git status khi bắt đầu phiên.",
   "product_goal": {
-    "source": "Yêu cầu của người dùng ngày 2026-10-31, 2026-11-01 và 2026-11-02",
-    "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mục tiêu cốt lõi của trận đấu là chiếm giữ Cứ Điểm Thánh Kiếm (sword_altar) tại Bệ Giữa Platform 2 với kích thước chiều cao chuẩn hóa 90px: Đội nào đứng trong vùng tròn bán kính 140px liên tục trong 15s sẽ chiến thắng. Vargost là tướng Team 1 (bay lượn, Blazing Halo 1100px/s); Aoda là tướng Team 2 (đấu sĩ mặt đất, lốc xoáy Tornado 85px). Toàn bộ giao tranh vận hành tự động bằng Utility AI 2 chiều Trái ⇋ Phải đối xứng. ĐẶC BIỆT: Mọi logic và hoạt ảnh đã duyệt trên Web Test Tool (vargost-skill-test.html) là Single Source of Truth 100% cho Godot APK. Chuẩn hiệu năng bắt buộc KHÓA CỨNG 60 FPS theo Hiến pháp.",
+    "source": "Yêu cầu của người dùng ngày 2026-10-31, 2026-11-01, 2026-11-02 và 2026-11-03",
+    "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mục tiêu cốt lõi của trận đấu là chiếm giữ Cứ Điểm Thánh Kiếm (sword_altar) tại Bệ Giữa Platform 2 với kích thước chiều cao chuẩn hóa 90px: Đội nào đứng trong vùng tròn bán kính 140px liên tục trong 20s (không tự reset giữa trận) sẽ chiến thắng. 2 Đội xuất phát và hồi sinh sát mép map 2 bên, đứng yên 1s trước khi di chuyển; nhân vật bay trên không và bộ binh trên địa hình tiến về tranh kiếm. Boss Crapit (2150 HP) đứng sát vách đá góc vuông Platform 3D, miệng nâng cao 10px, phun đạn đồng thời cho tất cả tướng đứng trong vùng Thánh Kiếm; khi trúng đòn hiển thị icon 10x10 Cấm Hồi Máu (dấu + kèm gạch chéo) góc phải dưới thanh máu. Aoda tung Lốc Xoáy đúng mặt đất khi phản công Boss hoặc tướng địch. ĐẶC BIỆT: Mọi logic và hoạt ảnh đã duyệt trên Web Test Tool (vargost-skill-test.html) là Single Source of Truth 100% cho Godot APK; mọi sửa đổi phải thực hiện song song tức thời (Dual-Target Lockstep Sync) ở cả Web Tool lẫn Godot APK, chỉ lưu giữ Atlas PNG + JSON, nâng version và lưu bản backup APK theo từng version tại build/releases/. Chuẩn hiệu năng bắt buộc KHÓA CỨNG 60 FPS theo Hiến pháp.",
     "open_questions": [
       "Kỹ năng mới thay thế cho FireOrb của Aoda (người dùng đang tìm kiếm)"
     ]
   },
   "verified_context": [
+    {
+      "fact": "Đã hoàn tất nâng cấp v1.1.8 (code 19): 1) Lốc xoáy Aoda nhắm mục tiêu chuẩn xác: khi đánh trả Boss Crapit xuất hiện ngay tại chân Boss trên Platform 3D và quét sàn, kẹp chắc chắn trên mặt bệ địa hình, không lơ lửng trên không trung; 2) Dịch chuyển Boss Crapit sang phải bám sát vách đá vuông góc Platform 3D tại tọa độ map (336, 286) thay vì lơ lửng giữa vực; 3) Vị trí xuất phát 2 phe dời sát mép map trái/phải, tướng đứng bất động 1.0s khi xuất trận hoặc hồi sinh mới di chuyển; 4) Tăng thời gian chiếm Thánh Kiếm lên 20.0s, loại bỏ hoàn toàn tự động reset trận mid-combat khi có đội thắng; 5) Boss Crapit phun đạn đồng thời cho toàn bộ tướng đứng trong vùng Thánh Kiếm, điểm phun đạn nâng cao 10px đúng vị trí miệng; 6) Thay icon Cấm Hồi Máu bằng biểu tượng 10x10 (dấu + kèm gạch chéo trắng) nằm góc phải dưới thanh máu; 7) Sửa lỗi mất hoạt ảnh khung test và khung 1:1 bằng cách khai báo crapitFacing; đồng bộ 1:1 song song cả Web Tool và Godot APK và xuất thành công build/GodWar-debug.apk cùng bản backup build/releases/GodWar-v1.1.8-code19.apk.",
+      "source": "version.json"
+    },
+    {
+      "fact": "Đã hoàn tất nâng cấp v1.1.7 (code 18): 1) Khắc phục triệt để lỗi vòng lặp CRAPIT_ANCHOR_PX is not defined và phục hồi hiển thị tướng trong Khung Gốc 1:1, bổ sung bộ điều khiển Zoom In / Zoom Out / Reset và kéo thả Pan chuột phải/giữa; 2) Boss Crapit xuất hiện ngay từ đầu trận trong map và miễn nhiễm 100% mọi hiệu ứng bất lợi (CC Immunity); 3) Thay thế nhãn chữ Cấm Hồi Máu bằng hiệu ứng chảy máu dấu '+' đỏ (Status Effect) chạy từ nhỏ đến to ở 30% thân người xuống chân phải; 4) Chiêu Lốc xoáy Red Tornado trúng cả mục tiêu trên không lẫn dưới đất và nảy đảo chiều khi chạm tường/địa hình; 5) Tách nền asset Cổ Vật Boss rơi (Loot Orb 30x30 tỏa sáng lóe tia) tại Asset/Character/characters/crapit_boss/loot_orb/atlas.png; 6) Triển khai cơ chế nhặt Cổ Vật (icon 10x10 trên thanh máu), giảm 10% tốc độ đội nhặt, AI hộ tống về điểm căn cứ (Trái 379, 638; Phải 1577, 400), địch dồn mục tiêu, rơi tự do khi chết; đồng bộ 100% song song cả Web Tool và Godot APK.",
+      "source": "version.json"
+    },
+    {
+      "fact": "Đã hoàn tất nâng cấp v1.1.6 (code 17): Bổ sung Boss Trung Lập Crapit (crapit_main · 2150 HP tại tọa độ (1164, 752), xuất hiện 1 lần duy nhất) đồng bộ 1:1 giữa Web Test Tool (tools/asset-viewer/vargost-skill-test.js) và Godot APK (Asset/Scenes/battle_arena/battle_arena_3v3.gd); thực thi Quy chuẩn Tối ưu Dung lượng Asset (Atlas-Only Hygiene) trong AGENTS.md và scripts/agent_guard.sh (xóa toàn bộ thư mục gốc Scrapit_vfx_skill, Scrapit_animation và toàn bộ file frame_*.png / preview.gif lẻ dư thừa).",
+      "source": "version.json"
+    },
+    {
+      "fact": "Đã thiết lập Quy chuẩn Quản lý Phiên bản & Lưu trữ Đánh giá theo Version (scripts/bump_version.sh, version.json, build/releases/GodWar-v<version>-code<code>.apk) và Quy chuẩn Định tuyến Tác vụ & Danh sách File Bắt buộc Đọc (scripts/agent_guard.sh); đồng thời hoàn tất nâng cấp v1.1.5 (code 16) với: 1) Vargost di chuyển theo xu hướng tiến về trước không phân biệt Trái hay Phải đều tự động hướng mặt theo chiều di chuyển và đổ người về trước 25 độ (+25° khi bay Trái -> Phải, -25° khi bay Phải -> Trái), triệt tiêu hoàn toàn hiện tượng ngửa người về sau; 2) Thiết lập 2 Khu Vực Căn Cứ Xuất Phát & Hồi Sinh (2 Vòng Tròn Đỏ Trái & Phải) cho Nhân vật bay trên không và Bộ binh trên địa hình tiến về tranh giành Thánh Kiếm đồng bộ 1:1 giữa Web Tool và Godot APK.",
+      "source": "version.json"
+    },
+    {
+      "fact": "Đã thiết lập Quy chuẩn Sửa Đổi Song Song Tức Thời (Dual-Target Lockstep Sync) trong AGENTS.md và 3 skill cốt lõi (godwar-combat-character, godwar-agent-safeguard, godwar-pr-workflow); đồng thời rà soát toàn diện (Audit 1:1) và sửa 8 điểm lệch logic giữa Web Test Tool (tools/asset-viewer/vargost-skill-test.js) và Godot/APK (Asset/Scenes/battle_arena/battle_arena_3v3.gd), kiểm thử 25/25 unit tests PASS và xuất lại build/GodWar-debug.apk đồng bộ 100%.",
+      "source": "AGENTS.md"
+    },
     {
       "fact": "Đã xuất và kiểm chứng thành công APK v1.1.2 (code 13) tại build/GodWar-debug.apk và đồng bộ 100% 4 yêu cầu của người dùng: 1) Triệt tiêu hoàn toàn lỗi Aoda giật nhấp nháy: Đã nạp trực tiếp candidate.json (3x3 grid, 9 frames per atlas, 1800x1800), thay thế hoàn toàn công thức nhầm lẫn (/ 8 và % 4 gây lệch atlas và lấy vùng ngoài biên 1800px); 2) Đồng bộ 100% cơ chế Red Tornado càn quét 1 đường thẳng về phía trước trên mặt đất (vx = facing * 140px/s) giữa Web Test Tool (vargost-skill-test.js), Godot Engine và Constitution AGENTS.md; 3) Vargost xạ thủ trong khoảng nghỉ chờ hồi chiêu (khoảng nghỉ) liên tục tuần tra chậm xung quanh không phận an toàn ở tốc độ tối thiểu qui định (SPEED_SLOW = 100px/s) với góc nghiêng thân nhẹ 12 độ, không còn đứng im bất động tại chỗ; 4) Tái cấu trúc phân lớp vẽ (Render Layering) và tích hợp ShaderMaterial hit flash: Đặt Explosion VFX xuống dưới chân nhân vật, đưa nhân vật và ShaderMaterial lóa sáng trắng tinh/đỏ cam lên trên, bổ sung độ trễ 0.22s trước khi Vargost Teleport giúp hiệu ứng lóa sáng khi trúng đòn hiển thị 100% rõ ràng, sắc nét và ấn tượng trên cả hai nhân vật.",
       "source": "build/GodWar-debug.apk"
@@ -106,33 +126,98 @@
     "Asset/Scenes/amore_scale_test/README.md"
   ],
   "current_task": {
-    "title": "Đồng Bộ Hóa 100% Hoạt Ảnh & Giao Diện UI Giữa Web Test Tool và Godot APK v1.0.9",
+    "title": "Thiết Lập Hiến Pháp Quản Lý Phiên Bản (Version Bump & Release Backup), Cổng Định Tuyến Tác Vụ Bắt Buộc Đọc File (agent_guard.sh) & Tối Giản Port 4173",
     "status": "completed",
     "changes": [
-      "1. Đồng bộ thanh máu Gothic RPG chuẩn xác 1:1: Hai dòng chữ số (tên nhân vật + máu chi tiết, ví dụ 'Vargost (T1) · 1000/1000 HP', 'Aoda (T2) · 950/950 HP') ở trên và nhãn trạng thái động '(Bay @ 380px/s (Nghiêng 25°))' ở dưới. Cơ chế Damage Ghost chuẩn 2 pha: Lóe sáng trắng/vàng 0.12s và Pixel Dissolve 0.42s với lưới hạt dither 2.5px làm lộ ruột rỗng.",
-      "2. Thanh tiến trình chiếm giữ Thánh Kiếm bay nổi 95px trên đầu thanh kiếm tại Platform 2 (130x12px viền vàng hoàng gia #d29922, ruột xanh/đỏ/cam, chữ '⚔️ X.Xs / 15.0s'), bỏ hoàn toàn vòng tròn UI quanh vật phẩm theo chỉ đạo của người dùng.",
-      "3. Hiệu ứng va chạm đòn đánh Hit Impact VFX: Cross Spark hình sao kim cương 4 cánh chữ thập nhọn (ngoài cam, giữa vàng sáng, lõi trắng) kết hợp sóng xung kích Shockwave bùng nở và chùm 24 tia lửa tàn tro pixel.",
-      "4. Tia ngắm đạn Blazing Halo Trajectory Line màu cam đứt đoạn + Tâm ngắm Aim Reticle bán kính 26px khi Vargost vận công.",
-      "5. Tornado Windup Preview: Vòng tròn ma pháp đỏ tụ lực dưới chân trước khi Red Tornado mọc lên; Red Tornado quét sàn 2.0s với đĩa lửa ground flame disc dưới chân.",
-      "6. Thanh 7 nút điều khiển cảm ứng tương tác ở đáy màn hình (Y: 995..1060px) khớp 100% mẫu ảnh image copy 6.png (Blazing Halo, Aoda Tornado, Đổi hướng, Đổi bệ, Test KO, Khởi động lại, Khóa 60 FPS).",
-      "7. Khóa cứng chuẩn hiệu năng 60 FPS theo Hiến pháp (max_fps=60, physics_ticks=60, vsync=1).",
-      "8. Đóng gói APK v1.0.9 (code 10) tại build/GodWar-debug.apk và cài đặt kiểm chứng trực tiếp trên Ramus Cloud Android Emulator."
+      "1. Dọn dẹp 21 port thừa trên GitHub Codespaces, chỉ giữ duy nhất Port 4173 (Public) cho kiểm thử hoạt ảnh & tải APK; cấu hình .vscode/settings.json chặn tự động forward port rác.",
+      "2. Cập nhật Hiến pháp AGENTS.md và 3 bộ Skill (godwar-agent-safeguard, godwar-combat-character, godwar-pr-workflow): Bổ sung quy chuẩn bắt buộc nâng cấp version khi nâng cấp và lưu trữ bản backup APK theo từng version tại build/releases/; bổ sung Bảng định tuyến tác vụ (làm việc gì bắt buộc đọc file gì).",
+      "3. Xây dựng tệp quản lý phiên bản trung tâm version.json (hiện tại v1.1.3, code 14) và script ./scripts/bump_version.sh tự động đồng bộ version giữa version.json, package.json, export_presets.cfg, project.godot và nhãn tải APK trên HTML.",
+      "4. Nâng cấp ./scripts/build_android_apk.sh tự động sao lưu bản APK theo đúng số hiệu version tại build/releases/GodWar-v<version>-code<code>.apk và mở route tải trực tiếp trên server.mjs.",
+      "5. Xây dựng script ./scripts/agent_guard.sh (npm run guard) chỉ định danh sách file bắt buộc đọc cho từng loại công việc (combat, add-char, release) và tự động kiểm định 6 điều khoản Hiến pháp (60 FPS, không file rác, bảo toàn state.json, đồng bộ version, backup APK, cú pháp JS)."
     ],
     "verification": [
-      "npm test: 25/25 bài kiểm thử PASS 100%.",
-      "godot --headless --path . Asset/Scenes/battle_arena/battle_arena_3v3.tscn: PASS 100% không lỗi cú pháp hoặc runtime.",
-      "Ramus Cloud Android Emulator: Đã cài APK v1.0.9 và chụp ảnh trực tiếp màn hình thực tế (ramus_v109_live.png, ramus_v109_halo_windup.png) xác nhận giao diện và hoạt ảnh hoàn toàn trùng khớp với web test tool."
+      "./scripts/agent_guard.sh all: PASS 100% toàn bộ 6 chốt kiểm định Hiến pháp.",
+      "./scripts/build_android_apk.sh: Xuất thành công build/GodWar-debug.apk và bản backup build/releases/GodWar-v1.1.3-code14.apk (59 MB).",
+      "npm test: 25/25 unit tests PASS 100%.",
+      "curl https://refactored-xylophone-6vr77rr657w43x5vx-4173.app.github.dev/ -> HTTP 200 OK."
     ],
     "remaining": [],
-    "limitations": [
-      "Mọi logic chiến đấu và hoạt ảnh đã được đồng bộ 100% theo Single Source of Truth."
-    ],
+    "limitations": [],
     "next_steps": [
-      "Người dùng trải nghiệm trực tiếp trên emulator qua link tương tác Ramus hoặc tải APK về điện thoại để trải nghiệm."
+      "Người dùng mở lại link trình duyệt (HTTP 200 OK) để sử dụng Bộ Công Cụ Tinh Chỉnh & Đo Pixel hoặc tải bản APK v1.1.3."
     ]
   },
-  "working_tree_note": "Đã xuất thành công Android APK v1.0.2 tại build/GodWar-debug.apk (60MB). Toàn bộ 25 unit tests và Godot 4 simulation tests đạt 100% PASS.",
+  "working_tree_note": "Đã thiết lập hệ thống quản lý version v1.1.3 (code 14), backup APK theo version tại build/releases/, và cổng kiểm định Hiến pháp ./scripts/agent_guard.sh. Server chạy ổn định tại cổng 4173.",
   "history": [
+    {
+      "title": "Tái Cấu Trúc Bộ Công Cụ Tinh Chỉnh & Đo Pixel (Tối Giản Header 1 Hàng, Đội Hình 3v3 6 Slot 50+ Tướng, Khung Tách 1:1 & Xuất Spec JSON Bộ Phận Cho Agent)",
+      "status": "completed",
+      "changes": [
+        "1. Tối giản thanh trạng thái Header (status-hud) từ 4 hàng rối mắt xuống đúng 1 hàng gọn gàng: Giữ Tiến trình chiếm giữ Thánh Kiếm + Frame hiện tại + Tọa độ Con trỏ + Nút Bật/Tắt Khung 1:1 + Nút '🔄 Hiệp Mới'.",
+        "2. Tái cấu trúc bảng điều khiển phía dưới thành 2 Card trực quan: Card 1 'Đội hình 3v3 trên Map (Tối đa 6 Nhân vật)' nạp toàn bộ danh sách 50+ nhân vật từ /api/measured-atlases kèm chiều cao mục tiêu từ height-targets.json vào 6 ô Slot (Đội 1 #1-#2-#3 ống máu xanh vs Đội 2 #4-#5-#6 ống máu đỏ), cho phép bật/tắt từng slot, chọn bệ đứng/bay, lật hướng và bấm '🔍 Đo / Cắt'; Card 2 'Bảng điều khiển Kỹ năng & La bàn Bay 8 hướng' bố trí dạng lưới 3x3 trực quan.",
+        "3. Nâng cấp Công cụ Đo & Đánh Dấu Bộ Phận (Agent Spec Inspector) kết hợp Khung Gốc 1:1 (Isolation Canvas) bên cạnh Map: Hỗ trợ 4 chế độ (📦 Khoanh Vùng Bounding Box, 📌 Chốt Khớp Pivot/Joint, 📏 Thước Đo Vector dx/dy & góc, 🎯 Điểm Phóng Đạn), gắn nhãn bộ phận (chân trái/phải, bàn chân, đầu gối, tay, vũ khí, thân, đầu, áo choàng...) và mục tiêu hành động (Đi/Chạy, Đánh thường, Bay, Nhảy, Gục KO), lưu danh sách nhiều bộ phận và xuất JSON chuẩn (godwar_sprite_part_rigging_spec_v1) để copy gửi thẳng cho Agent bóc tách ghép hoạt ảnh."
+      ],
+      "verification": [
+        "node --check tools/asset-viewer/vargost-skill-test.js: Cú pháp hợp lệ 100%.",
+        "npm test: 25/25 unit tests PASS 100%.",
+        "curl -s -I http://127.0.0.1:4173/vargost-skill-test.html -> HTTP 200 OK."
+      ],
+      "remaining": [],
+      "limitations": [],
+      "next_steps": [
+        "Người dùng sử dụng Khung 1:1 và công cụ Khoanh Vùng / Chốt Khớp để đo các bộ phận (chân, tay, vũ khí...) của nhân vật cần nâng cấp hoạt ảnh và copy JSON Spec gửi cho Agent."
+      ]
+    },
+    {
+      "title": "Khởi Chạy Localhost Asset Viewer (Cổng 4173) Phục Vụ Người Dùng Kiểm Thử Hoạt Ảnh & Giao Tranh",
+      "status": "completed",
+      "changes": [
+        "1. Chạy toàn bộ bộ test tự động npm test: 25/25 bài kiểm thử PASS 100%.",
+        "2. Khởi chạy HTTP server daemon (tools/asset-viewer/server.mjs) tại HOST=0.0.0.0 PORT=4173.",
+        "3. Thiết lập port 4173 sang chế độ Public trên GitHub Codespaces để có thể truy cập trực tiếp từ mọi trình duyệt.",
+        "4. Xác nhận phản hồi HTTP 200 OK trên các trang kiểm thử cốt lõi: /vargost-skill-test.html, /, /amore-scene.html."
+      ],
+      "verification": [
+        "npm test: 25/25 bài test pass 100%.",
+        "curl -s -I http://127.0.0.1:4173/ -> HTTP 200 OK",
+        "curl -s -I http://127.0.0.1:4173/vargost-skill-test.html -> HTTP 200 OK",
+        "curl -s -I http://127.0.0.1:4173/amore-scene.html -> HTTP 200 OK",
+        "gh codespace ports visibility 4173:public: Đã kích hoạt URL public https://refactored-xylophone-6vr77rr657w43x5vx-4173.app.github.dev"
+      ],
+      "remaining": [],
+      "limitations": [
+        "Server đang chạy daemon trong nền ở cổng 4173."
+      ],
+      "next_steps": [
+        "Người dùng mở trình duyệt kiểm tra hoạt ảnh và tương tác thử nghiệm trực tiếp."
+      ]
+    },
+    {
+      "title": "Đồng Bộ Hóa 100% Hoạt Ảnh & Giao Diện UI Giữa Web Test Tool và Godot APK v1.0.9",
+      "status": "completed",
+      "changes": [
+        "1. Đồng bộ thanh máu Gothic RPG chuẩn xác 1:1: Hai dòng chữ số (tên nhân vật + máu chi tiết, ví dụ 'Vargost (T1) · 1000/1000 HP', 'Aoda (T2) · 950/950 HP') ở trên và nhãn trạng thái động '(Bay @ 380px/s (Nghiêng 25°))' ở dưới. Cơ chế Damage Ghost chuẩn 2 pha: Lóe sáng trắng/vàng 0.12s và Pixel Dissolve 0.42s với lưới hạt dither 2.5px làm lộ ruột rỗng.",
+        "2. Thanh tiến trình chiếm giữ Thánh Kiếm bay nổi 95px trên đầu thanh kiếm tại Platform 2 (130x12px viền vàng hoàng gia #d29922, ruột xanh/đỏ/cam, chữ '⚔️ X.Xs / 15.0s'), bỏ hoàn toàn vòng tròn UI quanh vật phẩm theo chỉ đạo của người dùng.",
+        "3. Hiệu ứng va chạm đòn đánh Hit Impact VFX: Cross Spark hình sao kim cương 4 cánh chữ thập nhọn (ngoài cam, giữa vàng sáng, lõi trắng) kết hợp sóng xung kích Shockwave bùng nở và chùm 24 tia lửa tàn tro pixel.",
+        "4. Tia ngắm đạn Blazing Halo Trajectory Line màu cam đứt đoạn + Tâm ngắm Aim Reticle bán kính 26px khi Vargost vận công.",
+        "5. Tornado Windup Preview: Vòng tròn ma pháp đỏ tụ lực dưới chân trước khi Red Tornado mọc lên; Red Tornado quét sàn 2.0s với đĩa lửa ground flame disc dưới chân.",
+        "6. Thanh 7 nút điều khiển cảm ứng tương tác ở đáy màn hình (Y: 995..1060px) khớp 100% mẫu ảnh image copy 6.png (Blazing Halo, Aoda Tornado, Đổi hướng, Đổi bệ, Test KO, Khởi động lại, Khóa 60 FPS).",
+        "7. Khóa cứng chuẩn hiệu năng 60 FPS theo Hiến pháp (max_fps=60, physics_ticks=60, vsync=1).",
+        "8. Đóng gói APK v1.0.9 (code 10) tại build/GodWar-debug.apk và cài đặt kiểm chứng trực tiếp trên Ramus Cloud Android Emulator."
+      ],
+      "verification": [
+        "npm test: 25/25 bài kiểm thử PASS 100%.",
+        "godot --headless --path . Asset/Scenes/battle_arena/battle_arena_3v3.tscn: PASS 100% không lỗi cú pháp hoặc runtime.",
+        "Ramus Cloud Android Emulator: Đã cài APK v1.0.9 và chụp ảnh trực tiếp màn hình thực tế (ramus_v109_live.png, ramus_v109_halo_windup.png) xác nhận giao diện và hoạt ảnh hoàn toàn trùng khớp với web test tool."
+      ],
+      "remaining": [],
+      "limitations": [
+        "Mọi logic chiến đấu và hoạt ảnh đã được đồng bộ 100% theo Single Source of Truth."
+      ],
+      "next_steps": [
+        "Người dùng trải nghiệm trực tiếp trên emulator qua link tương tác Ramus hoặc tải APK về điện thoại để trải nghiệm."
+      ]
+    },
     {
       "title": "Khắc Phục Lỗi Tải 0 Byte Của VS Code Web: Cung Cấp Link Tải HTTP Trực Tiếp Cho GodWar-debug.apk (68MB)",
       "status": "completed",
@@ -990,6 +1075,123 @@
       ],
       "next_steps": [
         "Chờ người dùng kiểm duyệt giao diện không bóng chân Aoda, không hào quang tím Thánh Kiếm và độ mượt khi giao tranh."
+      ]
+    },
+    {
+      "title": "Bổ sung Quy chuẩn Sửa Đổi Song Song (Dual-Target Lockstep Sync), Rà soát Logic & Đồng bộ 100% giữa Web Test Tool và Godot APK",
+      "status": "completed",
+      "changes": [
+        "Cập nhật AGENTS.md, .agents/skills/godwar-combat-character/SKILL.md, .agents/skills/godwar-agent-safeguard/SKILL.md và .agents/skills/godwar-pr-workflow/SKILL.md: Bắt buộc sửa đổi song song đồng thời cả Web Test Tool lẫn Godot Scene và xuất lại build/GodWar-debug.apk trong cùng 1 lượt yêu cầu.",
+        "Sửa lỗi Blazing Halo trên Web Tool (tools/asset-viewer/vargost-skill-test.js): Khóa tọa độ mục tiêu (haloLockedTargetX/Y) ngay khi bắt đầu vận chiêu ở Frame 44, nhắm đúng độ cao thực tế của Aoda trên bệ thấp Platform 1A/1B thay vì cố định vào groundY (Platform 2), loại bỏ kiểm tra va chạm trùng lặp và sửa điều kiện chạm đất tránh đạn nổ giữa không trung khi bắn xuống bệ thấp.",
+        "Sửa lỗi Red Tornado trên Web Tool: Đặt tọa độ xuất phát theo đúng độ cao bệ hiện tại của Aoda (y thay vì groundY), bổ sung khóa bảo vệ cách Aoda tối thiểu 95px..120px, và xóa dòng gán t.x = t.originX ở pha DISSIPATE khiến lốc xoáy bị giật ngược về điểm xuất phát.",
+        "Đồng bộ chuẩn Hiến pháp trên Web Tool: Kẹp (clamp) hoạt ảnh KO của Aoda dừng tại frame 58 nằm yên trên đất; chuyển lớp vẽ Explosion VFX xuống dưới nhân vật để không che mất Hit Flash; xóa vòng elip nét đứt dưới chân Thánh Kiếm; và cập nhật Vargost tuần tra chậm liên tục ở tốc độ SPEED_SLOW = 100px/s nghiêng 12 độ trong khoảng nghỉ hồi chiêu.",
+        "Đồng bộ chuẩn 1:1 trên Godot APK (Asset/Scenes/battle_arena/battle_arena_3v3.gd): Cập nhật AI giữ khoảng cách tầm xa [260, 440] tương đối theo vị trí Aoda và kiểm tra tia ngắm Line-of-Sight (_raycast_env) trước khi bắn để tránh bắn mù vào vách đá; chuẩn hóa sát thương Blazing Halo lên Aoda thành 45 HP; bổ sung hiệu ứng nhún nhảy Squash & Stretch khi Aoda nhảy/tiếp đất; và đồng bộ tâm neo Tornado (-360, -640)."
+      ],
+      "verification": [
+        "node --check tools/asset-viewer/vargost-skill-test.js: Cú pháp hợp lệ 100%.",
+        "npm test: 25/25 unit tests PASS 100%.",
+        "godot --headless -s tools/test_instantiate_aoda_scene.gd & tools/test_instantiate_vargost_scene.gd & battle_arena_3v3.tscn: PASS 100%.",
+        "./scripts/build_android_apk.sh: Đã đóng gói và ký số thành công build/GodWar-debug.apk (59 MB)."
+      ],
+      "remaining": [],
+      "limitations": [],
+      "next_steps": [
+        "Sẵn sàng để người dùng kiểm thử trực tiếp trên localhost:4173 và file build/GodWar-debug.apk."
+      ]
+    },
+    {
+      "title": "Thực hiện 5 Task tinh chỉnh theo phản hồi test APK thật (Nhảy tiến, Nhảy xuống bật nhẹ, Lật mặt Aoda tức thời, Góc nghiêng tiến 25° của Vargost, Tornado 85px/s)",
+      "status": "completed",
+      "changes": [
+        "Task 1 (Aoda luôn nhảy tiến về phía trước): Trong tools/asset-viewer/vargost-skill-test.js và Asset/Scenes/battle_arena/battle_arena_3v3.gd, rút ngắn ranh giới kích hoạt nhảy trên plat_1b đến trước chân bậc plat_2 (p2_min_x - 35px) và kẹp (clamp) tọa độ đáp forward_target_x luôn tiến về phía trước tối thiểu +45px..+65px theo hướng mặt aoda_facing, triệt tiêu hoàn toàn hiện tượng chạy lố rồi nhảy lùi.",
+        "Task 2 (Aoda nhảy từ trên cao xuống có động tác bật nhảy nhẹ): Tách quỹ đạo nhảy xuống (delta_y > 0) sử dụng đường cong trọng lực pow(t, 1.85) kết hợp độ nảy vồng lên hop_up = sin(t * PI) * 52px ở đầu cú nhảy giúp Aoda bật nhẹ lên trên trước khi đáp vòng cung mềm mại xuống bậc thấp thay vì lao thẳng xuống.",
+        "Task 3 (Tăng tốc độ xoay người / lật mặt của Aoda tự nhiên): Chuyển aoda_visual_facing = aoda_facing lật tức thời trong 1 frame trên cả battle_arena_3v3.gd và aoda_character.gd (đồng bộ 100% Instant Turn Flip trên Web Tool), loại bỏ các frame trung gian bị co bẹp làm lộ điểm lật của ảnh.",
+        "Task 4 (Vargost nghiêng người 25° theo hướng tiến cả 2 chiều Trái ⇋ Phải): Cập nhật hướng mặt vargost_facing trước khi tính vector di chuyển và tính góc nghiêng target_tilt = sign(dir.x) * deg_to_rad(25.0) theo hướng tiến thực tế để khi bay tiến từ Phải sang Trái thân nhân vật nghiêng -25° chúi về phía trước (tuyệt đối không ngửa ra sau); giữ nguyên cơ chế Teleport đứng thẳng 0° khi lùi.",
+        "Task 5 (Giảm tốc độ di chuyển Red Tornado xuống 85px/s): Cập nhật vận tốc quét sàn của Tornado từ 140px/s xuống 85px/s (vx = facing * 85 * scale) đồng bộ trên vargost-skill-test.js, battle_arena_3v3.gd, AGENTS.md và aoda-combat-logic.test.mjs."
+      ],
+      "verification": [
+        "node --check tools/asset-viewer/vargost-skill-test.js: Cú pháp hợp lệ 100%.",
+        "npm test: 25/25 unit tests PASS 100%.",
+        "godot --headless -s tools/test_instantiate_aoda_scene.gd & tools/test_instantiate_vargost_scene.gd & battle_arena_3v3.tscn: PASS 100%.",
+        "./scripts/build_android_apk.sh: Đã đóng gói và ký số thành công build/GodWar-debug.apk (59 MB)."
+      ],
+      "remaining": [],
+      "limitations": [],
+      "next_steps": [
+        "Người dùng tải lại bản APK mới qua nút tải trên trang kiểm thử để nghiệm thu 5 thay đổi trên điện thoại."
+      ]
+    },
+    {
+      "title": "Nâng cấp v1.1.5 (code 16): Khắc phục Vargost đổ người về trước 25° ở cả 2 chiều Trái ⇋ Phải & Thiết lập 2 Vòng Tròn Đỏ Căn Cứ Xuất Phát/Hồi Sinh (Bay + Bộ binh)",
+      "status": "completed",
+      "changes": [
+        "Khắc phục triệt để lỗi Vargost ngửa người về sau khi di chuyển từ Phải sang Trái trên cả tools/asset-viewer/vargost-skill-test.js, Asset/Scenes/battle_arena/battle_arena_3v3.gd và Asset/Character/characters/vargost_combat/vargost_character.gd: Bất cứ khi nào có xu hướng di chuyển ngang (abs(dir.x) > 0.05), nhân vật tự động đồng bộ hướng mặt (facing = sign(dir.x)) và đổ người về phía trước đúng 25° (+25° khi bay Trái -> Phải, -25° khi bay Phải -> Trái); khi dừng lại hoặc bắt đầu vận chiêu HALO_WINDUP thì xoay mặt về mục tiêu và đứng thẳng 0°.",
+        "Thiết lập chuẩn 2 Khu Vực Căn Cứ Xuất Phát & Hồi Sinh theo đúng 2 vòng tròn đỏ người dùng vẽ (TEAM_SPAWN_ZONES trên Web Tool và LEFT_BASE / RIGHT_BASE trên Godot Arena): Căn cứ Đội 1 bên Trái (Zone 1: Nhân vật bay xuất hiện trên không tại X≈88, Y≈145; Bộ binh xuất hiện trên địa hình Platform 1A tại X≈82, Y=260) và Căn cứ Đội 2 bên Phải (Zone 3: Nhân vật bay xuất hiện trên không tại X≈415, Y≈55; Bộ binh Aoda xuất hiện trên địa hình Platform 3A tại X≈395, Y=100).",
+        "Cập nhật quy luật di chuyển tranh đoạt Thánh Kiếm từ 2 căn cứ: Aoda (Team 2) xuất phát và hồi sinh tại Căn Cứ Phải (Platform 3A), chạy và nhảy xuống Platform 2 (Bệ Giữa) để chiếm và phòng thủ Thánh Kiếm; Vargost (Team 1) xuất phát và hồi sinh trên không trung tại Căn Cứ Trái, bay tiến về phía trước nghiêng 25° giữ cự ly xạ thủ [260, 420] công kích kẻ địch, và tiến vào chiếm Thánh Kiếm khi Aoda bị hạ gục.",
+        "Bổ sung hiển thị trực quan 2 Vòng Tròn Đỏ Căn Cứ Đội 1 & Đội 2 trên Web Test Tool khi bật lớp 'Đất/Tường & Tia Ngắm LoS'.",
+        "Thực thi quy trình quản lý phiên bản theo Hiến pháp: Chạy ./scripts/bump_version.sh patch nâng lên v1.1.5 (code 16) và ./scripts/build_android_apk.sh xuất bản build/GodWar-debug.apk kèm bản lưu trữ build/releases/GodWar-v1.1.5-code16.apk."
+      ],
+      "verification": [
+        "./scripts/agent_guard.sh verify: 7/7 điều khoản Hiến pháp đạt chuẩn 100%.",
+        "npm test: 25/25 unit tests PASS 100% (bao gồm Test 10 kiểm tra 2 căn cứ xuất phát/hồi sinh và Test 11 kiểm tra góc đổ người về trước 25° khi bay từ Phải sang Trái).",
+        "godot --headless --quit: Khởi chạy không lỗi.",
+        "./scripts/build_android_apk.sh: Đã đóng gói và ký số thành công build/GodWar-debug.apk và lưu bản backup build/releases/GodWar-v1.1.5-code16.apk (59 MB)."
+      ],
+      "remaining": [],
+      "limitations": [],
+      "next_steps": [
+        "Người dùng kiểm tra trực tiếp trên Web Test Tool (/vargost-skill-test.html) và tải bản APK v1.1.5 (code 16) để nghiệm thu."
+      ]
+    },
+    {
+      "title": "Nâng cấp v1.1.6 (code 17): Bổ sung Boss Trung Lập Crapit (2150 HP tại (1164, 752)), Cầu nước bọt xuyên Zone 2, Icon Cấm Hồi Máu, AI Phản Xạ Đánh Trả & Tối ưu Atlas-Only",
+      "status": "completed",
+      "changes": [
+        "Đóng gói Bộ Asset Chuẩn Godot cho Boss Trung Lập Crapit tại Asset/Character/characters/crapit_boss/ gồm body_atlas.png (1974x2048, 22 frames 282x512), vfx_spit_orb/atlas.png (456x396, 122 frames 38x36 hiển thị 30x30), vfx_spit_explosion/atlas.png (280x287, 40x41 hiển thị 40x40), và xóa toàn bộ thư mục frame lẻ gốc Scrapit_vfx_skill, Scrapit_animation cùng toàn bộ file frame_*.png / preview.gif dư thừa trong Asset/Character/characters/ (giảm dung lượng APK từ 59 MB xuống 54 MB).",
+        "Cập nhật AGENTS.md và scripts/agent_guard.sh: Bổ sung Quy chuẩn Tối ưu Dung lượng Asset & Cấm Lưu Tệp Dư Thừa (Atlas-Only Asset Hygiene Policy) và Quy chuẩn Boss Trung Lập Crapit.",
+        "Triển khai Boss Trung Lập Crapit đồng bộ 1:1 trên cả tools/asset-viewer/vargost-skill-test.js và Asset/Scenes/battle_arena/battle_arena_3v3.gd: Đặt tại (1164, 752) trên Web Tool (tương ứng (1251.43, 842.86) trên Godot 1920x1080), HP = 2150, chỉ xuất hiện 1 lần duy nhất mỗi trận.",
+        "Triển khai kỹ năng phun cầu nước bọt của Boss Crapit: Chỉ kích hoạt khi có nhân vật đứng trong vùng chiếm Thánh Kiếm; ngắt quãng hồi chiêu 5.0s - 7.0s; hoạt ảnh Frame 5-7 chuẩn bị, kết thúc Frame 7 sang Frame 8 quả cầu 30x30 trượt mượt từ Pin #1 (103, 229) [offset -45, -103] sang tâm Box #2 [56, 232, 33, 28] (offset -75.5, -86) rồi bay tốc độ 500px/s vừa xoay tròn vừa giữ nguyên hoạt ảnh gốc, khóa mục tiêu không trượt, xuyên qua Địa hình số 2 (Platform 2 / Zone 2) nhưng bị cản bởi Địa hình số 1 & số 3; khi chạm mục tiêu hoặc địa hình 1/3 thì phát nổ 40x40.",
+        "Triển khai Sát thương 15 HP, Icon Cấm Hồi Máu (🚫💚 CẤM HỒI MÁU nằm ngay bên dưới thanh máu Gothic RPG, tồn tại đến khi tướng chết hoặc được giải) và Phản xạ Utility AI đánh trả Boss (chỉ tướng bị Boss đánh mới quay sang đánh trả đến khi Boss chết hoặc tướng đó chết & hồi sinh).",
+        "Triển khai hiệu ứng Boss Crapit tử trận: Pixel Dissolve mất dần từ dưới lên trên (bottom-to-top scanline dissolve) kết hợp bay lên cao 20px; đồng thời dựng sẵn kiến trúc bossLootDrop (ghi nhận người kết liễu đòn cuối lockedPickerId, tự động nhặt vật phẩm trên thanh máu, địch đổi mục tiêu săn người cầm vật phẩm, rơi tự do khi chết và mang về Rương tại Căn Cứ Hồi Sinh) để sẵn sàng scale ở giai đoạn tiếp theo."
+      ],
+      "verification": [
+        "./scripts/agent_guard.sh verify: Đạt chuẩn 100% (0 file frame lẻ hay thư mục Scrapit_* dư thừa).",
+        "node --check tools/asset-viewer/vargost-skill-test.js: Cú pháp hợp lệ 100%.",
+        "npm test: 25/25 unit tests PASS 100% (bao gồm Test 12 kiểm chứng Boss Crapit 2150 HP, xuyên Zone 2, Cấm Hồi Máu, AI đánh trả và lockedPickerId).",
+        "./scripts/build_android_apk.sh: Đã đóng gói và ký số thành công build/GodWar-debug.apk và lưu bản backup build/releases/GodWar-v1.1.6-code17.apk (54 MB, nhẹ hơn 5 MB nhờ dọn sạch frame lẻ)."
+      ],
+      "remaining": [],
+      "limitations": [],
+      "next_steps": [
+        "Người dùng kiểm tra trực tiếp Boss Crapit trên Web Test Tool (/vargost-skill-test.html) và tải bản APK v1.1.6 (code 17) để nghiệm thu."
+      ]
+    },
+    {
+      "title": "Nâng cấp v1.1.7 (code 18): Khắc phục lỗi Khung Gốc 1:1 & bổ sung Zoom, Boss Crapit xuất hiện đầu trận & Miễn nhiễm CC, Hiệu ứng Dấu '+' Đỏ, Lốc Xoáy Nảy Tường & Trúng Trên Không, Asset & Cơ chế Cổ Vật Rơi, AI Hộ Tống Căn Cứ",
+      "status": "completed",
+      "changes": [
+        "Khắc phục triệt để lỗi vòng lặp 'CRAPIT_ANCHOR_PX is not defined' và sự cố mất hình tướng trong 🖼️ Khung Gốc 1:1: Đã định nghĩa CRAPIT_ANCHOR_PX = [148.0, 332.0], bổ sung xử lý case riêng cho crapit_main / crapit_boss trong getSlotSpriteInfo; tích hợp bộ điều khiển Zoom In [＋], Zoom Out [－], [1:1] Reset cùng tính năng cuộn chuột (wheel) và kéo rê chuột phải / giữa (drag pan) trong tools/asset-viewer/vargost-skill-test.html và vargost-skill-test.js.",
+        "Boss Crapit xuất hiện trực tiếp ngay từ đầu trận trong map (thay vì chỉ kích hoạt từ xa); cấu hình miễn nhiễm 100% mọi hiệu ứng bất lợi (Stun, Root, Silence, Cấm Hồi Máu), Boss chỉ chịu sát thương và chớp lóa trắng khi bị tấn công.",
+        "Thay thế nhãn chữ 🚫 CẤM HỒI MÁU bằng Animation Status Effect dạng nhiều dấu '+' (biểu tượng HP) nhỏ màu đỏ chạy từ nhỏ đến to xuất phát từ 30% thân người tướng từ trên xuống và chảy dọc bên cạnh chân phải xuống đất, đồng bộ cả Web Tool và Godot Arena.",
+        "Nâng cấp chiêu Lốc Xoáy Red Tornado của Aoda: Trúng cả mục tiêu trên không (Vargost) lẫn dưới đất; khi di chuyển va chạm địa hình vách đá Zone 1 / Zone 3 hoặc mép map thì tự động nảy ngược hướng (vx = -vx, facing = -facing) càn quét tiếp tục đến hết 2.0s thời gian tồn tại.",
+        "Bóc tách nền sạch và đóng gói asset Cổ Vật Boss rơi (Loot Orb) từ ảnh người dùng cung cấp tại Asset/Character/characters/crapit_boss/loot_orb/atlas.png.",
+        "Triển khai hoạt ảnh và cơ chế Cổ Vật Boss: Khi Boss Crapit chết, Cổ Vật rơi tại vị trí của Boss với kích thước 30x30 kèm hiệu ứng hào quang tỏa tròn và tia sáng lóe xoay quanh.",
+        "Triển khai cơ chế Nhặt Đồ & Utility AI Hộ Tống Căn Cứ: Tướng kết liễu đòn cuối di chuyển tới phạm vi 45px để nhặt Cổ Vật (tự động hiện icon 10x10 trên đỉnh thanh máu); đội nhặt được Cổ Vật bị giảm 10% tốc độ di chuyển; tướng mang Cổ Vật ưu tiên số 1 di chuyển về điểm căn cứ cuối map (Đội Trái: 379, 638; Đội Phải: 1577, 400); 2 đồng đội đi theo vừa di chuyển vừa đánh trả kẻ địch để hộ tống (nếu chết sẽ hồi sinh tại nhà rồi chạy tới tiếp tục hộ tống); toàn bộ đội địch đổi mục tiêu dồn dập tấn công người cầm Cổ Vật; nếu người cầm Cổ Vật bị tiêu diệt, Cổ Vật rơi tự do tại chỗ và bất kỳ tướng nào cũng có thể nhặt tiếp; khi mang về đến phạm vi căn cứ thông báo hoàn thành xuất sắc và quay lại mục tiêu tranh giành Thánh Kiếm.",
+        "Đồng bộ hóa 100% tuyệt đối (Single Source of Truth) giữa tools/asset-viewer/vargost-skill-test.js và Asset/Scenes/battle_arena/battle_arena_3v3.gd, kiểm chứng qua Godot Headless và bộ test tự động npm test (25/25 PASS).",
+        "Thực thi quy trình quản lý phiên bản theo Hiến pháp: Chạy ./scripts/bump_version.sh patch nâng lên v1.1.7 (code 18) và ./scripts/build_android_apk.sh xuất bản build/GodWar-debug.apk kèm bản lưu trữ build/releases/GodWar-v1.1.7-code18.apk (54 MB)."
+      ],
+      "verification": [
+        "./scripts/agent_guard.sh: Tất cả điều khoản Hiến pháp đạt chuẩn 100%.",
+        "node --check tools/asset-viewer/vargost-skill-test.js: Cú pháp hợp lệ 100%.",
+        "godot --headless --editor --quit: Biên dịch không có bất kỳ lỗi script nào (0 parse errors).",
+        "npm test: 25/25 unit tests PASS 100%.",
+        "./scripts/build_android_apk.sh: Đã đóng gói và ký số thành công build/GodWar-debug.apk và lưu bản backup build/releases/GodWar-v1.1.7-code18.apk (54 MB)."
+      ],
+      "remaining": [],
+      "limitations": [],
+      "next_steps": [
+        "Người dùng mở Web Test Tool (/vargost-skill-test.html) kiểm tra tính năng Zoom Khung Gốc 1:1, Boss Crapit đầu trận, Lốc Xoáy nảy tường, hiệu ứng dấu '+' đỏ, và cơ chế Cổ Vật rơi & hộ tống căn cứ.",
+        "Tải bản APK v1.1.7 (code 18) trực tiếp để trải nghiệm trên điện thoại Android."
       ]
     }
   ]

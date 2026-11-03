@@ -1,6 +1,6 @@
 ---
 name: godwar-combat-character
-description: Quy chuẩn kiến trúc xây dựng nhân vật chiến đấu (Combat Character) cho GodWar 3v3 Mobile Auto-battler; bắt buộc hỗ trợ xuất phát và tác chiến cả 2 hướng (Trái ➔ Phải và Phải ➔ Trái), lật đối xứng ngang quanh trục neo chân pivot, tự động đồng bộ SpawnMarker2D, đạn vector 2D, động học bay nghiêng thân, hoạt ảnh nhảy liên tục không đơ hình tĩnh và bộ não Utility AI.
+description: Quy chuẩn kiến trúc xây dựng nhân vật chiến đấu (Combat Character) cho GodWar 3v3 Mobile Auto-battler; bắt buộc hỗ trợ xuất phát và tác chiến cả 2 hướng (Trái ➔ Phải và Phải ➔ Trái), lật đối xứng ngang quanh trục neo chân pivot, tự động đồng bộ SpawnMarker2D, đạn vector 2D, động học bay nghiêng thân, hoạt ảnh nhảy liên tục không đơ hình tĩnh, bộ não Utility AI, và bắt buộc sửa đổi song song tức thời 1:1 giữa Web Test Tool và Godot APK Bundle.
 ---
 
 # Quy chuẩn Xây dựng Nhân vật Chiến đấu (Combat Character) GodWar 3v3
@@ -166,3 +166,19 @@ Mỗi khi tạo công cụ kiểm thử trực quan trên Web Viewer (cổng 417
    - Các kỹ năng lốc xoáy / sóng năng lượng càn quét mặt đất bắt buộc di chuyển tịnh tiến theo 1 đường thẳng cố định về phía trước (`vx = facing * speed`), đồng bộ 100% giữa Web Test Tool và Godot Engine.
 3. **Tuần Tra Chậm Trong Khoảng Nghỉ Của Xạ Thủ (Marksman Cooldown Slow Patrol):**
    - Xạ thủ đánh xa trong thời gian chờ hồi chiêu (khoảng nghỉ) không được đứng im tại chỗ; bắt buộc duy trì tuần tra chậm xung quanh không phận an toàn ở tốc độ tối thiểu (`SPEED_SLOW = 100px/s`) kèm nghiêng thân nhẹ $\pm 10^\circ$.
+
+---
+
+## 9. Quy chuẩn Sửa Đổi Song Song Tức Thời Giữa Web Test Tool và Godot APK Bundle (Dual-Target Lockstep Sync)
+
+> [!CAUTION]
+> **NGUYÊN TẮC BẮT BUỘC 100% — KHÔNG BAO GIỜ CHỈ SỬA MỘT BÊN:**
+> Mọi yêu cầu chỉnh sửa từ người dùng (dù nhỏ nhất như đổi tốc độ, chỉnh frame hoạt ảnh, sửa quỹ đạo đạn, khoảng cách thanh máu, hay thay đổi hành vi AI) **BẮT BUỘC PHẢI ĐƯỢC SỬA SONG SONG ĐỒNG THỜI Ở CẢ 2 NƠI TRONG CÙNG MỘT LƯỢT THỰC HIỆN**:
+
+1. **Đầu 1 — Web Test Tool (Single Source of Truth):**
+   - Cập nhật tại `tools/asset-viewer/vargost-skill-test.js`, `tools/asset-viewer/vargost-skill-test.html`, và các file JSON manifest nhân vật (`Asset/Character/characters/*_combat/*_actions.json`).
+2. **Đầu 2 — Godot 4 Engine & Bundle APK:**
+   - Cập nhật chính xác 1:1 vào `Asset/Scenes/battle_arena/battle_arena_3v3.gd`, các script node nhân vật (`*_character.gd`, `scripts/animation/gif_atlas_library.gd`).
+   - **Tự động nâng cấp Version & đóng gói lại file bundle APK (`build/GodWar-debug.apk` + `build/releases/`):** Ngay sau khi sửa code cả 2 đầu và chạy pass các bài test (`npm test` và `godot --headless`), agent **phải chạy `./scripts/bump_version.sh patch "<mô tả nâng cấp>"` rồi chạy `./scripts/build_android_apk.sh` và `./scripts/agent_guard.sh verify`** để xuất bản APK mới nhất ra `build/GodWar-debug.apk` đồng thời lưu bản backup theo version tại `build/releases/GodWar-v<version>-code<code>.apk`.
+3. **Mục đích:**
+   - Đảm bảo bất cứ khi nào người dùng muốn tải hoặc cài đặt `build/GodWar-debug.apk` lên điện thoại / trình giả lập để test, bản APK đó **đã chứa đầy đủ 100% mọi chỉnh sửa vừa thực hiện trên Web Tool** và luôn có bản lưu theo từng version để đối chiếu, đánh giá.

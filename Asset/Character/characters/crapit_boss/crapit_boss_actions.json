@@ -1,0 +1,81 @@
+{
+  "character_id": "crapit_boss",
+  "display_name": "Boss Crapit",
+  "role": "neutral_map_boss",
+  "spawn_once_per_match": true,
+  "respawn_enabled": false,
+  "max_hp": 2150,
+  "attack_damage": 15,
+  "attack_cooldown_sec_range": [5.0, 7.0],
+  "debuff_on_hit": {
+    "id": "anti_heal",
+    "name": "Cấm Hồi Máu (Anti-Heal)",
+    "duration": "until_death_or_cleanse",
+    "icon_position": "below_health_bar"
+  },
+  "position": {
+    "web_tool_canvas_px": [1164, 752],
+    "map_space_px": [333.7143, 256.7619]
+  },
+  "target_height_px": 100,
+  "reference_height_px": 176,
+  "display_scale": 0.5682,
+  "frame_size": [282, 512],
+  "anchor_px": [148.0, 332.0],
+  "atlas_path": "Asset/Character/characters/crapit_boss/body_atlas.png",
+  "actions": {
+    "idle": {
+      "start_frame": 0,
+      "end_frame": 4,
+      "fps": 10
+    },
+    "windup": {
+      "start_frame": 5,
+      "end_frame": 7,
+      "fps": 10
+    },
+    "release": {
+      "frame": 8,
+      "mouth_pin_px": [103, 229],
+      "mouth_offset_from_anchor_px": [-45, -103],
+      "saliva_box_rect_px": [56, 232, 33, 28],
+      "saliva_box_offset_from_anchor_px": [-92, -100],
+      "saliva_center_offset_from_anchor_px": [-75.5, -86.0]
+    },
+    "death": {
+      "effect": "bottom_to_top_pixel_dissolve",
+      "rise_distance_px": 20,
+      "duration_sec": 1.6
+    }
+  },
+  "projectile": {
+    "atlas_path": "Asset/Character/characters/crapit_boss/vfx_spit_orb/atlas.png",
+    "frames_json": "Asset/Character/characters/crapit_boss/vfx_spit_orb/frames.json",
+    "frame_w": 38,
+    "frame_h": 36,
+    "cols": 12,
+    "rows": 11,
+    "total_frames": 122,
+    "display_size_px": [30, 30],
+    "speed_px_per_sec": 500,
+    "spin_rotation_rad_per_sec": 12.0,
+    "homing_locked_target": true,
+    "ignore_terrain_zones": ["zone_2"],
+    "collide_terrain_zones": ["zone_1", "zone_3"]
+  },
+  "explosion": {
+    "atlas_path": "Asset/Character/characters/crapit_boss/vfx_spit_explosion/atlas.png",
+    "frames_json": "Asset/Character/characters/crapit_boss/vfx_spit_explosion/frames.json",
+    "frame_w": 40,
+    "frame_h": 41,
+    "cols": 7,
+    "rows": 7,
+    "total_frames": 49,
+    "active_burst_frames": 6,
+    "display_size_px": [40, 40]
+  },
+  "future_loot_extraction_architecture": {
+    "enabled": false,
+    "note": "Thiết kế kiến trúc mở rộng cho tương lai (hiện tại chưa kích hoạt rớt đồ): 1) Khi Crapit chết (HP=0), ghi nhận last_hit_killer_id. 2) Nếu rớt vật phẩm (drop_rate), ban đầu locked_picker_id = last_hit_killer_id (chỉ người kết liễu mới nhặt được). 3) Người kết liễu chủ động di chuyển tới vị trí vật phẩm rơi để nhặt; khi nhặt xong, icon vật phẩm hiển thị BÊN TRÊN thanh máu (above_health_bar). 4) Tướng cầm vật phẩm bắt buộc rút về Rương tại Căn Cứ Hồi Sinh của đội mình (Base Chest). 5) Toàn bộ tướng đội địch lập tức đổi mục tiêu sang săn đuổi người cầm vật phẩm. 6) Nếu người cầm vật phẩm bị giết trên đường về, vật phẩm rơi ra ở trạng thái tự do (locked_picker_id = null, is_free_for_all = true) để bất kỳ tướng nào còn sống cũng nhặt được và mang về rương căn cứ đội mình. 7) Khi cất vào rương thành công, toàn bộ tướng quay lại mục tiêu chiếm Thánh Kiếm."
+  }
+}

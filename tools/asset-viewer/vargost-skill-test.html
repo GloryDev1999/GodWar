@@ -35,10 +35,6 @@
       padding: 10px 16px;
       background: var(--card-bg);
       border-bottom: 1px solid var(--border);
-      height: 64px;
-      min-height: 64px;
-      max-height: 64px;
-      overflow: hidden;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -67,19 +63,22 @@
       padding: 8px 14px 24px;
     }
 
-    /* Status HUD Bar - Fixed Height & Zero Layout Shift (Anti-Jitter) */
+    /* Status HUD Bar - Compact Single Row (Anti-Jitter) */
     .status-hud {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
       margin: 6px auto;
-      height: 134px;
-      min-height: 134px;
-      max-height: 134px;
+      height: 36px;
+      min-height: 36px;
+      max-height: 36px;
       overflow: hidden;
       width: 100%;
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size: 12px;
+    }
+    .hud-hidden-legacy {
+      display: none !important;
     }
     .hud-row {
       display: flex;
@@ -200,15 +199,272 @@
     /* Main Stage Layout */
     .stage-container {
       display: grid;
-      grid-template-columns: 1fr 310px;
+      grid-template-columns: 1fr 370px;
       gap: 12px;
       margin: 8px 0;
       align-items: start;
     }
-    @media (max-width: 1080px) {
+    @media (max-width: 1180px) {
       .stage-container {
         grid-template-columns: 1fr;
       }
+    }
+
+    /* Isolation Frame View Dock */
+    .stage-left-column {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+    }
+    .viewport-split-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      align-items: stretch;
+    }
+    .viewport-split-grid.with-isolation {
+      grid-template-columns: 1.35fr 0.85fr;
+    }
+    @media (max-width: 1180px) {
+      .viewport-split-grid.with-isolation {
+        grid-template-columns: 1fr;
+      }
+    }
+    .isolation-dock {
+      display: none;
+      flex-direction: column;
+      background: #0d1117;
+      border: 2px solid #58a6ff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    }
+    .isolation-dock.active {
+      display: flex;
+    }
+    .isolation-header {
+      background: #161b22;
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #58a6ff;
+    }
+    .mini-btn {
+      background: #21262d;
+      border: 1px solid #30363d;
+      color: #c9d1d9;
+      border-radius: 3px;
+      font-size: 11px;
+      padding: 1px 6px;
+      cursor: pointer;
+      user-select: none;
+      line-height: 1.3;
+    }
+    .mini-btn:hover {
+      background: #30363d;
+      color: #58a6ff;
+      border-color: #58a6ff;
+    }
+    .isolation-canvas-wrap {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: repeating-conic-gradient(#161b22 0% 25%, #0d1117 0% 50%) 50% / 16px 16px;
+      min-height: 300px;
+      padding: 6px;
+    }
+    canvas#isolation-canvas {
+      max-width: 100%;
+      max-height: 360px;
+      aspect-ratio: 1 / 1;
+      image-rendering: pixelated;
+      cursor: crosshair;
+      border: 1px solid #30363d;
+      background: rgba(0,0,0,0.35);
+    }
+    .isolation-footer {
+      padding: 6px 10px;
+      background: #161b22;
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    /* 3v3 Roster Cards & Control Deck */
+    .deck-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 12px;
+      margin: 8px 0;
+    }
+    @media (max-width: 1100px) {
+      .deck-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .deck-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: left;
+    }
+    .deck-card-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin: 0 0 10px 0;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .team-slots-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    @media (max-width: 680px) {
+      .team-slots-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .team-column {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px;
+    }
+    .team-column.team-1 {
+      border-top: 3px solid #3fb950;
+    }
+    .team-column.team-2 {
+      border-top: 3px solid #f85149;
+    }
+    .team-col-header {
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .slot-item {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding: 6px 8px;
+      margin-bottom: 6px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 5px;
+      font-size: 11px;
+    }
+    .slot-item:last-child {
+      margin-bottom: 0;
+    }
+    .slot-item.focused-inspect {
+      border-color: #58a6ff;
+      box-shadow: 0 0 0 1px rgba(88, 166, 255, 0.4);
+    }
+    .slot-row-top {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: space-between;
+    }
+    .slot-row-top select {
+      flex: 1;
+      font-size: 12px;
+      padding: 3px 6px;
+      min-width: 0;
+    }
+    .slot-row-bottom {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+    .badge-mini {
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-weight: 600;
+    }
+
+    /* Tool Mode Buttons & Annotation List */
+    .tool-mode-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      margin: 6px 0;
+    }
+    .tool-mode-btn {
+      padding: 6px 4px;
+      font-size: 11px;
+      justify-content: center;
+      background: #21262d;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .tool-mode-btn.active {
+      background: #1f6feb;
+      border-color: #58a6ff;
+      color: #fff;
+    }
+    .annotation-list {
+      max-height: 155px;
+      overflow-y: auto;
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 5px;
+      margin-top: 6px;
+      font-family: monospace;
+      font-size: 11px;
+    }
+    .annotation-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 6px;
+      border-bottom: 1px solid #21262d;
+      background: #161b22;
+      border-radius: 4px;
+      margin-bottom: 4px;
+    }
+    .annotation-item:last-child {
+      margin-bottom: 0;
+      border-bottom: none;
+    }
+    .agent-spec-textarea {
+      width: 100%;
+      height: 105px;
+      background: #090d11;
+      color: #7ee787;
+      border: 1px solid #30363d;
+      border-radius: 5px;
+      padding: 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      resize: vertical;
+      margin-top: 6px;
     }
 
     .viewport-wrapper {
@@ -450,229 +706,490 @@
   <header>
     <h1>GodWar · Bộ Công Cụ Tinh Chỉnh & Đo Pixel Vargost Combat & Aoda 90px</h1>
     <p>Vargost (Bay & Blazing Halo) ⇋ Aoda (90px · Mặt Đất · Lốc Xoáy Đất 2s Stun & Không Kích Nổ) · Ranh Giới Môi Trường 3 Phân Vùng</p>
-    <div style="margin-top: 10px; display: flex; justify-content: center; gap: 12px; align-items: center; flex-wrap: wrap;">
+    <div style="margin-top: 8px; display: flex; justify-content: center; gap: 12px; align-items: center; flex-wrap: wrap;">
       <a href="/GodWar-debug.apk" download="GodWar-debug.apk" style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #238636, #2ea043); color: #ffffff; padding: 8px 18px; font-size: 14px; font-weight: bold; border-radius: 6px; text-decoration: none; box-shadow: 0 4px 12px rgba(46, 160, 67, 0.4); border: 1px solid #3fb950;">
-        📥 TẢI FILE ANDROID APK (68 MB) CÀI LÊN ĐIỆN THOẠI
+        📥 TẢI FILE ANDROID APK (v1.1.8 · 59 MB) CÀI LÊN ĐIỆN THOẠI
       </a>
       <span style="font-size: 12px; color: #8b949e;">(Tải trực tiếp qua HTTP đầy đủ 100% dung lượng, tránh lỗi 0 byte của VS Code Web)</span>
     </div>
   </header>
 
   <main>
-    <!-- Status Badges - Fixed 3-Row Structured Grid (Zero Jitter) -->
+    <!-- Compact Single-Row Status HUD (User Approved: Holy Sword + Frame + Cursor + Reset Match) -->
     <div class="status-hud">
-      <div class="hud-row">
-        <span class="badge" id="hud-locomotion" style="flex: 1.4;" title="Trạng thái cơ động">Di chuyển: LƠ LỬNG TRÊN KHÔNG</span>
-        <span class="badge" id="hud-ai" style="flex: 1.1;" title="Trạng thái bộ não Utility AI">AI: Tuần tra chiến thuật</span>
-        <span class="badge" id="hud-state" style="flex: 1.5;" title="Trạng thái hành động & kỹ năng">Trạng thái: SẴN SÀNG</span>
-      </div>
-      <div class="hud-row metrics-row">
-        <span class="badge" id="hud-range" style="flex: 1.1;" title="Khoảng cách tới mục tiêu">Cự ly: 350px (Tối ưu: 150-550)</span>
-        <span class="badge" id="hud-frame" style="flex: 0.8;" title="Khung hình hoạt ảnh">Frame: 0/82</span>
-        <span class="badge" id="hud-projectile" style="flex: 1.3;" title="Trạng thái đường đạn">Đạn: Sẵn sàng</span>
-        <span class="badge" id="hud-coords" style="flex: 0.8;" title="Tọa độ chuột trên canvas">Con trỏ: (0, 0)</span>
-      </div>
-      <div class="hud-row aoda-row">
-        <span class="badge" id="hud-aoda-state" style="flex: 1.4; border-color: #f0883e; color: #f0883e;" title="Trạng thái Aoda">Aoda: Tuần tra Sau Cây Cao (Platform 1A)</span>
-        <span class="badge" id="hud-aoda-ai" style="flex: 1.1;" title="Trí tuệ nhân tạo Aoda">Aoda AI: Sẵn sàng</span>
-        <span class="badge" id="hud-env-status" style="flex: 1.5; border-color: #3fb950; color: #3fb950;" title="Trạng thái ranh giới môi trường">Môi trường: 3 Phân vùng (Đất cản đạn & Vargost)</span>
-      </div>
       <div class="hud-row objective-row">
-        <span class="badge" id="hud-objective-status" style="flex: 2.2; font-weight: bold; font-size: 13px; background: #161b22; border-color: #a371f7; color: #d2a8ff;" title="Tiến trình tranh đoạt Thánh Kiếm trung tâm (20.0s liên tục để chiến thắng)">⚔️ THÁNH KIẾM TRUNG TÂM (Mục Tiêu 20.0s) · Chưa Ai Chiếm</span>
-        <span class="badge" id="hud-vargost-objective" style="flex: 1.2; border-color: #3fb950; color: #3fb950;" title="Chiến thuật Utility AI của Vargost">Vargost: [TIẾN ĐÁNH KIẾM]</span>
-        <span class="badge" id="hud-aoda-objective" style="flex: 1.2; border-color: #f85149; color: #ff7b72;" title="Chiến thuật Utility AI của Aoda">Aoda: [TIẾN ĐÁNH KIẾM]</span>
+        <span class="badge" id="hud-objective-status" style="flex: 2.3; font-weight: bold; font-size: 13px; background: #161b22; border-color: #a371f7; color: #d2a8ff;" title="Tiến trình tranh đoạt Thánh Kiếm trung tâm">⚔️ THÁNH KIẾM TRUNG TÂM · Chưa Ai Chiếm</span>
+        <span class="badge" id="hud-frame" style="flex: 0.9; font-weight: 600; border-color: #f0883e; color: #ff9b53;" title="Khung hình hoạt ảnh của nhân vật đang chọn">Frame: 0/82</span>
+        <span class="badge" id="hud-coords" style="flex: 0.9;" title="Tọa độ con trỏ trên Map / Khung Frame">Con trỏ: (0, 0)</span>
+        <button id="btn-toggle-isolation" class="secondary small" style="border-color: #58a6ff; color: #58a6ff; font-weight: bold; height: 30px; line-height: 28px; padding: 0 10px;" title="Bật/Tắt khung tách riêng 1:1 Frame Gốc để đo và cắt ghép bộ phận (chân, tay, vũ khí)">🖼️ Tách Khung 1:1: BẬT</button>
         <button id="btn-reset-match" class="secondary small" style="border-color: #a371f7; color: #d2a8ff; font-weight: bold; height: 30px; line-height: 28px; padding: 0 12px;" title="Khởi động lại hiệp đấu tranh đoạt Thánh Kiếm">🔄 Hiệp Mới</button>
+      </div>
+      <!-- Legacy hidden badges preserved for JS compatibility -->
+      <div class="hud-hidden-legacy">
+        <span id="hud-locomotion"></span>
+        <span id="hud-ai"></span>
+        <span id="hud-state"></span>
+        <span id="hud-range"></span>
+        <span id="hud-projectile"></span>
+        <span id="hud-aoda-state"></span>
+        <span id="hud-aoda-ai"></span>
+        <span id="hud-env-status"></span>
+        <span id="hud-vargost-objective"></span>
+        <span id="hud-aoda-objective"></span>
       </div>
     </div>
 
-    <!-- Stage & Pixel Inspector Layout -->
+    <!-- Stage & Pixel Rigging Inspector Layout -->
     <div class="stage-container">
-      <div class="viewport-wrapper">
-        <canvas id="stage" width="1920" height="1080"></canvas>
+      <div class="stage-left-column">
+        <div class="viewport-split-grid with-isolation" id="viewport-split-grid">
+          <div class="viewport-wrapper">
+            <canvas id="stage" width="1920" height="1080"></canvas>
+          </div>
+
+          <!-- 1:1 Raw Frame Isolation Dock for Sub-Part Slicing & Rigging -->
+          <div class="isolation-dock active" id="isolation-dock">
+            <div class="isolation-header">
+              <span id="iso-title">🖼️ Khung Gốc 1:1: Vargost (200×200)</span>
+              <div style="display: flex; gap: 4px; align-items: center;">
+                <button type="button" id="btn-iso-zoom-out" class="mini-btn" title="Thu nhỏ (Zoom Out)">−</button>
+                <span id="lbl-iso-zoom" style="font-size: 11px; min-width: 38px; text-align: center; color: #58a6ff; font-family: monospace;">100%</span>
+                <button type="button" id="btn-iso-zoom-in" class="mini-btn" title="Phóng to (Zoom In)">+</button>
+                <button type="button" id="btn-iso-zoom-reset" class="mini-btn" title="Đặt lại tỷ lệ 100%">1:1</button>
+                <label style="font-size: 11px; font-weight: normal; cursor: pointer; margin-left: 6px;" title="Hiện lưới tọa độ pixel">
+                  <input type="checkbox" id="chk-iso-grid" checked> Lưới
+                </label>
+                <label style="font-size: 11px; font-weight: normal; cursor: pointer;" title="Hiện trục neo chân (Anchor Pivot)">
+                  <input type="checkbox" id="chk-iso-anchor" checked> Neo
+                </label>
+              </div>
+            </div>
+            <div class="isolation-canvas-wrap">
+              <canvas id="isolation-canvas" width="400" height="400"></canvas>
+            </div>
+            <div class="isolation-footer">
+              <span id="iso-meta-info">Atlas: #0 · Region: [0, 0, 200, 200] · Anchor: (105, 162)</span>
+              <span id="iso-cursor-info" style="color: #7ee787;">Local: (--, --)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timeline Scrubber & Frame Stepper (Attached directly under Viewport) -->
+        <div class="timeline-bar" style="margin: 0;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="font-size: 12px; font-weight: bold; color: #58a6ff;">🎯 Đang soi:</span>
+            <select id="sel-inspect-target" style="font-weight: bold; border-color: #58a6ff; color: #58a6ff;">
+              <option value="slot_1">Slot 1 (Đội 1): vargost</option>
+              <option value="slot_4">Slot 4 (Đội 2): aoda</option>
+              <option value="slot_2">Slot 2 (Đội 1)</option>
+              <option value="slot_3">Slot 3 (Đội 1)</option>
+              <option value="slot_5">Slot 5 (Đội 2)</option>
+              <option value="slot_6">Slot 6 (Đội 2)</option>
+            </select>
+          </div>
+
+          <div class="timeline-btns">
+            <button class="secondary small" id="btn-frame-first" title="Về Frame 0">⏮</button>
+            <button class="secondary small" id="btn-frame-prev" title="Lùi 1 Frame">◀</button>
+            <button class="small" id="btn-play-pause">⏸ Tạm dừng</button>
+            <button class="secondary small" id="btn-frame-next" title="Tiến 1 Frame">▶</button>
+            <button class="secondary small" id="btn-frame-last" title="Tới Frame Cuối">⏭</button>
+          </div>
+
+          <label style="font-family: monospace;">
+            Frame: <b id="lbl-frame-num" style="color: var(--primary); min-width: 24px; display: inline-block;">0</b> / <span id="lbl-frame-max">82</span>
+          </label>
+          <input type="range" id="rng-frame" min="0" max="82" value="0">
+
+          <div style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-family: monospace;">
+            <span>Đoạn:</span>
+            <input type="number" id="num-range-start" value="0" min="0" max="300" style="width: 48px; padding: 3px 4px;" title="Frame bắt đầu đoạn bóc tách">
+            <span>➔</span>
+            <input type="number" id="num-range-end" value="21" min="0" max="300" style="width: 48px; padding: 3px 4px;" title="Frame kết thúc đoạn bóc tách">
+            <button class="secondary small" id="btn-set-start-curr" title="Lấy Frame hiện tại làm điểm đầu">[Đầu]</button>
+            <button class="secondary small" id="btn-set-end-curr" title="Lấy Frame hiện tại làm điểm cuối">[Cuối]</button>
+          </div>
+
+          <div class="keyframe-tags" style="width: 100%; border-top: 1px solid #21262d; padding-top: 6px; margin-top: 2px;">
+            <span style="font-size: 11px; color: var(--text-muted); align-self: center;">Mốc nhanh:</span>
+            <button class="secondary small" id="kf-idle">0: Idle (0..21)</button>
+            <button class="secondary small" id="kf-windup">44: Vận công</button>
+            <button class="secondary small" id="kf-charged">63: Gom vòng lớn</button>
+            <button class="secondary small" id="kf-swing">66: Vung tay</button>
+            <button class="secondary small" id="kf-thrust" style="border-color: #f0883e; color: #f0883e;">67: Xuất lực</button>
+            <button class="secondary small" id="kf-release" style="border-color: #bd561d; color: #ff9b53;">68: Phóng đạn</button>
+            <button class="secondary small" id="kf-reignite" style="border-color: #58a6ff; color: #58a6ff;">74: Tụ lửa</button>
+          </div>
+        </div>
       </div>
 
-      <!-- Real-Time Pixel Inspector Side Panel -->
+      <!-- Upgraded Part Slicing & Rigging Inspector Side Panel -->
       <div class="inspector-panel">
         <h2>
-          <span>🔍 Kính Lúp & Đo Pixel</span>
+          <span>📐 Đo & Đánh Dấu Bộ Phận (Agent Spec)</span>
           <label style="font-size: 11px; font-weight: normal;">
             <input type="checkbox" id="chk-inspector" checked> Bật
           </label>
         </h2>
 
-        <!-- Magnifier Loupe Canvas (15x15 texels @ 10x) -->
-        <div class="loupe-container">
-          <canvas id="loupe-canvas" width="150" height="150" class="loupe-canvas"></canvas>
-          <div class="loupe-tip">Kính lúp phóng to 10× lưới pixel tại con trỏ</div>
+        <!-- Tool Modes -->
+        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Chế độ chuột (Click/Kéo trên Map hoặc Khung 1:1):</div>
+        <div class="tool-mode-bar">
+          <button class="tool-mode-btn active" id="btn-mode-box" title="Kéo chọn khung chữ nhật quanh bộ phận (chân, tay, vũ khí, đầu...)">📦 Khoanh Vùng</button>
+          <button class="tool-mode-btn" id="btn-mode-pin" title="Click đặt chốt khớp xoay (háng, đầu gối, cổ chân, vai...)">📌 Chốt Khớp</button>
+          <button class="tool-mode-btn" id="btn-mode-ruler" title="Kéo đo khoảng cách & vector dịch chuyển (dx, dy) giữa 2 điểm">📏 Thước Đo</button>
+          <button class="tool-mode-btn" id="btn-pick-spawn" title="Click gán tọa độ điểm phóng đạn (SpawnMarker2D)">🎯 Điểm Đạn</button>
         </div>
 
-        <div class="inspector-row">
-          <span class="label">Canvas (X, Y):</span>
-          <span class="val" id="insp-canvas-xy">-- , --</span>
-        </div>
-        <div class="inspector-row">
-          <span class="label">So với Neo Vargost (dx, dy):</span>
-          <span class="val" id="insp-anchor-dxy" style="color: #f0883e;">dx: -- , dy: --</span>
-        </div>
-        <div class="inspector-row">
-          <span class="label">Màu Pixel (RGBA):</span>
-          <span class="val" id="insp-rgba">--</span>
-        </div>
-        <div class="inspector-row">
-          <span class="label">Mã Hex / Màu:</span>
-          <span class="val">
-            <span id="insp-hex">#000000</span>
-            <span class="color-preview-box" id="insp-color-box"></span>
-          </span>
-        </div>
-
-        <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border);">
-          <div style="font-weight: bold; margin-bottom: 6px; font-size: 12px; color: var(--primary);">🎯 TỌA ĐỘ PHÓNG ĐẠN HIỆN HÀNH:</div>
-          <div class="inspector-row">
-            <span class="label">Điểm phóng đạn (dx, dy):</span>
-            <span class="val" id="insp-current-spawn" style="color: #58a6ff;">dx: +20, dy: -52</span>
+        <!-- Part Tag & Action Goal Metadata -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 6px 0;">
+          <div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Bộ phận đang chọn:</div>
+            <select id="sel-part-type" style="width: 100%; font-size: 11px; padding: 4px;">
+              <option value="leg_left">🦵 Chân Trái (leg_left)</option>
+              <option value="leg_right">🦵 Chân Phải (leg_right)</option>
+              <option value="foot_left">👟 Bàn Chân Trái (foot_left)</option>
+              <option value="foot_right">👟 Bàn Chân Phải (foot_right)</option>
+              <option value="thigh_knee">🦴 Đùi / Đầu Gối (thigh_knee)</option>
+              <option value="arm_left">💪 Tay Trái (arm_left)</option>
+              <option value="arm_right">💪 Tay Phải (arm_right)</option>
+              <option value="weapon">⚔️ Vũ Khí / Pháp Khí (weapon)</option>
+              <option value="torso">🛡️ Thân Trên / Ngực (torso)</option>
+              <option value="head">👑 Đầu / Mũ (head)</option>
+              <option value="cape_wing">🦇 Áo Choàng / Cánh (cape_wing)</option>
+              <option value="vfx_core">✨ Vùng VFX / Đạn (vfx_core)</option>
+              <option value="anchor_pivot">⚓ Điểm Neo Chân (anchor_pivot)</option>
+            </select>
           </div>
-          <button class="secondary small" id="btn-pick-spawn" style="width: 100%; margin-top: 4px;">
-            📌 Click vào đây rồi click trên Vargost để gán điểm phóng
-          </button>
-          <button class="secondary small" id="btn-copy-coords" style="width: 100%; margin-top: 6px;">
-            📋 Sao chép tọa độ (dx, dy)
-          </button>
+          <div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Phục vụ ghép hành động:</div>
+            <select id="sel-action-goal" style="width: 100%; font-size: 11px; padding: 4px;">
+              <option value="walk_run">🏃 Đi / Chạy bộ (Walk/Run)</option>
+              <option value="basic_attack">⚔️ Đánh thường (Basic Attack)</option>
+              <option value="fly_hover">🦅 Bay / Lơ lửng (Fly/Hover)</option>
+              <option value="jump_land">🦘 Nhảy / Tiếp đất (Jump/Land)</option>
+              <option value="ko_death">💀 Gục ngã / Tử trận (KO)</option>
+              <option value="skill_cast">🔥 Tung chiêu (Skill Cast)</option>
+            </select>
+          </div>
         </div>
 
-        <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-muted); line-height: 1.5;">
-          💡 <b>Ghi chú:</b> Khung Vargost 200×200 px có điểm neo chân tại <code>(105, 162)</code>. Khi nhân vật đẩy tay ở Frame 66, bàn tay vươn ra tại <code>dx = +20, dy = -52</code>.
+        <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+          <input type="text" id="inp-part-note" placeholder="Ghi chú cho Agent (vd: nhấc chân lên 8px, xoay khớp gối -15°...)" style="flex: 1; background: #0d1117; color: #fff; border: 1px solid var(--border); border-radius: 4px; padding: 4px 6px; font-size: 11px;">
+        </div>
+
+        <!-- Magnifier Loupe + Live Coordinates Row -->
+        <div style="display: grid; grid-template-columns: 116px 1fr; gap: 8px; align-items: center; background: #0d1117; border: 1px solid var(--border); border-radius: 6px; padding: 6px;">
+          <div style="text-align: center;">
+            <canvas id="loupe-canvas" width="150" height="150" class="loupe-canvas" style="width: 104px; height: 104px;"></canvas>
+            <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Zoom 10×</div>
+          </div>
+          <div style="font-size: 11px; font-family: monospace;">
+            <div class="inspector-row" style="margin: 3px 0;">
+              <span class="label">Map (X,Y):</span>
+              <span class="val" id="insp-canvas-xy">-- , --</span>
+            </div>
+            <div class="inspector-row" style="margin: 3px 0;">
+              <span class="label">Frame Gốc:</span>
+              <span class="val" id="insp-local-xy" style="color: #7ee787;">x: --, y: --</span>
+            </div>
+            <div class="inspector-row" style="margin: 3px 0;">
+              <span class="label">Atlas Px:</span>
+              <span class="val" id="insp-atlas-xy" style="color: #58a6ff;">ax: --, ay: --</span>
+            </div>
+            <div class="inspector-row" style="margin: 3px 0;">
+              <span class="label">So với Neo:</span>
+              <span class="val" id="insp-anchor-dxy" style="color: #f0883e;">dx: --, dy: --</span>
+            </div>
+            <div class="inspector-row" style="margin: 3px 0;">
+              <span class="label">Màu / Hex:</span>
+              <span class="val">
+                <span id="insp-hex">#000000</span>
+                <span class="color-preview-box" id="insp-color-box" style="width: 13px; height: 13px;"></span>
+              </span>
+            </div>
+            <span id="insp-rgba" style="display: none;">--</span>
+          </div>
+        </div>
+
+        <!-- Active Measurement Readout & Add Button -->
+        <div style="margin-top: 8px; padding: 6px 8px; background: #121820; border: 1px solid #30363d; border-radius: 6px; font-family: monospace; font-size: 11px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: #d2a8ff; font-weight: bold;">📏 Số đo hiện tại:</span>
+            <span id="insp-current-spawn" style="color: #58a6ff;">Spawn: dx +20, dy -52</span>
+          </div>
+          <div id="insp-active-measure" style="color: #e6edf3; margin-top: 4px; word-break: break-all;">
+            Kéo chuột trên nhân vật (hoặc Khung 1:1) để khoanh vùng bộ phận / đặt khớp...
+          </div>
+          <div style="display: flex; gap: 6px; margin-top: 6px;">
+            <button class="small" id="btn-add-annotation" style="flex: 1; justify-content: center; background: #238636;">➕ Lưu vùng/khớp này vào danh sách</button>
+            <button class="secondary small" id="btn-clear-annotations" title="Xóa toàn bộ vùng đánh dấu">🗑️ Xóa hết</button>
+          </div>
+        </div>
+
+        <!-- Saved Annotations List -->
+        <div class="annotation-list" id="annotation-list">
+          <div style="color: var(--text-muted); text-align: center; padding: 8px;">Chưa có vùng/khớp nào được đánh dấu. Kéo chuột trên Khung 1:1 hoặc Map để tạo!</div>
+        </div>
+
+        <!-- Agent Export Spec Box -->
+        <div style="margin-top: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+            <span style="font-size: 11px; font-weight: bold; color: #7ee787;">🤖 BẢN ĐẶC TẢ GỬI AGENT (Copy & Dán vào Chat):</span>
+            <button class="secondary small" id="btn-copy-coords" title="Sao chép nhanh tọa độ phóng đạn">📋 Copy Điểm Đạn</button>
+          </div>
+          <textarea id="txt-agent-spec" class="agent-spec-textarea" readonly placeholder="Thông số chuẩn hóa (Nhân vật, Frame, Atlas Region, Vùng cắt bộ phận x/y/w/h, Khớp xoay, Vector dx/dy) sẽ tự động xuất ở đây..."></textarea>
+          <button id="btn-copy-agent-spec" style="width: 100%; margin-top: 6px; justify-content: center; background: linear-gradient(135deg, #1f6feb, #388bfd); font-weight: bold;">
+            📋 COPY TOÀN BỘ SPEC CHO AGENT (JSON + LỆNH BÓC TÁCH)
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Timeline Scrubber & Frame Stepper -->
-    <div class="timeline-bar">
-      <div class="timeline-btns">
-        <button class="secondary small" id="btn-frame-first" title="Về Frame 0">⏮</button>
-        <button class="secondary small" id="btn-frame-prev" title="Lùi 1 Frame">◀</button>
-        <button class="small" id="btn-play-pause">⏸ Tạm dừng</button>
-        <button class="secondary small" id="btn-frame-next" title="Tiến 1 Frame">▶</button>
-        <button class="secondary small" id="btn-frame-last" title="Tới Frame 82">⏭</button>
+    <!-- Visual Control Deck: 3v3 Multi-Character Roster (6 Slots) & Combat Tuning -->
+    <div class="deck-grid">
+      <!-- Card 1: 3v3 Multi-Character Roster Manager (Up to 6 Characters on Map) -->
+      <div class="deck-card">
+        <div class="deck-card-title">
+          <span style="color: #58a6ff;">👥 ĐỘI HÌNH 3v3 TRÊN MAP (TỐI ĐA 6 NHÂN VẬT · ĐỔI TƯỚNG & TEST TỶ LỆ / HOẠT ẢNH)</span>
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <span id="roster-count-badge" class="badge-mini" style="background: #1f6feb; color: #fff;">50+ Tướng</span>
+            <label style="font-size: 11px; font-weight: normal; cursor: pointer;">
+              <input type="checkbox" id="chk-show-env" checked> <b style="color: #3fb950;">🗺️ Ranh Giới Zone 1-2-3</b>
+            </label>
+          </div>
+        </div>
+
+        <div class="team-slots-grid">
+          <!-- Team 1 (Left / Green) -->
+          <div class="team-column team-1">
+            <div class="team-col-header" style="color: #3fb950;">
+              <span>🛡️ ĐỘI 1 (TRÁI · ỐNG MÁU XANH)</span>
+              <span class="badge-mini" style="background: rgba(63,185,80,0.15); color: #3fb950;">Trái ➔ Phải</span>
+            </div>
+
+            <!-- Slot 1 (Primary Flyer / Vargost) -->
+            <div class="slot-item focused-inspect" id="slot-card-1">
+              <div class="slot-row-top">
+                <b style="color: #3fb950;">#1:</b>
+                <select id="sel-slot-1" data-slot="1"></select>
+                <label title="Bật/Tắt hiển thị trên Map"><input type="checkbox" id="chk-slot-1" checked> Bật</label>
+              </div>
+              <div class="slot-row-bottom">
+                <span class="badge-mini" style="background: #21262d; color: #7ee787;" id="lbl-slot-1-meta">Bay · 83f</span>
+                <div style="display: flex; gap: 4px;">
+                  <button class="secondary small" id="btn-inspect-slot-1" style="padding: 2px 6px; font-size: 10px; border-color: #58a6ff; color: #58a6ff;">🔍 Đo / Cắt</button>
+                  <button class="secondary small" id="btn-test-death" style="padding: 2px 6px; font-size: 10px; border-color: #f85149; color: #ff7b72;">💀 KO</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Slot 2 (Team 1 Vanguard) -->
+            <div class="slot-item" id="slot-card-2">
+              <div class="slot-row-top">
+                <b style="color: #3fb950;">#2:</b>
+                <select id="sel-slot-2" data-slot="2"></select>
+                <label title="Bật/Tắt nhân vật Slot 2 trên Map"><input type="checkbox" id="chk-slot-2"> Bật</label>
+              </div>
+              <div class="slot-row-bottom">
+                <select id="pos-slot-2" style="font-size: 10px; padding: 2px 4px;">
+                  <option value="plat_1a">Bệ 1A (Sau Cây)</option>
+                  <option value="plat_1b" selected>Bệ 1B (Bậc Thấp)</option>
+                  <option value="plat_2">Bệ 2 (Thánh Kiếm)</option>
+                  <option value="sky_left">Trên Không Trái</option>
+                </select>
+                <div style="display: flex; gap: 4px;">
+                  <button class="secondary small" id="btn-flip-slot-2" style="padding: 2px 6px; font-size: 10px;" title="Lật hướng Trái/Phải">🔄 Lật</button>
+                  <button class="secondary small" id="btn-inspect-slot-2" style="padding: 2px 6px; font-size: 10px; border-color: #58a6ff; color: #58a6ff;">🔍 Đo / Cắt</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Slot 3 (Team 1 Support/Rear) -->
+            <div class="slot-item" id="slot-card-3">
+              <div class="slot-row-top">
+                <b style="color: #3fb950;">#3:</b>
+                <select id="sel-slot-3" data-slot="3"></select>
+                <label title="Bật/Tắt nhân vật Slot 3 trên Map"><input type="checkbox" id="chk-slot-3"> Bật</label>
+              </div>
+              <div class="slot-row-bottom">
+                <select id="pos-slot-3" style="font-size: 10px; padding: 2px 4px;">
+                  <option value="plat_1_top" selected>Bệ 1 Top (Trái Cao)</option>
+                  <option value="plat_1a">Bệ 1A (Sau Cây)</option>
+                  <option value="plat_2">Bệ 2 (Thánh Kiếm)</option>
+                  <option value="sky_left">Trên Không Trái</option>
+                </select>
+                <div style="display: flex; gap: 4px;">
+                  <button class="secondary small" id="btn-flip-slot-3" style="padding: 2px 6px; font-size: 10px;" title="Lật hướng Trái/Phải">🔄 Lật</button>
+                  <button class="secondary small" id="btn-inspect-slot-3" style="padding: 2px 6px; font-size: 10px; border-color: #58a6ff; color: #58a6ff;">🔍 Đo / Cắt</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Team 2 (Right / Red) -->
+          <div class="team-column team-2">
+            <div class="team-col-header" style="color: #ff7b72;">
+              <span>⚔️ ĐỘI 2 (PHẢI · ỐNG MÁU ĐỎ)</span>
+              <span class="badge-mini" style="background: rgba(248,81,73,0.15); color: #ff7b72;">Đối Kháng</span>
+            </div>
+
+            <!-- Slot 4 (Primary Ground Fighter / Aoda) -->
+            <div class="slot-item" id="slot-card-4">
+              <div class="slot-row-top">
+                <b style="color: #ff7b72;">#4:</b>
+                <select id="sel-slot-4" data-slot="4"></select>
+                <label title="Bật/Tắt hiển thị trên Map"><input type="checkbox" id="chk-slot-4" checked> Bật</label>
+              </div>
+              <div class="slot-row-bottom">
+                <span class="badge-mini" style="background: #21262d; color: #ffa657;" id="lbl-slot-4-meta">Đất · 93f</span>
+                <div style="display: flex; gap: 4px;">
+                  <button class="secondary small" id="btn-aoda-switch-platform" style="padding: 2px 6px; font-size: 10px; border-color: #3fb950; color: #3fb950;">📍 Đổi Bệ</button>
+                  <button class="secondary small" id="btn-aoda-turn" style="padding: 2px 6px; font-size: 10px;">🔄 Lật</button>
+                  <button class="secondary small" id="btn-inspect-slot-4" style="padding: 2px 6px; font-size: 10px; border-color: #58a6ff; color: #58a6ff;">🔍 Đo / Cắt</button>
+                  <button class="secondary small" id="btn-aoda-test-ko" style="padding: 2px 6px; font-size: 10px; border-color: #f85149; color: #ff7b72;">💀 KO</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Slot 5 (Team 2 Cliff High) -->
+            <div class="slot-item" id="slot-card-5">
+              <div class="slot-row-top">
+                <b style="color: #ff7b72;">#5:</b>
+                <select id="sel-slot-5" data-slot="5"></select>
+                <label title="Bật/Tắt nhân vật Slot 5 trên Map"><input type="checkbox" id="chk-slot-5"> Bật</label>
+              </div>
+              <div class="slot-row-bottom">
+                <select id="pos-slot-5" style="font-size: 10px; padding: 2px 4px;">
+                  <option value="plat_3a" selected>Bệ 3A (Vách Đá Cao)</option>
+                  <option value="plat_3b">Bệ 3B (Bậc Giữa Phải)</option>
+                  <option value="plat_2">Bệ 2 (Thánh Kiếm)</option>
+                  <option value="sky_right">Trên Không Phải</option>
+                </select>
+                <div style="display: flex; gap: 4px;">
+                  <button class="secondary small" id="btn-flip-slot-5" style="padding: 2px 6px; font-size: 10px;" title="Lật hướng Trái/Phải">🔄 Lật</button>
+                  <button class="secondary small" id="btn-inspect-slot-5" style="padding: 2px 6px; font-size: 10px; border-color: #58a6ff; color: #58a6ff;">🔍 Đo / Cắt</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Slot 6 (Team 2 Far Right) -->
+            <div class="slot-item" id="slot-card-6">
+              <div class="slot-row-top">
+                <b style="color: #ff7b72;">#6:</b>
+                <select id="sel-slot-6" data-slot="6"></select>
+                <label title="Bật/Tắt nhân vật Slot 6 trên Map"><input type="checkbox" id="chk-slot-6"> Bật</label>
+              </div>
+              <div class="slot-row-bottom">
+                <select id="pos-slot-6" style="font-size: 10px; padding: 2px 4px;">
+                  <option value="plat_3b" selected>Bệ 3B (Bậc Giữa Phải)</option>
+                  <option value="plat_3c">Bệ 3C (Mép Phải)</option>
+                  <option value="plat_3d">Bệ 3D (Đáy Hang)</option>
+                  <option value="sky_right">Trên Không Phải</option>
+                </select>
+                <div style="display: flex; gap: 4px;">
+                  <button class="secondary small" id="btn-flip-slot-6" style="padding: 2px 6px; font-size: 10px;" title="Lật hướng Trái/Phải">🔄 Lật</button>
+                  <button class="secondary small" id="btn-inspect-slot-6" style="padding: 2px 6px; font-size: 10px; border-color: #58a6ff; color: #58a6ff;">🔍 Đo / Cắt</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 1px solid #21262d; flex-wrap: wrap; gap: 6px;">
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <button class="secondary small" id="btn-enable-all-6" style="border-color: #58a6ff; color: #58a6ff;">⚡ Bật Đủ 6 Tướng (3v3)</button>
+            <button class="secondary small" id="btn-only-2-main">🎯 Chỉ Bật 2 Tướng Chính (#1 vs #4)</button>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted);">
+            💡 Bấm <b>🔍 Đo / Cắt</b> ở bất kỳ ô nào để đưa nhân vật đó vào Khung 1:1 bên trên.
+          </div>
+        </div>
       </div>
 
-      <label style="font-family: monospace;">
-        Frame: <b id="lbl-frame-num" style="color: var(--primary); min-width: 28px; display: inline-block;">0</b> / 82
-      </label>
-      <input type="range" id="rng-frame" min="0" max="82" value="0">
+      <!-- Card 2: Visual Combat, Flight Vector & Parameter Controls -->
+      <div class="deck-card">
+        <div class="deck-card-title">
+          <span style="color: var(--primary);">🕹️ BẢNG ĐIỀU KHIỂN KỸ NĂNG, VECTOR BAY & THÔNG SỐ ĐỘNG HỌC</span>
+          <div style="display: flex; gap: 8px;">
+            <label style="font-size: 11px; cursor: pointer;">
+              <input type="checkbox" id="chk-auto" checked> <b style="color: #3fb950;">AI Vargost (#1)</b>
+            </label>
+            <label style="font-size: 11px; cursor: pointer;">
+              <input type="checkbox" id="chk-aoda-ai" checked> <b style="color: #f0883e;">AI Aoda (#4)</b>
+            </label>
+          </div>
+        </div>
 
-      <div class="keyframe-tags">
-        <button class="secondary small" id="kf-idle">0: Combat Idle (0..21)</button>
-        <button class="secondary small" id="kf-windup">44: Vận công</button>
-        <button class="secondary small" id="kf-charged">63: Gom vòng lớn</button>
-        <button class="secondary small" id="kf-swing">66: Vung tay ném</button>
-        <button class="secondary small" id="kf-thrust" style="border-color: #f0883e; color: #f0883e;">67: Xuất lực (Vòng lửa 64-68)</button>
-        <button class="secondary small" id="kf-release" style="border-color: #bd561d; color: #ff9b53;">68: Phóng đại cầu lửa (1100px/s)</button>
-        <button class="secondary small" id="kf-reignite" style="border-color: #58a6ff; color: #58a6ff;">74: Tụ lại 2 vòng lửa (74-77)</button>
+        <!-- Primary Skills Row -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 8px;">
+          <button id="btn-blazing-halo" style="background: #bd561d; border: 1px solid #ff9b53; justify-content: center; font-size: 12px;">🔥 Blazing Halo (1100px/s)</button>
+          <button id="btn-aoda-skill-1" style="background: #9e3612; border: 1px solid #f0883e; justify-content: center; font-size: 12px;">🌪️ Tornado Đất (85px/s)</button>
+          <button id="btn-toggle-direction" class="secondary" style="border-color: #3fb950; color: #3fb950; justify-content: center; font-size: 12px;">🔄 Đổi Hướng Đội</button>
+        </div>
+
+        <!-- 8-Direction Vector Compass Grid -->
+        <div style="background: #0d1117; border: 1px solid var(--border); border-radius: 6px; padding: 8px; margin-bottom: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 11px; font-weight: bold; color: #58a6ff;">🧭 La Bàn Bay & Dịch Chuyển 8 Hướng:</span>
+            <div style="display: flex; gap: 4px;">
+              <button class="secondary small" id="btn-speed-slow" style="padding: 2px 6px;">🐢 100px/s</button>
+              <button class="secondary small" id="btn-speed-fast" style="padding: 2px 6px;">⚡ 400px/s</button>
+              <button class="secondary small" id="btn-test-overshoot" style="padding: 2px 6px; border-color: #a371f7; color: #d2a8ff;">✨ Xoay 2.5D</button>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;">
+            <button class="btn-move small" id="btn-fly-10h" style="border-color: #a371f7; color: #d2a8ff; justify-content: center;">↖️ 10h Lùi-Lên (0°)</button>
+            <button class="secondary small" id="btn-takeoff" style="justify-content: center;">⬆️ 12h Cất Cánh</button>
+            <button class="btn-move small" id="btn-fly-2h" style="justify-content: center;">↗️ 2h Bay Tiến (+25°)</button>
+
+            <button class="btn-move small" id="btn-fly-backward" style="border-color: #a371f7; color: #d2a8ff; justify-content: center;">⬅️ 9h Teleport Lùi</button>
+            <button class="secondary small" id="btn-reset" style="justify-content: center;">🎯 Giữ Vị Trí / Reset</button>
+            <button class="btn-move small" id="btn-fly-forward" style="justify-content: center;">➡️ 3h Bay Tiến (+25°)</button>
+
+            <button class="btn-move small" id="btn-fly-8h" style="border-color: #a371f7; color: #d2a8ff; justify-content: center;">↙️ 8h Lùi-Xuống (0°)</button>
+            <button class="btn-land small" id="btn-land" style="justify-content: center;">⬇️ 6h Hạ Cánh</button>
+            <button class="btn-move small" id="btn-fly-4h" style="justify-content: center;">↘️ 4h Bổ Nhào (+25°)</button>
+          </div>
+        </div>
+
+        <!-- Sliders & Numeric Parameters -->
+        <div style="background: #0d1117; border: 1px solid var(--border); border-radius: 6px; padding: 8px; font-size: 11px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <label style="justify-content: space-between;">
+            <span>Tốc độ X: <b id="lbl-fly-speed" style="color: #58a6ff;">400px/s</b></span>
+            <input type="range" id="rng-fly-speed" min="100" max="400" value="400" step="50" style="width: 90px;">
+          </label>
+          <label style="justify-content: space-between;">
+            <span>Tốc độ Y: <b id="lbl-vertical-speed" style="color: #58a6ff;">180px/s</b></span>
+            <input type="range" id="rng-vertical-speed" min="100" max="300" value="180" step="20" style="width: 90px;">
+          </label>
+          <label style="justify-content: space-between;">
+            <span>Nghiêng: <b id="lbl-tilt" style="color: #f0883e;">25°</b></span>
+            <input type="range" id="rng-tilt" min="10" max="35" value="25" step="1" style="width: 90px;">
+          </label>
+          <label style="justify-content: space-between;">
+            <span>Cự ly: <b id="lbl-distance">350px</b></span>
+            <input type="range" id="rng-distance" min="50" max="750" value="350" style="width: 90px;">
+          </label>
+          <div style="display: flex; align-items: center; gap: 4px;">
+            <span>Đạn dx/dy:</span>
+            <input type="number" id="num-spawn-dx" value="20" style="width: 44px; padding: 2px 4px;">
+            <input type="number" id="num-spawn-dy" value="-20" style="width: 44px; padding: 2px 4px;">
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
+            <label>Tốc độ:
+              <select id="sel-rate" style="padding: 2px 4px; font-size: 11px;">
+                <option value="1">1×</option>
+                <option value="0.5">0.5×</option>
+                <option value="0.25">0.25×</option>
+              </select>
+            </label>
+            <button class="secondary small" id="btn-test-near" style="padding: 2px 5px;" title="Thử cự ly 80px">80px</button>
+            <button class="secondary small" id="btn-test-far" style="padding: 2px 5px;" title="Thử cự ly 680px">680px</button>
+          </div>
+        </div>
       </div>
     </div>
-
-    <!-- Movement & Locomotion Toolbar -->
-    <div class="panel-controls">
-      <div class="controls-row">
-        <span style="font-weight: bold; font-size: 13px; color: #58a6ff;">🚀 DI CHUYỂN TRỰC GIAO & BAY XÉO (10h, 2h, 4h, 8h,...):</span>
-        <button class="btn-move" id="btn-fly-forward" title="Phím D hoặc ->">⏩ Bay Tiến 3h (+25°)</button>
-        <button class="btn-move" id="btn-fly-backward" style="border-color: #a371f7; color: #d2a8ff;" title="Phím A hoặc <-">⚡ Teleport Lùi 9h (0°)</button>
-        <button class="secondary" id="btn-takeoff" title="Phím W hoặc Up">🛫 Cất Cánh 12h</button>
-        <button class="btn-land" id="btn-land" title="Phím S hoặc Down">🛬 Hạ Cánh 6h</button>
-        <button class="btn-move" id="btn-fly-10h" style="border-color: #a371f7; color: #d2a8ff;" title="Phím Q">⚡ Teleport 10h (Lùi-Lên, 0°)</button>
-        <button class="btn-move" id="btn-fly-2h" style="border-color: #58a6ff; color: #58a6ff;" title="Phím E">↗️ Bay Xéo Tiến 2h (+25°)</button>
-        <button class="btn-move" id="btn-fly-8h" style="border-color: #a371f7; color: #d2a8ff;" title="Phím Z">⚡ Teleport 8h (Lùi-Xuống, 0°)</button>
-        <button class="btn-move" id="btn-fly-4h" style="border-color: #58a6ff; color: #58a6ff;" title="Phím C">↘️ Bay Xéo Tiến 4h (+25°)</button>
-        <button class="secondary small" id="btn-speed-slow" title="Chế độ bay chậm tuần tra 100px/s">🐢 100px/s</button>
-        <button class="secondary small" id="btn-speed-fast" title="Chế độ tăng tốc cơ động 400px/s">⚡ 400px/s</button>
-      </div>
-
-      <div class="controls-row" style="margin-top: 4px;">
-        <span style="font-weight: bold; font-size: 13px; color: var(--primary);">⚔️ CHIẾN ĐẤU & UTILITY AI (TỰ ĐỘNG DI CHUYỂN & TẤN CÔNG):</span>
-        <button id="btn-blazing-halo" style="background: #bd561d; border: 1px solid #ff9b53; font-weight: bold;">🔥 BLAZING HALO (1100 px/s)</button>
-        <button id="btn-toggle-direction" class="secondary" style="border-color: #3fb950; color: #3fb950; font-weight: bold;" title="Chuyển đổi vị trí và hướng: Đội Trái (Trái ➔ Phải) hoặc Đội Phải (Phải ➔ Trái)">🔄 Hướng: Đội Trái (Trái ➔ Phải)</button>
-        <label style="background: #161b22; padding: 4px 8px; border-radius: 4px; border: 1px solid #30363d; cursor: pointer;">
-          <input type="checkbox" id="chk-auto" checked> <b>Utility AI Tự Động Di Chuyển & Tấn Công</b>
-        </label>
-
-        <button class="secondary small" id="btn-test-death" style="border-color: #f85149; color: #ff7b72; font-weight: bold;" title="Giả lập Vargost hết máu và gục ngã (Đứng hình 0.3s -> Bốc hơi pixel 1.6s bay lên 30px)">💀 Test Vargost Gục Ngã (KO)</button>
-        <label>
-          Cự ly cơ sở:
-          <input type="range" id="rng-distance" min="50" max="750" value="350">
-          <span id="lbl-distance" style="font-family: monospace; font-weight: bold;">350px</span>
-        </label>
-        <button class="secondary small" id="btn-test-near">Thử Quá Gần (80px)</button>
-        <button class="secondary small" id="btn-test-far">Thử Quá Xa (680px)</button>
-        <button class="secondary small" id="btn-test-overshoot" style="border-color: #a371f7; color: #d2a8ff;" title="Giả lập Vargost bay lố qua người địch, kích hoạt tan rã pixel xoay người 2.5D">✨ Thử Tan Rã Pixel (Xoay 2.5D)</button>
-      </div>
-
-      <!-- Aoda Combat & Skills Controls -->
-      <div class="controls-row" style="margin-top: 6px; background: #161b22; border: 1px solid #30363d; padding: 6px 10px; border-radius: 6px;">
-        <span style="font-weight: bold; font-size: 13px; color: #ff7b72;">🥋 AODA (TEAM 2 · KẺ ĐỊCH · ỐNG MÁU ĐỎ · 90px):</span>
-        <button id="btn-aoda-skill-1" style="background: #bd561d; border: 1px solid #f0883e; color: #fff; font-weight: bold;" title="Chiêu 1: Tornado (85px, xuất hiện và tồn tại xoay đúng 2.0s tại chỗ rồi mới tắt, chỉ đánh địch mặt đất, gây Định Thân & Câm Lặng diện rộng, CD 5s - Phím 1)">🌪️ Chiêu 1: Tornado (Xoay 2.0s Tại Chỗ · Đất · CD 5s)</button>
-        <button class="secondary small" id="btn-aoda-switch-platform" style="border-color: #3fb950; color: #3fb950; font-weight: bold;" title="Chuyển Aoda giữa 3 phân vùng: Sau Cây Cao (Zone 1) ➔ Bệ Giữa (Zone 2) ➔ Vách Đá (Zone 3)">📍 Vị Trí: Sau Cây Cao (Bấm Đổi Bệ)</button>
-        <button class="secondary small" id="btn-aoda-turn" title="Quay đầu Aoda 180° đối xứng qua trục neo">🔄 Aoda Quay Đầu</button>
-        <button class="secondary small" id="btn-aoda-test-ko" style="border-color: #f85149; color: #ff7b72;" title="Thử nghiệm hoạt ảnh Aoda Gục Ngã (Frame 47..65)">💀 Test Aoda Gục Ngã (KO)</button>
-        <label style="background: #0d1117; padding: 4px 8px; border-radius: 4px; border: 1px solid #f0883e; cursor: pointer;">
-          <input type="checkbox" id="chk-aoda-ai" checked> <b style="color: #f0883e;">Aoda Utility AI Tự Động</b>
-        </label>
-        <label style="background: #0d1117; padding: 4px 8px; border-radius: 4px; border: 1px solid #3fb950; cursor: pointer;">
-          <input type="checkbox" id="chk-show-env" checked> <b style="color: #3fb950;">🗺️ Hiện Ranh Giới Môi Trường (Zone 1, 2, 3)</b>
-        </label>
-
-      </div>
-
-      <!-- Fine-Tuning Sliders -->
-      <div class="controls-row" style="margin-top: 4px; font-size: 12px; background: #0d1117; padding: 8px 12px; border-radius: 6px;">
-        <label title="Tốc độ bay ngang X (100 - 400 px/s)">
-          Tốc độ bay:
-          <input type="range" id="rng-fly-speed" min="100" max="400" value="400" step="50">
-          <span id="lbl-fly-speed" style="font-family: monospace;">400px/s</span>
-        </label>
-        <label title="Tốc độ bay lên / bay xuống / hạ cánh / cất cánh trục Y (Giới hạn 100 - 300 px/s)">
-          Tốc độ trục Y (Lên/Xuống):
-          <input type="range" id="rng-vertical-speed" min="100" max="300" value="180" step="20">
-          <span id="lbl-vertical-speed" style="font-family: monospace; font-weight: bold; color: #58a6ff;">180px/s</span>
-        </label>
-        <label>
-          Góc nghiêng bay tới:
-          <input type="range" id="rng-tilt" min="10" max="35" value="25" step="1">
-          <span id="lbl-tilt" style="font-family: monospace;">25°</span>
-        </label>
-        <label>
-          Điểm phóng đạn dx:
-          <input type="number" id="num-spawn-dx" value="20" style="width: 50px;">
-        </label>
-        <label>
-          dy:
-          <input type="number" id="num-spawn-dy" value="-20" style="width: 50px;">
-        </label>
-        <label>
-          Tốc độ phát:
-          <select id="sel-rate">
-            <option value="1">1×</option>
-            <option value="0.5">0.5× (Chậm)</option>
-            <option value="0.25">0.25× (Rất chậm)</option>
-          </select>
-        </label>
-        <button class="secondary small" id="btn-reset">Đặt lại mặc định</button>
-      </div>
-    </div>
-
-    <!-- Explanation -->
-    <p style="max-width: 1000px; margin: 8px auto; font-size: 12px; line-height: 1.6; color: var(--text-muted); text-align: left;">
-      <b>Cơ chế Chiến đấu & Hoạt ảnh Vargost (Thiết kế chính thức):</b><br>
-      1. <b>Kỹ năng Đánh Thường (Twin Fire Strike):</b> Ở tư thế tĩnh, Vargost giữ 2 vòng lửa ở 2 tay. Khi ra đòn:
-      <ul>
-        <li><b>Đòn 1 (Frame 83–88):</b> Tay phải (điểm ban đầu tại canvas ~X=784, Y=197 tức dx=+26, dy=-52) gập vào phía bụng (vùng ~X=775, Y=204 tức dx=+16, dy=-45), vung ra phóng vòng lửa nhỏ 1 (đường kính ~56px) bay tới mục tiêu, tay thu về mượt mà không nhảy cóc (tay phải trống, tay trái giữ lửa).</li>
-        <li><b>Đòn 2 (Frame 89–94):</b> Khi đòn 1 chạm đích, tay trái gập vào ngực/bụng, phóng tiếp vòng lửa nhỏ 2 bay tới mục tiêu, tay trái thu về mượt mà (cả 2 tay trống).</li>
-        <li><b>Tụ Lửa Lại (Frame 72–77):</b> Sau khi ném 2 vòng, 2 tay tiến hành hoạt ảnh gọi lại 2 vòng lửa bùng lên và ổn định, tích <b>+50% Nộ</b> (2 lần combo = 100% Nộ).</li>
-      </ul>
-      2. <b>Chiêu Tối Thượng Blazing Halo (Frame 44–82):</b> Chỉ kích hoạt khi đầy 100% Nộ. Vargost vận công gom 2 vòng lửa nhỏ thành 1 vòng lớn ở Frame 63, giữ vòng trên cao và phóng mạnh ở Frame 68 (@ 900px/s), va chạm nền đất nổ 91 frame và thu tay hồi thế sạch (Recovery).<br>
-      3. <b>Khắc phục thanh tua Frame (Scrubber):</b> Kéo slider timeline không còn bị biến mất vòng tròn — vòng đạn và quỹ đạo được liên kết hiển thị liên tục từ tay đến mục tiêu.<br>
-      4. <b>Công cụ Kính Lúp 10× & Đo Pixel:</b> Hỗ trợ soi từng ô texel 2×2, click gán tọa độ và đọc thông số relative so với anchor chân (105, 162).
-    </p>
 
     <div class="links">
       <a href="/amore-scene.html">◀ Scene Thử Tỷ Lệ Amore</a>

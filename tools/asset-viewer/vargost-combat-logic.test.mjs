@@ -85,6 +85,8 @@ test('Vargost Combat Logic: Teleport Retreat, Evasive Dodge/Miss, and Enemy Coun
 
     // Test 1: Teleport Lùi (Phase Blink & Tilt = 0°)
     chkAuto.checked = false;
+    vargostX = mapX + 200 * mapScale;
+    vargostY = baseFlyY;
     const initialX = vargostX;
     const initialY = vargostY;
     const retreatTargetX = initialX - 150;
@@ -237,6 +239,73 @@ test('Vargost Combat Logic: Teleport Retreat, Evasive Dodge/Miss, and Enemy Coun
     swordFrames = { total_frames: 55, cols: 8, rows: 7, frame_w: 434, frame_h: 620, anchor_px: [217, 619], target_height_px: 90 };
     // Gọi drawScene không ném exception và vẽ thành công
     drawScene(vargostX, vargostY, 0.016);
+
+    // Test 10: 2 Vòng Tròn Đỏ Căn Cứ Xuất Phát & Hồi Sinh của 2 Đội (Bay trên không + Bộ binh trên địa hình)
+    if (!TEAM_SPAWN_ZONES || !TEAM_SPAWN_ZONES.left || !TEAM_SPAWN_ZONES.right) {
+      throw new Error("TEAM_SPAWN_ZONES phải định nghĩa đầy đủ 2 căn cứ left và right");
+    }
+    resetMatch();
+    if (Math.abs(vargostX - TEAM_SPAWN_ZONES.left.airX) > 2 || Math.abs(vargostY - TEAM_SPAWN_ZONES.left.airY) > 2) {
+      throw new Error("Vargost (Team 1 · Nhân vật bay) phải xuất phát trên không trung tại Căn Cứ Trái");
+    }
+    if (Math.abs(aodaX - TEAM_SPAWN_ZONES.right.groundX) > 2 || aodaFacing !== -1) {
+      throw new Error("Aoda (Team 2 · Bộ binh) phải xuất phát trên địa hình tại Căn Cứ Phải và hướng mặt sang Trái (-1) về Thánh Kiếm");
+    }
+
+    // Test 11: Vargost di chuyển cả 2 chiều (Trái -> Phải và Phải -> Trái) đều phải đổ người về trước 25°, tuyệt đối không ngửa người về sau
+    locomotionState = 'FLY_VECTOR';
+    vargostX = 700;
+    targetVargostX = 500; // Di chuyển từ Phải sang Trái (dirX < 0)
+    targetVargostY = vargostY;
+    for (let k = 0; k < 15; k++) {
+      update(25000 + k * 30);
+    }
+    if (facingDirection !== -1 || visualFacing >= 0) {
+      throw new Error("Khi di chuyển từ Phải sang Trái, Vargost phải quay mặt sang Trái (-1)");
+    }
+    if (currentTilt >= -0.1) {
+      throw new Error("Khi di chuyển từ Phải sang Trái, currentTilt phải âm (-25°) để đổ người về phía trước bên Trái!");
+    }
+
+    // Test 12: Boss Trung Lập Crapit (2150 HP tại (1164, 752)), Tấn công vùng Thánh Kiếm, Xuyên Zone 2, Cấm Hồi Máu & Phản Xạ Đánh Trả
+    resetMatch();
+    if (crapitHp !== 2150 || CRAPIT_MAX_HP !== 2150) {
+      throw new Error("Boss Crapit phải có 2150 HP khi khởi đầu trận đấu");
+    }
+    if (Math.abs(crapitX - 1164) > 1 || Math.abs(crapitY - 752) > 1) {
+      throw new Error("Boss Crapit phải đặt tại tọa độ (1164, 752) trên map");
+    }
+    // Đặt Aoda vào vùng chiếm Thánh Kiếm và cho Boss sẵn sàng tấn công
+    aodaX = SWORD_X;
+    aodaY = SWORD_Y;
+    crapitAttackCooldown = 0;
+    for (let k = 0; k < 25; k++) {
+      update(30000 + k * 40);
+    }
+    if (activeCrapitProjectiles.length === 0 && !aodaAntiHeal) {
+      throw new Error("Boss Crapit phải nhả quả cầu nước bọt tấn công khi có nhân vật đứng trong vùng Thánh Kiếm");
+    }
+    // Tua cho quả cầu bay xuyên qua Zone 2 trúng Aoda
+    for (let k = 0; k < 60; k++) {
+      update(31500 + k * 35);
+    }
+    if (!aodaAntiHeal) {
+      throw new Error("Khi bị Boss Crapit bắn trúng, Aoda phải dính hiệu ứng Cấm Hồi Máu (aodaAntiHeal = true)");
+    }
+    if (!aodaRetaliateBoss) {
+      throw new Error("Khi bị Boss Crapit bắn trúng, Aoda phải kích hoạt phản xạ đánh trả Boss (aodaRetaliateBoss = true)");
+    }
+    // Tiêu diệt Boss Crapit -> Boss không hồi sinh lại và tướng ngừng đánh Boss
+    damageCrapitBoss(2200, 'aoda');
+    if (!crapitIsDead || crapitHp !== 0) {
+      throw new Error("Boss Crapit phải chết khi HP về 0");
+    }
+    if (aodaRetaliateBoss || vargostRetaliateBoss) {
+      throw new Error("Khi Boss Crapit chết, toàn bộ tướng phải ngừng trạng thái đánh trả Boss");
+    }
+    if (bossLootDrop.lockedPickerId !== 'aoda') {
+      throw new Error("Tướng kết liễu Boss với đòn cuối cùng phải được ghi nhận quyền nhặt vật phẩm (lockedPickerId = 'aoda')");
+    }
   `;
 
   runInContext(testLogic, context);

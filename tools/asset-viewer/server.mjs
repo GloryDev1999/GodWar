@@ -74,8 +74,16 @@ export function createAssetServer() {
       catch { res.writeHead(400).end('Invalid URL'); return; }
       let file;
       if (decoded === '/') file = path.join(uiRoot, 'index.html');
+      else if (decoded === '/version.json' || decoded === '/api/version') file = path.join(root, 'version.json');
       else if (decoded === '/build/GodWar-debug.apk' || decoded === '/GodWar-debug.apk') file = path.join(root, 'build/GodWar-debug.apk');
-      else if (['/app.js', '/style.css', '/render-frame.mjs', '/timing.mjs', '/height-profile.mjs', '/amore-scene.html', '/amore-scene.js', '/vargost-skill-test.html', '/vargost-skill-test.js'].includes(decoded)) file = path.join(uiRoot, decoded.slice(1));
+      else if (decoded.startsWith('/build/releases/') && decoded.endsWith('.apk')) {
+        file = path.resolve(root, decoded.slice(1));
+        if (!inside(path.join(root, 'build/releases'), file)) { res.writeHead(404).end('Not found'); return; }
+      }
+      else if (['/app.js', '/style.css', '/render-frame.mjs', '/timing.mjs', '/height-profile.mjs', '/amore-scene.html', '/amore-scene.js', '/vargost-skill-test.html', '/vargost-skill-test.js', '/vargost-skill-test', '/amore-scene'].includes(decoded)) {
+        const cleanName = decoded.endsWith('-test') || decoded.endsWith('-scene') ? `${decoded.slice(1)}.html` : decoded.slice(1);
+        file = path.join(uiRoot, cleanName);
+      }
       else if (decoded === '/Asset/Scenes/amore_scale_test/map.png') file = path.join(root, 'Asset/Scenes/amore_scale_test/map.png');
       else if (decoded.startsWith('/Asset/Character/measured_atlas_pilots/')) {
         file = path.resolve(assetRoot, decoded.slice('/Asset/Character/'.length));
@@ -101,7 +109,7 @@ export function createAssetServer() {
         'X-Content-Type-Options': 'nosniff'
       };
       if (ext === '.apk') {
-        headers['Content-Disposition'] = 'attachment; filename="GodWar-debug.apk"';
+        headers['Content-Disposition'] = `attachment; filename="${path.basename(file)}"`;
       }
       res.writeHead(200, headers);
       if (req.method === 'HEAD') res.end(); else createReadStream(file).on('error', () => res.destroy()).pipe(res);

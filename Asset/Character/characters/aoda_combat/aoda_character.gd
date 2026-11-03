@@ -63,21 +63,14 @@ func _physics_process(delta: float) -> void:
 	if tornado_cooldown > 0.0:
 		tornado_cooldown -= delta
 
-	# Smooth horizontal turn-around interpolation
+	# Instant turn flip (triệt tiêu biến dạng lật 2D)
 	if not combat_package.is_empty() and sprite != null:
 		var scale_factor: float = float(combat_package.get("display_scale", 0.333333))
-		if absf(visual_facing - target_facing) > 0.02:
-			visual_facing = move_toward(visual_facing, target_facing, delta * 12.0)
-			sprite.scale.x = visual_facing * scale_factor
-			sprite.scale.y = scale_factor
-			if spawn_marker != null:
-				spawn_marker.position.x = visual_facing * 30.0 * scale_factor
-		else:
-			visual_facing = target_facing
-			sprite.scale.x = target_facing * scale_factor
-			sprite.scale.y = scale_factor
-			if spawn_marker != null:
-				spawn_marker.position.x = target_facing * 30.0 * scale_factor
+		visual_facing = target_facing
+		sprite.scale.x = target_facing * scale_factor
+		sprite.scale.y = scale_factor
+		if spawn_marker != null:
+			spawn_marker.position.x = target_facing * 30.0 * scale_factor
 
 ## Tung Chiêu 1 Tornado: CD 5s, chỉ đánh địch mặt đất
 func cast_tornado() -> bool:

@@ -10,17 +10,32 @@ description: Hướng dẫn tự vệ và bảo vệ tệp dự án (File Protec
 
 ---
 
-## 1. 5 Điều Cốt Lõi Về Bảo Vệ Tệp & Quy Trình (Zero-Tolerance Rules)
+## 1. 7 Điều Cốt Lõi Về Bảo Vệ Tệp, Phiên Bản & Quy Trình (Zero-Tolerance Rules)
 
 Để không phá vỡ logic game, không làm mất dữ liệu và không gây xung đột git:
 
 | Điều Khoản | Quy định nghiêm ngặt | Lý do kỹ thuật |
 | :--- | :--- | :--- |
-| **❌ CẤM 1: Tạo file backup rác** | Tuyệt đối **KHÔNG** tạo các file có đuôi `_old`, `_backup`, `_copy`, `_v2`, `_temp`. Mọi chỉnh sửa sửa lỗi asset/code phải **ghi đè trực tiếp lên file cũ**. | GodWar hướng tới gần 300 nhân vật. Việc nhân bản file ảnh/atlas sẽ làm phình to repository, tăng dung lượng APK Android và gây rối loạn metadata. |
+| **❌ CẤM 1: Tạo file backup rác** | Tuyệt đối **KHÔNG** tạo các file có đuôi `_old`, `_backup`, `_copy`, `_v2`, `_temp` trong mã nguồn/asset. Mọi chỉnh sửa sửa lỗi asset/code phải **ghi đè trực tiếp lên file cũ**. | GodWar hướng tới gần 300 nhân vật. Việc nhân bản file ảnh/atlas sẽ làm phình to repository, tăng dung lượng APK Android và gây rối loạn metadata. |
 | **⚠️ QUY TẮC 2: Quản lý GIF gốc (Dùng 1 lần trên repo)** | Owner (người dùng) lưu trữ toàn bộ GIF gốc tại máy cá nhân. Tệp GIF đưa lên repo **chỉ dùng 1 lần duy nhất** để bóc tách frame và đóng gói Atlas PNG. Sau khi bóc tách frame xong, **được phép xóa file GIF khỏi repo** để tối ưu dung lượng. Nếu cần GIF gốc, bắt buộc **hỏi Owner để được cung cấp lại**. | Giữ GIF nặng và file trung gian trên Git sẽ làm phình repo lên 6-8GB. Owner lưu trữ bản gốc an toàn ở local, repo chỉ giữ Asset chuẩn Godot. |
 | **❌ CẤM 3: Commit thẳng vào `main`** | Tuyệt đối **KHÔNG** commit dở dang thẳng vào nhánh `main` khi đang làm việc trên máy mới. | Phải luôn tạo nhánh riêng (`feature/...` hoặc `fix/...`) để người dùng review và merge qua Pull Request an toàn. |
 | **❌ CẤM 4: Xóa lịch sử `state.json`** | Tuyệt đối **KHÔNG** ghi đè trắng hoặc xóa mảng `history` trong `state.json`. | `state.json` là bộ nhớ xuyên suốt giữa các phiên. Khi cập nhật, chỉ cập nhật `current_task`, đưa task cũ xuống đầu mảng `history` và ghi mốc UTC. |
-| **❌ CẤM 5: Báo xong khi chưa test** | Tuyệt đối **KHÔNG** báo hoàn thành hoặc đóng task nếu chưa chạy đủ bài kiểm thử thực tế. | Phải chạy `npm test` và các script Godot CLI headless, báo cáo rõ lệnh và kết quả pass. |
+| **❌ CẤM 5: Báo xong khi chưa test & chưa chạy Guard** | Tuyệt đối **KHÔNG** báo hoàn thành hoặc đóng task nếu chưa chạy `./scripts/agent_guard.sh` và `npm test`. | Phải chạy `./scripts/agent_guard.sh`, `npm test` và các script Godot CLI headless, báo cáo rõ lệnh và kết quả pass. |
+| **🔄 BẮT BUỘC 6: Sửa song song 2 đầu (Web Tool ⇔ Godot & APK Bundle)** | Bất cứ khi nào người dùng yêu cầu sửa hoạt ảnh, kỹ năng, AI hay UI, **BẮT BUỘC phải sửa đồng thời trên cả Web Test Tool (`vargost-skill-test.js`) VÀ Godot (`battle_arena_3v3.gd`) kèm chạy `./scripts/build_android_apk.sh`** cập nhật `build/GodWar-debug.apk` ngay trong cùng phiên. | Để bất cứ lúc nào người dùng cần test APK trên điện thoại/emulator thì gói APK đã đồng bộ 100% với Tool, tuyệt đối không phải nhắc sửa lại lần hai. |
+| **🏷️ BẮT BUỘC 7: Nâng Version & Backup theo Version khi nâng cấp** | Mỗi khi nâng cấp tính năng, hoạt ảnh, UI hoặc xuất APK mới, **BẮT BUỘC phải chạy `./scripts/bump_version.sh patch "<mô tả nâng cấp>"` trước khi chạy `./scripts/build_android_apk.sh`**. | Để đồng bộ version (`version.json`, `package.json`, `export_presets.cfg`, `project.godot`) và lưu bản backup `build/releases/GodWar-v<version>-code<code>.apk` phục vụ đánh giá, so sánh từng phiên bản. |
+
+---
+
+## 1.5. Bảng Định Tuyến Tác Vụ: Làm Việc Gì Phải Đọc File Gì (Mandatory File Routing)
+
+Trước khi bắt tay vào bất kỳ công việc nào, Agent **BẮT BUỘC chạy `./scripts/agent_guard.sh guide <loại_việc>`** và đọc đúng các file sau để không làm sai hoặc vượt Hiến pháp:
+
+| Khi làm công việc... | Lệnh tra cứu nhanh | Các File BẮT BUỘC PHẢI ĐỌC TRƯỚC KHI SỬA |
+| :--- | :--- | :--- |
+| **Bắt đầu phiên mới (Mọi tác vụ)** | `./scripts/agent_guard.sh` | 1. `AGENTS.md`<br>2. `state.json`<br>3. `version.json`<br>4. `.agents/skills/godwar-agent-safeguard/SKILL.md` |
+| **Sửa Hoạt ảnh / Kỹ năng / AI / UI / Sàn đấu 3v3** | `./scripts/agent_guard.sh guide combat` | 1. `.agents/skills/godwar-combat-character/SKILL.md`<br>2. `tools/asset-viewer/vargost-skill-test.js` *(Single Source of Truth)*<br>3. `tools/asset-viewer/vargost-skill-test.html`<br>4. `Asset/Scenes/battle_arena/battle_arena_3v3.gd` *(Sửa song song 1:1)* |
+| **Thêm Nhân vật mới / Bóc tách GIF / Đóng Atlas** | `./scripts/agent_guard.sh guide add-char` | 1. `.agents/skills/godwar-add-character/SKILL.md`<br>2. `Asset/Character/characters/height-targets.json`<br>3. `scripts/animation/gif_atlas_library.gd` |
+| **Nâng cấp Version / Xuất APK / Đồng bộ Đa máy / Mở PR** | `./scripts/agent_guard.sh guide release` | 1. `.agents/skills/godwar-pr-workflow/SKILL.md`<br>2. `version.json`, `export_presets.cfg`, `project.godot`<br>3. `scripts/bump_version.sh` & `scripts/build_android_apk.sh` |
 
 ---
 
@@ -60,13 +75,19 @@ git branch --show-current
   - *Quy chuẩn cốt lõi:* Bắt buộc hỗ trợ chiến đấu cả 2 hướng Trái ⇋ Phải bằng cơ chế lật ngang đối xứng qua trục neo pivot (`set_facing()`), cấm vẽ thêm sprite quay trái; hoạt ảnh khi nhảy/chạy phải liên tục chuyển động, cấm gán frame tĩnh gây đơ hình.
 - Nếu nhập nhân vật mới từ GIF: Đọc [.agents/skills/godwar-add-character/SKILL.md](file:///workspaces/GodWar/.agents/skills/godwar-add-character/SKILL.md).
 
-### Bước 4: Chỉnh sửa mã nguồn & Asset
+### Bước 4: Chỉnh sửa mã nguồn & Asset (Bắt buộc Sửa Song Song 2 Đầu)
+- **Sửa song song đồng thời (Dual-Target Lockstep):** Mọi thay đổi về hoạt ảnh, thông số kỹ năng, quỹ đạo, va chạm, AI hay giao diện **phải được thực hiện đồng thời ở cả 2 nơi**:
+  1. Web Test Tool (`tools/asset-viewer/vargost-skill-test.js`, `.html`, JSON manifest).
+  2. Mã nguồn Godot 4 (`Asset/Scenes/battle_arena/battle_arena_3v3.gd`, node `.gd`/`.tscn`).
 - **Mã nguồn (GDScript, JavaScript, JSON, HTML):** Giữ nguyên kiến trúc hiện tại, tôn trọng comment và biến hiện có.
 - **Asset (PNG Atlas, Frames):** Chỉnh sửa ghi đè trực tiếp lên file cũ. Không sinh thêm file thừa.
 
-### Bước 5: Bắt buộc chạy Checklist Kiểm Chứng
+### Bước 5: Bắt buộc Nâng Version, Chạy Checklist Kiểm Chứng & Xuất Bundle APK Backup
 Agent phải thực thi toàn bộ các lệnh sau và xác nhận kết quả:
 ```bash
+# 0. Nâng cấp version (khi có thay đổi tính năng/hoạt ảnh/UI/APK):
+./scripts/bump_version.sh patch "<mô tả nâng cấp>"
+
 # 1. Kiểm tra 25+ unit tests logic chiến đấu, timeline hoạt ảnh & canvas:
 npm test
 
@@ -76,6 +97,12 @@ node --check tools/asset-viewer/vargost-skill-test.js
 # 3. Kiểm tra khởi tạo Scene & Node Godot 4.3 qua Headless CLI:
 godot --headless -s tools/test_instantiate_aoda_scene.gd
 godot --headless -s tools/test_instantiate_vargost_scene.gd
+
+# 4. Đóng gói cập nhật ngay file bundle APK + lưu bản backup theo version tại build/releases/:
+./scripts/build_android_apk.sh
+
+# 5. Chạy Cổng kiểm định Hiến pháp tự động:
+./scripts/agent_guard.sh verify
 ```
 > [!CAUTION]
 > Nếu có bất kỳ bài test nào FAIL hoặc Godot báo lỗi cú pháp: **DỪNG LẠI VÀ SỬA NGAY**, không được commit mã nguồn lỗi lên remote.

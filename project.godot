@@ -7,6 +7,7 @@ config_version=5
 [application]
 
 config/name="GodWar"
+config/version="1.1.8"
 run/main_scene="res://Asset/Scenes/battle_arena/battle_arena_3v3.tscn"
 config/features=PackedStringArray("4.3", "Mobile")
 config/icon="res://icon.svg"

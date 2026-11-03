@@ -84,12 +84,16 @@ Trước khi rời máy hiện tại:
    git checkout -b feature/aoda-new-skill
    ```
 
-3. Thực hiện chỉnh sửa mã nguồn hoặc asset:
+3. Thực hiện chỉnh sửa mã nguồn hoặc asset (Bắt buộc Sửa Song Song 2 Đầu):
    - Sửa trực tiếp lên asset cũ, không tạo file backup `_v2`, `_temp`.
+   - **Sửa song song tức thời:** Mọi chỉnh sửa hoạt ảnh, kỹ năng, AI, giao diện phải cập nhật đồng thời cả trên Web Test Tool (`tools/asset-viewer/vargost-skill-test.js`) VÀ Godot (`Asset/Scenes/battle_arena/battle_arena_3v3.gd` + các node liên quan).
    - Nếu chỉnh sửa nhân vật chiến đấu, đối chiếu với `.agents/skills/godwar-combat-character/SKILL.md`.
 
-4. **Chạy Checklist Kiểm Chứng Bắt Buộc (Bảo hiểm 100%):**
+4. **Chạy Checklist Kiểm Chứng Bắt Buộc, Nâng Version & Đóng Gói Bundle APK Backup (Bảo hiểm 100%):**
    ```bash
+   # 0. Nâng cấp version đồng bộ toàn hệ thống (version.json, package.json, export_presets.cfg, project.godot):
+   ./scripts/bump_version.sh patch "<mô tả nâng cấp>"
+
    # 1. Kiểm tra toàn bộ test logic, hoạt ảnh và canvas
    npm test
 
@@ -99,6 +103,12 @@ Trước khi rời máy hiện tại:
    # 3. Kiểm tra khởi tạo node Godot 4
    godot --headless -s tools/test_instantiate_aoda_scene.gd
    godot --headless -s tools/test_instantiate_vargost_scene.gd
+
+   # 4. Đóng gói cập nhật ngay file bundle APK (build/GodWar-debug.apk) & lưu bản backup theo version tại build/releases/
+   ./scripts/build_android_apk.sh
+
+   # 5. Chạy Cổng kiểm định Hiến pháp tự động
+   ./scripts/agent_guard.sh verify
    ```
 
 5. Cập nhật `state.json` với mốc thời gian UTC và tóm tắt công việc đã làm trên nhánh này.
@@ -160,6 +170,8 @@ Nếu cả 2 máy cùng sửa `state.json` dẫn đến conflict khi pull/merge:
 
 ## 4. Checklist Nhanh Trước Khi Đóng Phiên (Handover Checklist)
 
+- [ ] Đã sửa đồng thời cả 2 đầu: Web Test Tool (`vargost-skill-test.js`) và Godot (`battle_arena_3v3.gd`).
+- [ ] Đã chạy `./scripts/build_android_apk.sh` cập nhật file bundle `build/GodWar-debug.apk` mới nhất.
 - [ ] `git status` sạch sẽ, không còn file tạm/untracked thừa.
 - [ ] `npm test` đạt 100% PASS.
 - [ ] Node Godot CLI khởi tạo thành công (`exit code 0`).

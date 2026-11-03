@@ -24,3 +24,6 @@ crop_*.png
 dialog_crop.png
 image*.png
 image copy*.png
+
+# Codex CLI System Skills Cache
+.agents/skills/.system/

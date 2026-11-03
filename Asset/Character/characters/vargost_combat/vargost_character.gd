@@ -68,11 +68,11 @@ func _physics_process(delta: float) -> void:
     if altitude_cooldown > 0.0:
         altitude_cooldown -= delta
 
-    # Smooth 2.5D horizontal turn-around interpolation
+    # Smooth 2.5D horizontal turn-around interpolation (Snappy >= 50.0 speed perAGENTS.md)
     if not combat_package.is_empty() and sprite != null:
         var scale_factor: float = float(combat_package.get("display_scale", 1.0))
         if absf(visual_facing - target_facing) > 0.02:
-            visual_facing = move_toward(visual_facing, target_facing, delta * 12.0)
+            visual_facing = move_toward(visual_facing, target_facing, delta * 50.0)
             var turn_squash_y := 1.0 + (1.0 - absf(visual_facing)) * 0.10
             sprite.scale.x = visual_facing * scale_factor
             sprite.scale.y = turn_squash_y * scale_factor
@@ -95,14 +95,17 @@ func _physics_process(delta: float) -> void:
         # Khóa trần tốc độ trục Y (bay lên / bay xuống) không quá SPEED_VERTICAL_MAX
         target_vel.y = clampf(target_vel.y, -SPEED_VERTICAL_MAX, SPEED_VERTICAL_MAX)
         velocity = target_vel
-        # Body Tilt
+        # Body Tilt: Tập trung vào xu hướng di chuyển tiến về trước (không phân biệt Trái hay Phải -> luôn đổ người về trước 25 độ)
         if absf(dir.x) > 0.05:
-            var target_rot := signf(dir.x) * TILT_ANGLE
-            rotation = lerp_angle(rotation, target_rot, delta * 8.0)
+            var move_sign := signf(dir.x)
+            if facing_dir != move_sign:
+                set_facing(move_sign, true)
+            var target_rot := move_sign * TILT_ANGLE
+            rotation = lerp_angle(rotation, target_rot, delta * 12.0)
         move_and_slide()
     else:
         velocity = Vector2.ZERO
-        rotation = lerp_angle(rotation, 0.0, delta * 8.0)
+        rotation = lerp_angle(rotation, 0.0, delta * 10.0)
 
     # 2. Autonomous Utility AI
     if is_ai_enabled and combat_state == "IDLE":

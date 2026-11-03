@@ -90,7 +90,7 @@ test('Tornado 2.0s Duration & Forward Straight-Line Ground Sweep Lifecycle (Emer
     x: 500,
     y: 800,
     facing: 1,
-    vx: 140,
+    vx: 85,
     phase: 'EMERGE',
     frameIndex: 0,
     frameTimer: 0,
