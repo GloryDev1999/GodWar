@@ -272,8 +272,8 @@ test('Vargost Combat Logic: Teleport Retreat, Evasive Dodge/Miss, and Enemy Coun
     if (crapitHp !== 2150 || CRAPIT_MAX_HP !== 2150) {
       throw new Error("Boss Crapit phải có 2150 HP khi khởi đầu trận đấu");
     }
-    if (Math.abs(crapitX - 1164) > 1 || Math.abs(crapitY - 752) > 1) {
-      throw new Error("Boss Crapit phải đặt tại tọa độ (1164, 752) trên map");
+    if (Math.abs(crapitX - 1280) > 2 || Math.abs(crapitY - 964) > 2) {
+      throw new Error("Boss Crapit phải đặt tại tọa độ (1280, 963.75) trên bệ đá plat_3d sát mặt đất");
     }
     // Đặt Aoda vào vùng chiếm Thánh Kiếm và cho Boss sẵn sàng tấn công
     aodaX = SWORD_X;

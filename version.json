@@ -1,10 +1,31 @@
 {
   "schema_version": 1,
-  "current_version": "1.1.8",
-  "version_code": 19,
-  "updated_at_utc": "2026-11-03T09:56:47Z",
+  "current_version": "1.1.11",
+  "version_code": 22,
+  "updated_at_utc": "2026-11-03T13:59:49Z",
   "policy": "Luôn tăng version (patch/minor/major) và version_code (+1) khi nâng cấp tính năng, hoạt ảnh, UI hoặc đóng gói APK mới; lưu bản backup APK theo từng version tại build/releases/ để đánh giá và đối chiếu.",
   "releases": [
+    {
+      "version": "1.1.11",
+      "version_code": 22,
+      "date_utc": "2026-11-03T13:59:49Z",
+      "apk_backup": "build/releases/GodWar-v1.1.11-code22.apk",
+      "summary": "Đồng bộ 1:1 kích thước pixel giữa Web Tool và Mobile (zoom=1.0), Boss Crapit sát mép tường không tràn địa hình (1280, 963.75), chuẩn hóa tốc độ 250px/s (mang Cổ Vật 225px/s), Aoda nhảy tới không nhảy lùi và nhảy lần lượt qua các bệ gần nhất"
+    },
+    {
+      "version": "1.1.10",
+      "version_code": 21,
+      "date_utc": "2026-11-03T13:08:12Z",
+      "apk_backup": "build/releases/GodWar-v1.1.10-code21.apk",
+      "summary": "Đặt Boss Crapit tiếp đất bệ plat_3d (837px), Cổ vật rơi sát đất không lơ lửng, sửa dứt điểm Aoda đơ hoạt ảnh tại bệ kiếm và điều hướng vượt địa hình qua không gian mở 100%"
+    },
+    {
+      "version": "1.1.9",
+      "version_code": 20,
+      "date_utc": "2026-11-03T12:00:14Z",
+      "apk_backup": "build/releases/GodWar-v1.1.9-code20.apk",
+      "summary": "Cổ vật 10x10 lấp lánh tinh tế, hạ Boss Crapit 5px sát đất, Platform Graph navigation Aoda vượt địa hình & Vargost max speed nhặt Cổ Vật"
+    },
     {
       "version": "1.1.8",
       "version_code": 19,

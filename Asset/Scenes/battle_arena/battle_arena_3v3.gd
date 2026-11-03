@@ -32,7 +32,8 @@ var PLATFORMS: Dictionary = {
 	"plat_1b": {"name": "Platform 1B (Bậc Thấp Trái)", "minX": MAP_X + 130.0 * MAP_SCALE, "maxX": MAP_X + 228.0 * MAP_SCALE, "y": MAP_Y + 292.0 * MAP_SCALE},
 	"plat_2": {"name": "Platform 2 (Bệ Giữa - Thánh Kiếm)", "minX": MAP_X + 192.0 * MAP_SCALE, "maxX": MAP_X + 260.0 * MAP_SCALE, "y": SWORD_Y},
 	"plat_3a": {"name": "Platform 3A (Vách Đá Cao)", "minX": MAP_X + 286.0 * MAP_SCALE, "maxX": MAP_X + 422.0 * MAP_SCALE, "y": MAP_Y + 100.0 * MAP_SCALE},
-	"plat_3b": {"name": "Platform 3B (Căn Cứ Phải - Sát Mép)", "minX": MAP_X + 427.0 * MAP_SCALE, "maxX": MAP_X + 488.0 * MAP_SCALE, "y": MAP_Y + 130.0 * MAP_SCALE}
+	"plat_3b": {"name": "Platform 3B (Căn Cứ Phải - Sát Mép)", "minX": MAP_X + 427.0 * MAP_SCALE, "maxX": MAP_X + 488.0 * MAP_SCALE, "y": MAP_Y + 130.0 * MAP_SCALE},
+	"plat_3d": {"name": "Platform 3D (Đáy Vực Boss Crapit)", "minX": MAP_X + 284.0 * MAP_SCALE, "maxX": MAP_X + 365.0 * MAP_SCALE, "y": MAP_Y + 289.0 * MAP_SCALE}
 }
 
 const LEFT_BASE_AIR_X: float = MAP_X + 34.0 * MAP_SCALE
@@ -94,9 +95,9 @@ const CRAPIT_PROJ_SPEED: float = 500.0 * (MAP_SCALE / 2.625)
 const CRAPIT_ORB_SIZE: float = 30.0 * (MAP_SCALE / 2.625)
 const CRAPIT_EXP_SIZE: float = 40.0 * (MAP_SCALE / 2.625)
 
-# TỌA ĐỘ BOSS CRAPIT: Nằm sát góc vuông Platform 3D (X=336, Y=286 trên Map)
-var crapit_x: float = MAP_X + 336.0 * MAP_SCALE
-var crapit_y: float = MAP_Y + 286.0 * MAP_SCALE
+# TỌA ĐỘ BOSS CRAPIT: Tọa độ chuẩn hóa (1280.0, 963.75) tiếp đất sát mép tường Platform 3D không tràn địa hình
+var crapit_x: float = MAP_X + 341.3333 * MAP_SCALE # 1280.0
+var crapit_y: float = MAP_Y + 289.0 * MAP_SCALE # 963.75
 var crapit_hp: float = CRAPIT_MAX_HP
 var crapit_is_dead: bool = false
 var crapit_death_timer: float = 0.0
@@ -178,7 +179,7 @@ var aoda_frame_timer: float = 0.0
 var aoda_is_dead: bool = false
 var aoda_death_timer: float = 0.0
 var aoda_scale: float = 0.333333
-var aoda_patrol_speed: float = 170.0 # px/s
+var aoda_patrol_speed: float = 250.0 # px/s (tốc độ trung bình chuẩn hóa)
 var aoda_tornado_cooldown: float = 0.0
 
 # Aoda Jump State (Parabolic Arc qua các bệ)
@@ -233,6 +234,8 @@ var crapit_mat: ShaderMaterial
 var aoda_manifest_frames: Array = []
 var vargost_teleport_escape_timer: float = 0.0
 const SPEED_SLOW: float = 100.0
+const SPEED_NORMAL: float = 250.0
+const SPEED_FAST: float = 400.0
 
 # Trạng thái cứ điểm Thánh Kiếm
 var capture_team: int = 0
@@ -815,9 +818,9 @@ func _update_vargost(dt: float) -> void:
 			vargost_target_air_x = LEFT_EXTRACTION_POS.x
 			vargost_target_air_y = LEFT_EXTRACTION_POS.y
 		elif v_pick_loot:
-			# Nhặt Cổ Vật rơi trên sàn
+			# Nhặt Cổ Vật rơi trên sàn: Bay thẳng tới Cổ Vật
 			vargost_target_air_x = float(boss_loot_drop["x"])
-			vargost_target_air_y = float(boss_loot_drop["y"]) - 40.0
+			vargost_target_air_y = float(boss_loot_drop["y"]) - 10.0
 		elif aoda_is_carrier:
 			# Địch Aoda đang cầm Cổ Vật -> Đổi toàn bộ mục tiêu sang truy sát Aoda!
 			vargost_target_air_x = clampf(aoda_x - 220.0 * aoda_facing, 180.0, 1650.0)
@@ -839,9 +842,20 @@ func _update_vargost(dt: float) -> void:
 				vargost_target_air_x = clampf(aoda_x + randf_range(260.0, 420.0), 860.0, 1650.0)
 			vargost_target_air_y = randf_range(210.0, 320.0)
 
-	# Tự động né đòn / Giữ khoảng cách an toàn: Nếu Aoda áp sát (< 220px) -> Teleport lùi giữ cự ly!
+	var v_is_carrier_live := str(boss_loot_drop["carrier_id"]) == "vargost"
+	var v_pick_loot_live: bool = bool(boss_loot_drop["active"]) and str(boss_loot_drop["carrier_id"]) == "" and (bool(boss_loot_drop["is_free_for_all"]) or str(boss_loot_drop["locked_picker_id"]) == "vargost")
+
+	# Khi đang nhặt hoặc mang Cổ Vật: Khóa cứng mục tiêu Cổ Vật / Căn Cứ, cập nhật tức thời liên tục
+	if v_is_carrier_live:
+		vargost_target_air_x = LEFT_EXTRACTION_POS.x
+		vargost_target_air_y = LEFT_EXTRACTION_POS.y
+	elif v_pick_loot_live:
+		vargost_target_air_x = float(boss_loot_drop["x"])
+		vargost_target_air_y = float(boss_loot_drop["y"]) - 10.0
+
+	# Tự động né đòn / Giữ khoảng cách an toàn: Nếu Aoda áp sát (< 220px) -> Teleport lùi giữ cự ly! (Trừ khi đang nhặt/mang Cổ Vật)
 	var dist_to_aoda := Vector2(vargost_x, vargost_y).distance_to(Vector2(aoda_x, aoda_y))
-	if dist_to_aoda < 220.0 and not aoda_is_dead and vargost_state == "IDLE" and not is_vargost_teleporting:
+	if dist_to_aoda < 220.0 and not aoda_is_dead and not v_pick_loot_live and not v_is_carrier_live and vargost_state == "IDLE" and not is_vargost_teleporting:
 		var retreat_dir := -1.0 if aoda_x > vargost_x else 1.0
 		var retreat_x := clampf(vargost_x + retreat_dir * 200.0, 180.0, 1020.0)
 		if absf(retreat_x - aoda_x) < 220.0:
@@ -851,7 +865,7 @@ func _update_vargost(dt: float) -> void:
 
 	# Đang trong thời gian chờ hồi chiêu (khoảng nghỉ): Nếu đã bay tới điểm đích, tự động chọn điểm tuần tra chậm xung quanh
 	var move_vec := Vector2(vargost_target_air_x - vargost_x, vargost_target_air_y - vargost_y)
-	if move_vec.length() <= 12.0 and vargost_state == "IDLE" and not aoda_is_dead and not is_vargost_teleporting:
+	if move_vec.length() <= 12.0 and vargost_state == "IDLE" and not aoda_is_dead and not v_pick_loot_live and not v_is_carrier_live and not is_vargost_teleporting:
 		var opt_side := -1.0 if team_origin_direction > 0.0 else 1.0
 		if opt_side < 0.0:
 			vargost_target_air_x = clampf(aoda_x - randf_range(260.0, 420.0), 180.0, 1020.0)
@@ -867,9 +881,10 @@ func _update_vargost(dt: float) -> void:
 	if move_vec.length() > 6.0 and vargost_state == "IDLE" and not is_vargost_teleporting:
 		var dir := move_vec.normalized()
 		var is_cooling_down: bool = (vargost_auto_cooldown > 0.0 and not aoda_is_dead)
-		var fly_speed: float = SPEED_SLOW if is_cooling_down else 300.0
-		if str(boss_loot_drop["carrier_id"]) == "vargost":
-			fly_speed *= 0.90 # Giảm 10% tốc độ khi đang mang Cổ Vật
+		# Tốc độ di chuyển: Tốc độ trung bình 250px/s (giới hạn [100, 400]), mang Cổ Vật giảm 10% (225px/s nặng nề)
+		var fly_speed: float = SPEED_SLOW if is_cooling_down else SPEED_NORMAL
+		if v_is_carrier_live:
+			fly_speed = SPEED_NORMAL * 0.90 # Giảm 10% tốc độ khi đang mang Cổ Vật (225px/s)
 		vargost_x += dir.x * fly_speed * dt
 		vargost_y += dir.y * (fly_speed * 0.6) * dt
 
@@ -926,10 +941,10 @@ func _update_vargost(dt: float) -> void:
 				vargost_state = "IDLE"
 				vargost_auto_cooldown = 3.2 # Nghỉ chiến thuật 3.2s y hệt test tool
 
-	# 3. Kích hoạt tung chiêu Blazing Halo (Ưu tiên phản công Boss Crapit nếu vargost_retaliate_boss == true, ngược lại bắn Aoda)
+	# 3. Kích hoạt tung chiêu Blazing Halo (Tuyệt đối không tấn công xao nhãng khi đang nhặt hoặc hộ tống Cổ Vật)
 	if vargost_auto_cooldown > 0.0:
 		vargost_auto_cooldown -= dt
-	elif vargost_state == "IDLE" and ((vargost_retaliate_boss and not crapit_is_dead) or not aoda_is_dead):
+	elif vargost_state == "IDLE" and not v_pick_loot_live and not v_is_carrier_live and ((vargost_retaliate_boss and not crapit_is_dead) or not aoda_is_dead):
 		var hand_start := Vector2(vargost_x + 20.0 * vargost_facing, vargost_y - 20.0)
 		var aim_pt := Vector2(crapit_x, crapit_y - 35.0) if (vargost_retaliate_boss and not crapit_is_dead) else Vector2(aoda_x, aoda_y - 45.0)
 		var los_blocked: Variant = _raycast_env(hand_start, aim_pt)
@@ -1099,8 +1114,15 @@ func _update_aoda(dt: float) -> void:
 			aoda_frame_timer -= 0.06
 			aoda_frame_index += 1
 			if aoda_frame_index > 46:
-				aoda_frame_index = 65
-				aoda_state = "MOVE"
+				var in_sz: bool = Vector2(aoda_x, aoda_y).distance_to(Vector2(SWORD_X, SWORD_Y)) <= SWORD_CAPTURE_RADIUS
+				var carrying: bool = str(boss_loot_drop["carrier_id"]) == "aoda"
+				var picking: bool = bool(boss_loot_drop["active"]) and str(boss_loot_drop["carrier_id"]) == "" and (bool(boss_loot_drop["is_free_for_all"]) or str(boss_loot_drop["locked_picker_id"]) == "aoda")
+				if in_sz and aoda_cur_platform_id == "plat_2" and not picking and not carrying:
+					aoda_state = "IDLE"
+					aoda_frame_index = 0
+				else:
+					aoda_frame_index = 65
+					aoda_state = "MOVE"
 		return
 
 	# 3. Utility AI: Tung chiêu Tornado CÓ CHỦ ĐÍCH NHẮM MỤC TIÊU MẶT ĐẤT (HOẶC PHẢN CÔNG BOSS CRAPIT)
@@ -1117,8 +1139,8 @@ func _update_aoda(dt: float) -> void:
 	var aoda_pursuing_carrier := str(boss_loot_drop["carrier_id"]) == "vargost"
 	var aoda_picking_loot: bool = bool(boss_loot_drop["active"]) and str(boss_loot_drop["carrier_id"]) == "" and (bool(boss_loot_drop["is_free_for_all"]) or str(boss_loot_drop["locked_picker_id"]) == "aoda")
 
-	if aoda_tornado_cooldown <= 0.0 and aoda_state != "JUMP" and aoda_state != "LANDING":
-		# Tornado trúng cả mục tiêu trên không lẫn dưới mặt đất và dội tường
+	if aoda_tornado_cooldown <= 0.0 and aoda_state != "JUMP" and aoda_state != "LANDING" and not aoda_picking_loot and not aoda_carrying_loot:
+		# Tornado trúng cả mục tiêu trên không lẫn dưới mặt đất và dội tường (Tuyệt đối không tấn công xao nhãng khi đang nhặt/hộ tống Cổ Vật)
 		if can_retaliate_crapit or (h_dist_vargost < 420.0 and not is_vargost_teleporting):
 			var target_x := crapit_x if can_retaliate_crapit else vargost_x
 			aoda_facing = 1.0 if target_x > aoda_x else -1.0
@@ -1137,20 +1159,39 @@ func _update_aoda(dt: float) -> void:
 			if aoda_frame_index > 86:
 				aoda_frame_index = 65
 
+		var target_plat_id := "plat_2"
 		var target_nav_x := SWORD_X
+		var nav_goal_desc := "Thánh Kiếm"
 		if aoda_carrying_loot:
+			target_plat_id = "plat_3b"
 			target_nav_x = RIGHT_EXTRACTION_POS.x
+			nav_goal_desc = "Căn Cứ Phải"
 		elif aoda_picking_loot:
+			target_plat_id = "plat_3d"
 			target_nav_x = float(boss_loot_drop["x"])
+			nav_goal_desc = "Cổ Vật"
 		elif aoda_pursuing_carrier:
+			target_plat_id = "plat_2"
 			target_nav_x = vargost_x
+			nav_goal_desc = "Kẻ mang Cổ Vật"
 
-		var is_at_nav_goal := absf(aoda_x - target_nav_x) < 40.0 if (aoda_carrying_loot or aoda_picking_loot) else is_in_sword_zone
-		if not is_at_nav_goal:
+		var at_target_plat := (aoda_cur_platform_id == target_plat_id)
+		var is_at_nav_goal := (at_target_plat and absf(aoda_x - target_nav_x) < 30.0) if (aoda_carrying_loot or aoda_picking_loot) else is_in_sword_zone
+
+		# Tốc độ di chuyển chuẩn hóa: 250px/s (giới hạn [100, 400]), mang Cổ Vật giảm -10% (225px/s) di chuyển nặng nề
+		var aoda_max_spd := SPEED_NORMAL
+		var eff_aoda_speed := (aoda_max_spd * 0.90 if aoda_carrying_loot else aoda_max_spd)
+
+		# Điều hướng bệ địa hình (Platform Graph Navigation):
+		var nav_plan: Dictionary = _get_platform_nav_plan(aoda_cur_platform_id, target_plat_id, aoda_x)
+
+		if not at_target_plat and not bool(nav_plan.get("at_target_platform", true)):
+			aoda_facing = float(nav_plan["move_dir"])
+		elif not is_at_nav_goal:
 			aoda_facing = 1.0 if target_nav_x > aoda_x else -1.0
+		aoda_visual_facing = aoda_facing
 
 		var plat: Dictionary = PLATFORMS.get(aoda_cur_platform_id, PLATFORMS["plat_2"])
-		var eff_aoda_speed := aoda_patrol_speed * 0.90 if aoda_carrying_loot else aoda_patrol_speed
 		var step_x := aoda_facing * eff_aoda_speed * dt
 		var target_edge_x := aoda_x + step_x
 		var min_ledge: float = plat["minX"] + 20.0
@@ -1160,36 +1201,57 @@ func _update_aoda(dt: float) -> void:
 			var p2_min_x: float = PLATFORMS["plat_2"]["minX"]
 			max_ledge = minf(max_ledge, p2_min_x - 35.0)
 
-		if target_edge_x < min_ledge or target_edge_x > max_ledge:
-			# Chạm mép bệ -> Nhảy bệ tiếp theo tiến về Thánh Kiếm (từ cả Căn Cứ Trái lẫn Căn Cứ Phải)
-			var adj: Variant = _get_adjacent_platform(aoda_cur_platform_id, aoda_facing)
-			var is_sword_ahead := (aoda_facing > 0.0 and SWORD_X > aoda_x) or (aoda_facing < 0.0 and SWORD_X < aoda_x)
-			if adj != null and (!is_in_sword_zone or is_sword_ahead):
+		var is_at_edge := (aoda_facing > 0.0 and target_edge_x >= max_ledge) or (aoda_facing < 0.0 and target_edge_x <= min_ledge)
+
+		if is_at_edge:
+			# Chạm mép bệ: Nhảy sang bệ tiếp theo
+			if not at_target_plat and nav_plan.has("next_platform_id") and str(nav_plan["next_platform_id"]) != "":
 				aoda_state = "JUMP"
 				aoda_jump_timer = 0.0
 				aoda_jump_duration = 0.48
 				aoda_jump_start_x = aoda_x
 				aoda_jump_start_y = aoda_y
-				aoda_jump_target_platform_id = adj["platform_id"]
-				var tgt_plat: Dictionary = PLATFORMS.get(adj["platform_id"], PLATFORMS["plat_2"])
-				var forward_target_x: float = float(adj["target_x"])
-				var min_forward_step := 65.0
-				# Đảm bảo quỹ đạo nhảy LUÔN tiến về phía trước theo hướng mặt aoda_facing (tuyệt đối không nhảy lùi)
-				if aoda_facing > 0.0 and forward_target_x < aoda_x + min_forward_step:
-					forward_target_x = minf(float(tgt_plat["maxX"]) - 25.0, aoda_x + min_forward_step)
-				elif aoda_facing < 0.0 and forward_target_x > aoda_x - min_forward_step:
-					forward_target_x = maxf(float(tgt_plat["minX"]) + 25.0, aoda_x - min_forward_step)
-				aoda_jump_target_x = forward_target_x
-				aoda_jump_target_y = adj["target_y"]
+				aoda_jump_target_platform_id = str(nav_plan["next_platform_id"])
+				aoda_jump_target_x = float(nav_plan["jump_target_x"])
+				aoda_jump_target_y = float(nav_plan["jump_target_y"])
+				var jump_dir_x: float = 1.0 if aoda_jump_target_x >= aoda_jump_start_x else -1.0
+				aoda_facing = jump_dir_x
+				aoda_visual_facing = jump_dir_x
 				if aoda_frame_index < 65 or aoda_frame_index > 86:
 					aoda_frame_index = 65
-				show_toast("🦘 Aoda: Nhảy bệ tiến đánh Thánh Kiếm!")
+				show_toast("🦘 Aoda: Nhảy bệ di chuyển tới %s!" % nav_goal_desc)
 			else:
-				aoda_x = max_ledge if aoda_facing > 0 else min_ledge
-				aoda_state = "IDLE"
-				aoda_frame_index = 0
+				var adj: Variant = _get_adjacent_platform(aoda_cur_platform_id, aoda_facing)
+				var is_sword_ahead := (aoda_facing > 0.0 and SWORD_X > aoda_x) or (aoda_facing < 0.0 and SWORD_X < aoda_x)
+				if adj != null and (!is_in_sword_zone or is_sword_ahead):
+					aoda_state = "JUMP"
+					aoda_jump_timer = 0.0
+					aoda_jump_duration = 0.48
+					aoda_jump_start_x = aoda_x
+					aoda_jump_start_y = aoda_y
+					aoda_jump_target_platform_id = adj["platform_id"]
+					var tgt_plat: Dictionary = PLATFORMS.get(adj["platform_id"], PLATFORMS["plat_2"])
+					var forward_target_x: float = float(adj["target_x"])
+					var min_forward_step := 65.0
+					# Đảm bảo quỹ đạo nhảy LUÔN tiến về phía trước theo hướng mặt aoda_facing (tuyệt đối không nhảy lùi)
+					if aoda_facing > 0.0 and forward_target_x < aoda_x + min_forward_step:
+						forward_target_x = minf(float(tgt_plat["maxX"]) - 25.0, aoda_x + min_forward_step)
+					elif aoda_facing < 0.0 and forward_target_x > aoda_x - min_forward_step:
+						forward_target_x = maxf(float(tgt_plat["minX"]) + 25.0, aoda_x - min_forward_step)
+					aoda_jump_target_x = forward_target_x
+					aoda_jump_target_y = adj["target_y"]
+					var jump_dir_x: float = 1.0 if aoda_jump_target_x >= aoda_jump_start_x else -1.0
+					aoda_facing = jump_dir_x
+					aoda_visual_facing = jump_dir_x
+					if aoda_frame_index < 65 or aoda_frame_index > 86:
+						aoda_frame_index = 65
+					show_toast("🦘 Aoda: Nhảy bệ tiến đánh Thánh Kiếm!")
+				else:
+					aoda_x = max_ledge if aoda_facing > 0 else min_ledge
+					aoda_state = "IDLE"
+					aoda_frame_index = 0
 		else:
-			if is_in_sword_zone and absf(aoda_x - SWORD_X) < 40.0:
+			if is_at_nav_goal and is_in_sword_zone and absf(aoda_x - SWORD_X) < 40.0:
 				aoda_state = "IDLE"
 				aoda_frame_index = 0
 			else:
@@ -1200,6 +1262,9 @@ func _update_aoda(dt: float) -> void:
 		aoda_jump_timer += dt
 		var t := clampf(aoda_jump_timer / aoda_jump_duration, 0.0, 1.0)
 		aoda_x = lerpf(aoda_jump_start_x, aoda_jump_target_x, t)
+		var jump_dir_x: float = 1.0 if aoda_jump_target_x >= aoda_jump_start_x else -1.0
+		aoda_facing = jump_dir_x
+		aoda_visual_facing = jump_dir_x
 		var sc := MAP_SCALE / 2.625
 		var delta_y := aoda_jump_target_y - aoda_jump_start_y
 		if delta_y > 0.0:
@@ -1238,8 +1303,14 @@ func _update_aoda(dt: float) -> void:
 			if aoda_frame_index > 86:
 				aoda_frame_index = 65
 		if aoda_landing_timer <= 0.0:
+			var aoda_carrying := str(boss_loot_drop["carrier_id"]) == "aoda"
+			var aoda_picking: bool = bool(boss_loot_drop["active"]) and str(boss_loot_drop["carrier_id"]) == "" and (bool(boss_loot_drop["is_free_for_all"]) or str(boss_loot_drop["locked_picker_id"]) == "aoda")
 			is_in_sword_zone = Vector2(aoda_x, aoda_y).distance_to(Vector2(SWORD_X, SWORD_Y)) <= SWORD_CAPTURE_RADIUS
-			if is_in_sword_zone:
+			if aoda_carrying or aoda_picking:
+				aoda_state = "MOVE"
+				if aoda_frame_index < 65 or aoda_frame_index > 86:
+					aoda_frame_index = 65
+			elif is_in_sword_zone:
 				aoda_state = "IDLE"
 				aoda_frame_index = 0
 			else:
@@ -1256,46 +1327,156 @@ func _update_aoda(dt: float) -> void:
 			if aoda_frame_index > 24:
 				aoda_frame_index = 0
 
-		is_in_sword_zone = Vector2(aoda_x, aoda_y).distance_to(Vector2(SWORD_X, SWORD_Y)) <= SWORD_CAPTURE_RADIUS
-		if not is_in_sword_zone:
+		var aoda_carrying := str(boss_loot_drop["carrier_id"]) == "aoda"
+		var aoda_picking: bool = bool(boss_loot_drop["active"]) and str(boss_loot_drop["carrier_id"]) == "" and (bool(boss_loot_drop["is_free_for_all"]) or str(boss_loot_drop["locked_picker_id"]) == "aoda")
+		if aoda_carrying or aoda_picking:
+			aoda_state = "MOVE"
+			aoda_frame_index = 65
+		elif not is_in_sword_zone:
 			aoda_facing = 1.0 if SWORD_X > aoda_x else -1.0
+			aoda_visual_facing = aoda_facing
 			aoda_state = "MOVE"
 			aoda_frame_index = 65
 		else:
 			# Quay mặt đối diện Vargost để phòng thủ (Deadzone 35px chống rung)
+			# TUYỆT ĐỐI KHÔNG reset aoda_frame_index = 0 tại đây tránh gây đơ hoạt ảnh!
 			if absf(vargost_x - aoda_x) > 35.0:
 				aoda_facing = 1.0 if vargost_x > aoda_x else -1.0
+				aoda_visual_facing = aoda_facing
+
+# BỘ ĐIỀU HƯỚNG TÌM ĐƯỜNG QUA CÁC BỆ ĐỊA HÌNH (PLATFORM GRAPH NAVIGATION)
+# Đồng bộ 1:1 với Web Test Tool Single Source of Truth
+func _get_platform_nav_plan(current_plat_id: String, target_plat_id: String, current_x: float) -> Dictionary:
+	if current_plat_id == target_plat_id:
+		return {"at_target_platform": true, "next_platform_id": ""}
+
+	# 1. Mục tiêu là plat_3d (Hang Boss Crapit):
+	# QUY TẮC HIẾN PHÁP & TRẢI NGHIỆM THỰC TẾ: Nhảy xuống/lên địa hình gần nhất lần lượt!
+	# Điểm 3 (plat_3a) -> nhảy xuống điểm 2 (plat_2 Thánh Kiếm) -> xong mới nhảy xuống hang boss (plat_3d).
+	if target_plat_id == "plat_3d":
+		if current_plat_id == "plat_3a":
+			return {
+				"at_target_platform": false, "move_dir": -1.0, "jump_edge": "left",
+				"next_platform_id": "plat_2",
+				"jump_target_x": float(PLATFORMS["plat_2"]["maxX"]) - 35.0, "jump_target_y": float(PLATFORMS["plat_2"]["y"])
+			}
+		elif current_plat_id == "plat_3b":
+			return {
+				"at_target_platform": false, "move_dir": -1.0, "jump_edge": "left",
+				"next_platform_id": "plat_3a",
+				"jump_target_x": float(PLATFORMS["plat_3a"]["maxX"]) - 35.0, "jump_target_y": float(PLATFORMS["plat_3a"]["y"])
+			}
+		elif current_plat_id == "plat_2":
+			return {
+				"at_target_platform": false, "move_dir": 1.0, "jump_edge": "right",
+				"next_platform_id": "plat_3d",
+				"jump_target_x": float(PLATFORMS["plat_3d"]["minX"]) + 45.0, "jump_target_y": float(PLATFORMS["plat_3d"]["y"])
+			}
+		elif current_plat_id == "plat_1b":
+			return {"at_target_platform": false, "move_dir": 1.0, "jump_edge": "right", "next_platform_id": "plat_2", "jump_target_x": float(PLATFORMS["plat_2"]["minX"]) + 35.0, "jump_target_y": float(PLATFORMS["plat_2"]["y"])}
+		elif current_plat_id == "plat_1a":
+			return {"at_target_platform": false, "move_dir": 1.0, "jump_edge": "right", "next_platform_id": "plat_1b", "jump_target_x": float(PLATFORMS["plat_1b"]["minX"]) + 35.0, "jump_target_y": float(PLATFORMS["plat_1b"]["y"])}
+		elif current_plat_id == "plat_1_top":
+			return {"at_target_platform": false, "move_dir": 1.0, "jump_edge": "right", "next_platform_id": "plat_1a", "jump_target_x": float(PLATFORMS["plat_1a"]["minX"]) + 35.0, "jump_target_y": float(PLATFORMS["plat_1a"]["y"])}
+
+	# 2. Mục tiêu là plat_3b (Căn Cứ Phải - Hồi sinh Team 2 / Hoàn thành nhận vật phẩm):
+	# Lộ trình hợp lệ qua địa hình liền kề: plat_3d -> plat_2 -> plat_3a -> plat_3b (0% xuyên vách đá)
+	if target_plat_id == "plat_3b":
+		if current_plat_id == "plat_3d":
+			return {
+				"at_target_platform": false, "move_dir": -1.0, "jump_edge": "left",
+				"next_platform_id": "plat_2",
+				"jump_target_x": float(PLATFORMS["plat_2"]["maxX"]) - 35.0, "jump_target_y": float(PLATFORMS["plat_2"]["y"])
+			}
+		elif current_plat_id == "plat_2":
+			return {
+				"at_target_platform": false, "move_dir": 1.0, "jump_edge": "right",
+				"next_platform_id": "plat_3a",
+				"jump_target_x": float(PLATFORMS["plat_3a"]["minX"]) + 45.0, "jump_target_y": float(PLATFORMS["plat_3a"]["y"])
+			}
+		elif current_plat_id == "plat_3a":
+			return {
+				"at_target_platform": false, "move_dir": 1.0, "jump_edge": "right",
+				"next_platform_id": "plat_3b",
+				"jump_target_x": float(PLATFORMS["plat_3b"]["minX"]) + 35.0, "jump_target_y": float(PLATFORMS["plat_3b"]["y"])
+			}
+
+	# 3. Mục tiêu là plat_1_top / plat_1a (Căn Cứ Trái - Hồi sinh Team 1 / Hoàn thành nhận vật phẩm):
+	if target_plat_id == "plat_1_top" or target_plat_id == "plat_1a":
+		if current_plat_id == "plat_3d":
+			return {
+				"at_target_platform": false, "move_dir": -1.0, "jump_edge": "left",
+				"next_platform_id": "plat_2",
+				"jump_target_x": float(PLATFORMS["plat_2"]["maxX"]) - 35.0, "jump_target_y": float(PLATFORMS["plat_2"]["y"])
+			}
+		elif current_plat_id == "plat_3a":
+			return {"at_target_platform": false, "move_dir": -1.0, "jump_edge": "left", "next_platform_id": "plat_2", "jump_target_x": float(PLATFORMS["plat_2"]["maxX"]) - 35.0, "jump_target_y": float(PLATFORMS["plat_2"]["y"])}
+		elif current_plat_id == "plat_3b":
+			return {"at_target_platform": false, "move_dir": -1.0, "jump_edge": "left", "next_platform_id": "plat_3a", "jump_target_x": float(PLATFORMS["plat_3a"]["maxX"]) - 35.0, "jump_target_y": float(PLATFORMS["plat_3a"]["y"])}
+		elif current_plat_id == "plat_2":
+			return {"at_target_platform": false, "move_dir": -1.0, "jump_edge": "left", "next_platform_id": "plat_1b", "jump_target_x": float(PLATFORMS["plat_2"]["minX"]) - 60.0, "jump_target_y": float(PLATFORMS["plat_1b"]["y"])}
+		elif current_plat_id == "plat_1b":
+			return {"at_target_platform": false, "move_dir": -1.0, "jump_edge": "left", "next_platform_id": "plat_1a", "jump_target_x": float(PLATFORMS["plat_1a"]["maxX"]) - 35.0, "jump_target_y": float(PLATFORMS["plat_1a"]["y"])}
+		elif current_plat_id == "plat_1a" and target_plat_id == "plat_1_top":
+			return {"at_target_platform": false, "move_dir": -1.0, "jump_edge": "left", "next_platform_id": "plat_1_top", "jump_target_x": float(PLATFORMS["plat_1_top"]["maxX"]) - 20.0, "jump_target_y": float(PLATFORMS["plat_1_top"]["y"])}
+
+	# 4. Mặc định: Mục tiêu là plat_2 (Cứ Điểm Thánh Kiếm):
+	if current_plat_id == "plat_3d":
+		return {"at_target_platform": false, "move_dir": -1.0, "jump_edge": "left", "next_platform_id": "plat_2", "jump_target_x": float(PLATFORMS["plat_2"]["maxX"]) - 35.0, "jump_target_y": float(PLATFORMS["plat_2"]["y"])}
+	elif current_plat_id == "plat_3a":
+		return {"at_target_platform": false, "move_dir": -1.0, "jump_edge": "left", "next_platform_id": "plat_2", "jump_target_x": float(PLATFORMS["plat_2"]["maxX"]) - 35.0, "jump_target_y": float(PLATFORMS["plat_2"]["y"])}
+	elif current_plat_id == "plat_3b":
+		return {"at_target_platform": false, "move_dir": -1.0, "jump_edge": "left", "next_platform_id": "plat_3a", "jump_target_x": float(PLATFORMS["plat_3a"]["maxX"]) - 35.0, "jump_target_y": float(PLATFORMS["plat_3a"]["y"])}
+	elif current_plat_id == "plat_1_top":
+		return {"at_target_platform": false, "move_dir": 1.0, "jump_edge": "right", "next_platform_id": "plat_1a", "jump_target_x": float(PLATFORMS["plat_1a"]["minX"]) + 35.0, "jump_target_y": float(PLATFORMS["plat_1a"]["y"])}
+	elif current_plat_id == "plat_1a":
+		return {"at_target_platform": false, "move_dir": 1.0, "jump_edge": "right", "next_platform_id": "plat_1b", "jump_target_x": float(PLATFORMS["plat_1b"]["minX"]) + 35.0, "jump_target_y": float(PLATFORMS["plat_1b"]["y"])}
+	elif current_plat_id == "plat_1b":
+		return {"at_target_platform": false, "move_dir": 1.0, "jump_edge": "right", "next_platform_id": "plat_2", "jump_target_x": float(PLATFORMS["plat_2"]["minX"]) + 35.0, "jump_target_y": float(PLATFORMS["plat_2"]["y"])}
+
+	return {"at_target_platform": true, "next_platform_id": ""}
 
 func _get_adjacent_platform(plat_id: String, facing: float) -> Variant:
-	if plat_id == "plat_1a":
+	if plat_id == "plat_1_top":
+		if facing > 0:
+			var p1a: Dictionary = PLATFORMS["plat_1a"]
+			return {"platform_id": "plat_1a", "target_x": p1a["minX"] + 35.0, "target_y": p1a["y"]}
+	elif plat_id == "plat_1a":
 		if facing > 0:
 			var p1b: Dictionary = PLATFORMS["plat_1b"]
 			return {"platform_id": "plat_1b", "target_x": p1b["minX"] + 35.0, "target_y": p1b["y"]}
+		elif facing < 0:
+			var p1t: Dictionary = PLATFORMS["plat_1_top"]
+			return {"platform_id": "plat_1_top", "target_x": p1t["maxX"] - 25.0, "target_y": p1t["y"]}
 	elif plat_id == "plat_1b":
 		if facing > 0:
 			var p2: Dictionary = PLATFORMS["plat_2"]
-			return {"platform_id": "plat_2", "target_x": p2["minX"] + 30.0, "target_y": p2["y"]}
+			return {"platform_id": "plat_2", "target_x": p2["minX"] + 35.0, "target_y": p2["y"]}
 		elif facing < 0:
 			var p1a: Dictionary = PLATFORMS["plat_1a"]
 			return {"platform_id": "plat_1a", "target_x": p1a["maxX"] - 35.0, "target_y": p1a["y"]}
 	elif plat_id == "plat_2":
 		if facing < 0:
 			var p1b: Dictionary = PLATFORMS["plat_1b"]
-			return {"platform_id": "plat_1b", "target_x": p1b["maxX"] - 35.0, "target_y": p1b["y"]}
+			return {"platform_id": "plat_1b", "target_x": float(PLATFORMS["plat_2"]["minX"]) - 60.0, "target_y": p1b["y"]}
 		elif facing > 0:
 			var p3a: Dictionary = PLATFORMS["plat_3a"]
-			return {"platform_id": "plat_3a", "target_x": p3a["minX"] + 35.0, "target_y": p3a["y"]}
+			return {"platform_id": "plat_3a", "target_x": p3a["minX"] + 45.0, "target_y": p3a["y"]}
 	elif plat_id == "plat_3a":
 		if facing < 0:
 			var p2: Dictionary = PLATFORMS["plat_2"]
-			return {"platform_id": "plat_2", "target_x": p2["maxX"] - 30.0, "target_y": p2["y"]}
+			return {"platform_id": "plat_2", "target_x": p2["maxX"] - 35.0, "target_y": p2["y"]}
 		elif facing > 0:
 			var p3b: Dictionary = PLATFORMS["plat_3b"]
-			return {"platform_id": "plat_3b", "target_x": p3b["minX"] + 30.0, "target_y": p3b["y"]}
+			return {"platform_id": "plat_3b", "target_x": p3b["minX"] + 35.0, "target_y": p3b["y"]}
 	elif plat_id == "plat_3b":
 		if facing < 0:
 			var p3a: Dictionary = PLATFORMS["plat_3a"]
-			return {"platform_id": "plat_3a", "target_x": p3a["maxX"] - 30.0, "target_y": p3a["y"]}
+			return {"platform_id": "plat_3a", "target_x": p3a["maxX"] - 35.0, "target_y": p3a["y"]}
+	elif plat_id == "plat_3d":
+		if facing < 0:
+			var p2: Dictionary = PLATFORMS["plat_2"]
+			return {"platform_id": "plat_2", "target_x": p2["maxX"] - 35.0, "target_y": p2["y"]}
 	return null
 
 # -------------------------------------------------------------
@@ -1915,6 +2096,8 @@ func _reset_match() -> void:
 	vargost_retaliate_boss = false
 	aoda_retaliate_boss = false
 
+	crapit_x = MAP_X + 341.3333 * MAP_SCALE
+	crapit_y = MAP_Y + 289.0 * MAP_SCALE
 	crapit_hp = CRAPIT_MAX_HP
 	crapit_is_dead = false
 	crapit_death_timer = 0.0
@@ -2548,38 +2731,43 @@ func _draw_bleeding_status_effect(canvas: CanvasItem, char_x: float, char_y: flo
 		if phase > 0.4 and phase < 0.8:
 			canvas.draw_rect(Rect2(cur_x - bar_thick * 0.4, cur_y - bar_thick * 0.4, bar_thick * 0.8, bar_thick * 0.8), Color(1.0, 0.8, 0.8, alpha * 0.7))
 
-# VẼ CỔ VẬT BOSS RƠI TRÊN MẶT ĐẤT (30x30px) + HIỆU ỨNG CHÓI LÓA, LÓE SÁNG
+# VẼ CỔ VẬT BOSS RƠI TRÊN MẶT ĐẤT (10x10px) + HIỆU ỨNG LẤP LÁNH TINH TẾ (SPARKLE)
+# Đã loại bỏ hoàn toàn viền hào quang tròn xanh nhạt xung quanh, chỉ giữ lại item gốc
 func _draw_boss_loot_drop(canvas: CanvasItem) -> void:
 	if not boss_loot_drop["active"] or str(boss_loot_drop["carrier_id"]) != "":
 		return
 	var sc := MAP_SCALE / 2.625
 	var lx := float(boss_loot_drop["x"])
-	var ly := float(boss_loot_drop["y"]) - 15.0 * sc
-	var sz := 30.0 * sc
+	var ly := float(boss_loot_drop["y"]) - 5.0 * sc
+	var sz := 10.0 * sc
 	var t := float(boss_loot_drop["shine_timer"])
 
-	# 1. Hào quang tỏa tròn
-	var pulse := 0.5 + 0.5 * sin(t * 4.0)
-	canvas.draw_circle(Vector2(lx, ly), (22.0 + pulse * 10.0) * sc, Color(0.0, 1.0, 1.0, 0.35 + pulse * 0.25))
-
-	# 2. Tia sáng lóe xoay tròn
-	var flare_len := (20.0 + pulse * 8.0) * sc
-	var flare_thick := 2.0 * sc
-	canvas.draw_set_transform(Vector2(lx, ly), t * 1.5, Vector2.ONE)
-	canvas.draw_rect(Rect2(-flare_len / 2.0, -flare_thick / 2.0, flare_len, flare_thick), Color(1.0, 1.0, 1.0, 0.85))
-	canvas.draw_rect(Rect2(-flare_thick / 2.0, -flare_len / 2.0, flare_thick, flare_len), Color(1.0, 1.0, 1.0, 0.85))
-	canvas.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-
-	# 3. Texture Cổ Vật 30x30
+	# 1. Vẽ item gốc (Texture 10x10 chuẩn)
 	if crapit_loot_orb_tex != null:
 		canvas.draw_texture_rect(crapit_loot_orb_tex, Rect2(lx - sz / 2.0, ly - sz / 2.0, sz, sz), false)
 	else:
 		canvas.draw_circle(Vector2(lx, ly), sz / 2.0, Color.CYAN)
 
-	# 4. Nhãn chữ
+	# 2. Hiệu ứng lấp lánh tinh tế (Subtle Sparkle): 3 đốm sáng nhỏ li ti nhấp nháy luân phiên quanh ngọc
+	var spark_offsets: Array[Vector2] = [
+		Vector2(-3.0 * sc, -3.0 * sc),
+		Vector2(3.5 * sc, -2.0 * sc),
+		Vector2(-1.5 * sc, 3.5 * sc)
+	]
+	for s in range(3):
+		var s_phase := fmod(t * 2.5 + float(s) * 0.33, 1.0)
+		var s_alpha := sin(s_phase * PI)
+		if s_alpha > 0.05:
+			var sp_pos: Vector2 = Vector2(lx, ly) + spark_offsets[s]
+			var spark_len := (2.5 + s_alpha * 2.0) * sc
+			canvas.draw_rect(Rect2(sp_pos.x - spark_len, sp_pos.y - 0.5 * sc, spark_len * 2.0, 1.0 * sc), Color(1.0, 1.0, 1.0, s_alpha * 0.95))
+			canvas.draw_rect(Rect2(sp_pos.x - 0.5 * sc, sp_pos.y - spark_len, 1.0 * sc, spark_len * 2.0), Color(1.0, 1.0, 1.0, s_alpha * 0.95))
+			canvas.draw_rect(Rect2(sp_pos.x - 1.0 * sc, sp_pos.y - 1.0 * sc, 2.0 * sc, 2.0 * sc), Color(1.0, 0.94, 0.7, s_alpha * 0.8))
+
+	# 3. Nhãn chữ
 	var default_font := ThemeDB.fallback_font
 	var label_txt := "💎 CỔ VẬT RƠI (BƯỚC VÀO ĐỂ NHẶT)"
-	canvas.draw_string(default_font, Vector2(lx - 120.0, ly - 20.0 * sc), label_txt, HORIZONTAL_ALIGNMENT_CENTER, 240, 10, Color("#7ee787"))
+	canvas.draw_string(default_font, Vector2(lx - 120.0, ly - 14.0 * sc), label_txt, HORIZONTAL_ALIGNMENT_CENTER, 240, 10, Color("#7ee787"))
 
 # CẬP NHẬT CỔ VẬT BOSS, NHẶT ĐỒ & HỘ TỐNG VỀ CĂN CỨ
 func _update_boss_loot_and_escort(dt: float) -> void:

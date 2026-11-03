@@ -106,12 +106,15 @@ const btnResetMatch = document.getElementById('btn-reset-match');
 const MIN_ATTACK_RANGE = 150;
 const MAX_ATTACK_RANGE = 550;
 const SPEED_SLOW = 100;
+const SPEED_NORMAL = 250;
 const SPEED_FAST = 400;
 const PROJECTILE_SPEED_PX = 1100;
 const MAX_FRAME_INDEX = 82;
 
 // Scene Coordinates & Scales
-const zoom = 0.7;
+// ĐỒNG BỘ 1:1 KÍCH THƯỚC PIXEL VỚI MOBILE (zoom = 1.0, mapScale = 3.75, mapX = 0, mapY = -120)
+// Toàn bộ tọa độ hiển thị và logic giữa Web Tool và Mobile Godot APK là 100% khớp pixel.
+const zoom = 1.0;
 const mapScale = (W / 512) * zoom;
 const mapX = (W - 512 * mapScale) / 2;
 const mapY = (H - 352 * mapScale) / 2;
@@ -175,7 +178,7 @@ let isFlying = true;
 let currentTilt = 0; // in radians
 let currentScaleX = 1.0;
 let currentScaleY = 1.0;
-let currentFlySpeed = SPEED_FAST;
+let currentFlySpeed = SPEED_NORMAL; // Tốc độ trung bình 250px/s (giới hạn [100, 400])
 let teamOriginDirection = 1; // 1: Đội Trái xuất phát bên Trái, -1: Đội Phải xuất phát bên Phải
 let facingDirection = 1; // Hướng nhìn/chiến đấu hiện tại (1: nhìn phải, -1: nhìn trái)
 let targetFacingVisual = 1.0;
@@ -244,10 +247,8 @@ const ENV_ZONES = [
       [mapX + 511 * mapScale, mapY + 164 * mapScale],
       [mapX + 511 * mapScale, mapY + 351 * mapScale],
       [mapX + 284 * mapScale, mapY + 351 * mapScale],
-      [mapX + 284 * mapScale, mapY + 286 * mapScale],
-      [mapX + 348 * mapScale, mapY + 286 * mapScale],
-      [mapX + 348 * mapScale, mapY + 250 * mapScale],
-      [mapX + 375 * mapScale, mapY + 250 * mapScale],
+      [mapX + 284 * mapScale, mapY + 289 * mapScale],
+      [mapX + 365 * mapScale, mapY + 289 * mapScale],
       [mapX + 375 * mapScale, mapY + 205 * mapScale],
       [mapX + 350 * mapScale, mapY + 175 * mapScale],
       [mapX + 305 * mapScale, mapY + 175 * mapScale],
@@ -257,7 +258,7 @@ const ENV_ZONES = [
       { id: 'plat_3a', name: 'Platform 3A (Vách Đá Cao)', minX: mapX + 286 * mapScale, maxX: mapX + 422 * mapScale, y: mapY + 100 * mapScale },
       { id: 'plat_3b', name: 'Platform 3B (Bậc Giữa Phải)', minX: mapX + 427 * mapScale, maxX: mapX + 488 * mapScale, y: mapY + 130 * mapScale },
       { id: 'plat_3c', name: 'Platform 3C (Mép Phải)', minX: mapX + 488 * mapScale, maxX: mapX + 511 * mapScale, y: mapY + 164 * mapScale },
-      { id: 'plat_3d', name: 'Platform 3D (Đáy Hang)', minX: mapX + 284 * mapScale, maxX: mapX + 348 * mapScale, y: mapY + 286 * mapScale }
+      { id: 'plat_3d', name: 'Platform 3D (Đáy Vực Boss Crapit)', minX: mapX + 284 * mapScale, maxX: mapX + 365 * mapScale, y: mapY + 289.0 * mapScale }
     ]
   }
 ];
@@ -418,8 +419,8 @@ let aodaStunTimer = 0;
 let aodaHitFlash = 0;
 let aodaFrameIndex = 65; // Frame 66 bắt đầu chuỗi chạy bộ
 let aodaAnimAccum = 0;
-let aodaPatrolSpeed = 120; // px/s
-let aodaChaseSpeed = 400; // px/s
+let aodaPatrolSpeed = 250; // px/s - Tốc độ trung bình chuẩn hóa theo yêu cầu
+let aodaChaseSpeed = 250; // px/s - Giới hạn [100, 400], không chạy 400 liên tục
 let aodaTornadoCooldown = 0; // Cooldown 5s cho Chiêu 1 (Tornado)
 let aodaFireOrbCooldown = 0; // Cooldown 5s cho Chiêu 2 (FireOrb)
 let aodaNovaCooldown = 0;    // Alias giữ tương thích
@@ -493,9 +494,9 @@ const RIGHT_EXTRACTION_X = mapX + 480.0 * mapScale;
 const RIGHT_EXTRACTION_Y = mapY + 130.0 * mapScale;
 const EXTRACTION_RADIUS = 80.0 * (mapScale / 2.625);
 
-// TỌA ĐỘ BOSS CRAPIT: Nằm sát góc vuông Platform 3D (X=336, Y=286 trên Map 512x352)
-let crapitX = mapX + 336.0 * mapScale;
-let crapitY = mapY + 286.0 * mapScale;
+// TỌA ĐỘ BOSS CRAPIT: Nằm tiếp đất trên bề mặt bệ đá đáy Platform 3D sát mép tường (X=1280, Y=963.75 trên canvas 1920x1080)
+let crapitX = mapX + 341.3333 * mapScale; // 1280.0
+let crapitY = mapY + 289.0 * mapScale; // 963.75
 let crapitFacing = 1; // 1: Quay mặt sang Trái (về phía Thánh Kiếm), -1: Quay Phải
 let crapitHp = CRAPIT_MAX_HP;
 let crapitIsDead = false;
@@ -1197,6 +1198,164 @@ function drawStunStars(ctx, headX, headY, rx = 22, ry = 7) {
   ctx.restore();
 }
 
+// Lấy thông tin surface theo id
+function getSurfaceById(surfId) {
+  for (const zone of ENV_ZONES) {
+    for (const s of zone.surfaces) {
+      if (s.id === surfId) return s;
+    }
+  }
+  return null;
+}
+
+// BỘ ĐIỀU HƯỚNG TÌM ĐƯỜNG QUA CÁC BỆ ĐỊA HÌNH (PLATFORM GRAPH NAVIGATION)
+// Giải quyết triệt để vấn đề tướng bộ binh (Aoda) bị kẹt vòng lặp không biết đi vòng qua địa hình
+function getPlatformNavPlan(currentPlat, targetPlatId, currentX) {
+  if (!currentPlat) return null;
+  if (currentPlat.id === targetPlatId) {
+    return { atTargetPlatform: true, nextPlatform: null };
+  }
+
+  // 1. Mục tiêu là plat_3d (Hang Boss Crapit):
+  // QUY TẮC HIẾN PHÁP & TRẢI NGHIỆM THỰC TẾ: Nhảy xuống/lên địa hình gần nhất lần lượt!
+  // Điểm 3 (plat_3a) -> nhảy xuống điểm 2 (plat_2 Thánh Kiếm) -> xong mới nhảy xuống hang boss (plat_3d).
+  if (targetPlatId === 'plat_3d') {
+    if (currentPlat.id === 'plat_3a') {
+      const p2 = getSurfaceById('plat_2');
+      return {
+        atTargetPlatform: false,
+        moveDir: -1,
+        jumpEdge: 'left',
+        nextPlatform: p2,
+        jumpTargetX: p2.maxX - 35,
+        jumpTargetY: p2.y
+      };
+    } else if (currentPlat.id === 'plat_3b' || currentPlat.id === 'plat_3c') {
+      const p3a = getSurfaceById('plat_3a');
+      return {
+        atTargetPlatform: false,
+        moveDir: -1,
+        jumpEdge: 'left',
+        nextPlatform: p3a,
+        jumpTargetX: p3a.maxX - 35,
+        jumpTargetY: p3a.y
+      };
+    } else if (currentPlat.id === 'plat_2') {
+      // Từ Bệ Giữa plat_2: Nhảy xuống-phải vào hang boss plat_3d
+      const p3d = getSurfaceById('plat_3d');
+      return {
+        atTargetPlatform: false,
+        moveDir: 1,
+        jumpEdge: 'right',
+        nextPlatform: p3d,
+        jumpTargetX: p3d.minX + 45,
+        jumpTargetY: p3d.y
+      };
+    } else if (currentPlat.id === 'plat_1b') {
+      const p2 = getSurfaceById('plat_2');
+      return { atTargetPlatform: false, moveDir: 1, jumpEdge: 'right', nextPlatform: p2, jumpTargetX: p2.minX + 35, jumpTargetY: p2.y };
+    } else if (currentPlat.id === 'plat_1a') {
+      const p1b = getSurfaceById('plat_1b');
+      return { atTargetPlatform: false, moveDir: 1, jumpEdge: 'right', nextPlatform: p1b, jumpTargetX: p1b.minX + 35, jumpTargetY: p1b.y };
+    } else if (currentPlat.id === 'plat_1_top') {
+      const p1a = getSurfaceById('plat_1a');
+      return { atTargetPlatform: false, moveDir: 1, jumpEdge: 'right', nextPlatform: p1a, jumpTargetX: p1a.minX + 35, jumpTargetY: p1a.y };
+    }
+  }
+
+  // 2. Mục tiêu là plat_3b / plat_3c (Căn Cứ Phải - Hồi sinh Team 2 / Hoàn thành nhận vật phẩm):
+  // Lộ trình hợp lệ qua địa hình liền kề: plat_3d -> plat_2 -> plat_3a -> plat_3b
+  if (targetPlatId === 'plat_3b' || targetPlatId === 'plat_3c') {
+    if (currentPlat.id === 'plat_3d') {
+      // Từ đáy vực plat_3d: Chạy sang trái nhảy lên Platform 2 qua không gian mở!
+      const p2 = getSurfaceById('plat_2');
+      return {
+        atTargetPlatform: false,
+        moveDir: -1,
+        jumpEdge: 'left',
+        nextPlatform: p2,
+        jumpTargetX: p2.maxX - 35,
+        jumpTargetY: p2.y
+      };
+    } else if (currentPlat.id === 'plat_2') {
+      // Từ Platform 2: Nhảy lên mép trái Platform 3A qua không gian mở!
+      const p3a = getSurfaceById('plat_3a');
+      return {
+        atTargetPlatform: false,
+        moveDir: 1,
+        jumpEdge: 'right',
+        nextPlatform: p3a,
+        jumpTargetX: p3a.minX + 45,
+        jumpTargetY: p3a.y
+      };
+    } else if (currentPlat.id === 'plat_3a') {
+      // Từ Platform 3A: Chạy bộ trên mặt cỏ sang Platform 3B!
+      const p3b = getSurfaceById('plat_3b');
+      return {
+        atTargetPlatform: false,
+        moveDir: 1,
+        jumpEdge: 'right',
+        nextPlatform: p3b,
+        jumpTargetX: p3b.minX + 35,
+        jumpTargetY: p3b.y
+      };
+    }
+  }
+
+  // 3. Mục tiêu là plat_1_top / plat_1a (Căn Cứ Trái - Hồi sinh Team 1 / Hoàn thành nhận vật phẩm):
+  if (targetPlatId === 'plat_1_top' || targetPlatId === 'plat_1a') {
+    if (currentPlat.id === 'plat_3d') {
+      const p2 = getSurfaceById('plat_2');
+      return {
+        atTargetPlatform: false,
+        moveDir: -1,
+        jumpEdge: 'left',
+        nextPlatform: p2,
+        jumpTargetX: p2.maxX - 35,
+        jumpTargetY: p2.y
+      };
+    } else if (currentPlat.id === 'plat_3a') {
+      const p2 = getSurfaceById('plat_2');
+      return { atTargetPlatform: false, moveDir: -1, jumpEdge: 'left', nextPlatform: p2, jumpTargetX: p2.maxX - 35, jumpTargetY: p2.y };
+    } else if (currentPlat.id === 'plat_3b' || currentPlat.id === 'plat_3c') {
+      const p3a = getSurfaceById('plat_3a');
+      return { atTargetPlatform: false, moveDir: -1, jumpEdge: 'left', nextPlatform: p3a, jumpTargetX: p3a.maxX - 35, jumpTargetY: p3a.y };
+    } else if (currentPlat.id === 'plat_2') {
+      const p1b = getSurfaceById('plat_1b');
+      return { atTargetPlatform: false, moveDir: -1, jumpEdge: 'left', nextPlatform: p1b, jumpTargetX: currentPlat.minX - 60, jumpTargetY: p1b.y };
+    } else if (currentPlat.id === 'plat_1b') {
+      const p1a = getSurfaceById('plat_1a');
+      return { atTargetPlatform: false, moveDir: -1, jumpEdge: 'left', nextPlatform: p1a, jumpTargetX: p1a.maxX - 35, jumpTargetY: p1a.y };
+    } else if (currentPlat.id === 'plat_1a' && targetPlatId === 'plat_1_top') {
+      const p1top = getSurfaceById('plat_1_top');
+      return { atTargetPlatform: false, moveDir: -1, jumpEdge: 'left', nextPlatform: p1top, jumpTargetX: p1top.maxX - 20, jumpTargetY: p1top.y };
+    }
+  }
+
+  // 4. Mặc định: Mục tiêu là plat_2 (Cứ Điểm Thánh Kiếm):
+  if (currentPlat.id === 'plat_3d') {
+    const p2 = getSurfaceById('plat_2');
+    return { atTargetPlatform: false, moveDir: -1, jumpEdge: 'left', nextPlatform: p2, jumpTargetX: p2.maxX - 25, jumpTargetY: p2.y };
+  } else if (currentPlat.id === 'plat_3a') {
+    const p2 = getSurfaceById('plat_2');
+    return { atTargetPlatform: false, moveDir: -1, jumpEdge: 'left', nextPlatform: p2, jumpTargetX: p2.maxX - 30, jumpTargetY: p2.y };
+  } else if (currentPlat.id === 'plat_3b' || currentPlat.id === 'plat_3c') {
+    const p3a = getSurfaceById('plat_3a');
+    return { atTargetPlatform: false, moveDir: -1, jumpEdge: 'left', nextPlatform: p3a, jumpTargetX: p3a.maxX - 30, jumpTargetY: p3a.y };
+  } else if (currentPlat.id === 'plat_1b') {
+    const p2 = getSurfaceById('plat_2');
+    return { atTargetPlatform: false, moveDir: 1, jumpEdge: 'right', nextPlatform: p2, jumpTargetX: p2.minX + 30, jumpTargetY: p2.y };
+  } else if (currentPlat.id === 'plat_1a') {
+    const p1b = getSurfaceById('plat_1b');
+    return { atTargetPlatform: false, moveDir: 1, jumpEdge: 'right', nextPlatform: p1b, jumpTargetX: p1b.minX + 35, jumpTargetY: p1b.y };
+  } else if (currentPlat.id === 'plat_1_top') {
+    const p1a = getSurfaceById('plat_1a');
+    return { atTargetPlatform: false, moveDir: 1, jumpEdge: 'right', nextPlatform: p1a, jumpTargetX: p1a.minX + 35, jumpTargetY: p1a.y };
+  }
+
+  return { atTargetPlatform: true, nextPlatform: null };
+}
+
 // Lấy bệ kết nối liền kề cho cơ chế nhảy (Ledge Jumping)
 function getAdjacentPlatform(plat, facing) {
   if (!plat) return null;
@@ -1213,16 +1372,16 @@ function getAdjacentPlatform(plat, facing) {
     return { platform: ENV_ZONES[1].surfaces[0], targetX: ENV_ZONES[1].surfaces[0].minX + 30 };
   }
   if (plat.id === 'plat_2') {
-    if (facing < 0) return { platform: ENV_ZONES[0].surfaces[2], targetX: ENV_ZONES[0].surfaces[2].maxX - 35 };
-    if (facing > 0) return { platform: ENV_ZONES[2].surfaces[0], targetX: ENV_ZONES[2].surfaces[0].minX + 35 };
+    if (facing < 0) return { platform: ENV_ZONES[0].surfaces[2], targetX: ENV_ZONES[1].surfaces[0].minX - 60 };
+    if (facing > 0) return { platform: ENV_ZONES[2].surfaces[0], targetX: ENV_ZONES[2].surfaces[0].minX + 45 };
     return null;
   }
   if (plat.id === 'plat_3a') {
-    if (facing < 0) return { platform: ENV_ZONES[1].surfaces[0], targetX: ENV_ZONES[1].surfaces[0].maxX - 30 };
-    return { platform: ENV_ZONES[2].surfaces[1], targetX: ENV_ZONES[2].surfaces[1].minX + 30 };
+    if (facing < 0) return { platform: ENV_ZONES[1].surfaces[0], targetX: ENV_ZONES[1].surfaces[0].maxX - 35 };
+    return { platform: ENV_ZONES[2].surfaces[1], targetX: ENV_ZONES[2].surfaces[1].minX + 35 };
   }
   if (plat.id === 'plat_3b') {
-    if (facing < 0) return { platform: ENV_ZONES[2].surfaces[0], targetX: ENV_ZONES[2].surfaces[0].maxX - 30 };
+    if (facing < 0) return { platform: ENV_ZONES[2].surfaces[0], targetX: ENV_ZONES[2].surfaces[0].maxX - 35 };
     return { platform: ENV_ZONES[2].surfaces[2], targetX: ENV_ZONES[2].surfaces[2].minX + 20 };
   }
   if (plat.id === 'plat_3c') {
@@ -1230,7 +1389,7 @@ function getAdjacentPlatform(plat, facing) {
     return null;
   }
   if (plat.id === 'plat_3d') {
-    if (facing < 0) return { platform: ENV_ZONES[1].surfaces[0], targetX: ENV_ZONES[1].surfaces[0].maxX - 30 };
+    if (facing < 0) return { platform: ENV_ZONES[1].surfaces[0], targetX: ENV_ZONES[1].surfaces[0].maxX - 35 };
     return null;
   }
   return null;
@@ -1390,9 +1549,9 @@ function resetMatch() {
   aodaAnimAccum = 0;
   aodaTornadoCooldown = 0;
 
-  // Khởi tạo lại Boss Trung Lập Crapit (2150 HP, chỉ xuất hiện 1 lần mỗi trận tại 1164, 752)
-  crapitX = mapX + 333.7143 * mapScale;
-  crapitY = mapY + 256.7619 * mapScale;
+  // Khởi tạo lại Boss Trung Lập Crapit (2150 HP, chỉ xuất hiện 1 lần mỗi trận tại bệ đá đáy 1280, 963.75)
+  crapitX = mapX + 341.3333 * mapScale; // 1280.0
+  crapitY = mapY + 289.0 * mapScale; // 963.75
   crapitHp = CRAPIT_MAX_HP;
   crapitIsDead = false;
   crapitDeathTimer = 0.0;
@@ -2115,7 +2274,7 @@ function update(timestamp) {
   const targetY = primaryTargetY;
 
   if (isCarryingLoot) {
-    currentFlySpeed = SPEED_FAST * 0.90; // Giảm 10% tốc độ khi đang mang Cổ Vật
+    currentFlySpeed = SPEED_NORMAL * 0.90; // Giảm 10% tốc độ khi đang mang Cổ Vật (225px/s nặng nề)
   }
 
   const diffX = targetX - vargostX;
@@ -2158,9 +2317,44 @@ function update(timestamp) {
     }
 
     if (aiState === 'IDLE' && !pendingCombatAction && locomotionState !== 'TAKEOFF' && locomotionState !== 'LANDING') {
-      aiDecisionTimer -= dt;
-      if (aiDecisionTimer <= 0) {
-        aiDecisionTimer = 0.35; // chu kỳ ra quyết định 0.35s
+      // ƯU TIÊN SỐ 1: NHẶT CỔ VẬT HOẶC HỘ TỐNG CỔ VẬT VỀ CĂN CỨ VỚI TỐC ĐỘ TỐI ĐA!
+      // Không tấn công kẻ địch, không tuần tra chậm, không bị phân tâm
+      if (isPickingUpLoot || isCarryingLoot) {
+        if (!isFlying) takeoff();
+        const moveSpd = isPickingUpLoot ? SPEED_NORMAL : (SPEED_NORMAL * 0.90);
+        currentFlySpeed = moveSpd;
+        rngFlySpeed.value = moveSpd;
+        lblFlySpeed.textContent = `${moveSpd}px/s`;
+
+        const vDist = Math.hypot(diffX, diffY);
+        const moveFacing = (diffX >= 0) ? 1 : -1;
+        facingDirection = moveFacing;
+        targetFacingVisual = moveFacing;
+        visualFacing = moveFacing;
+        currentTilt = moveFacing * (targetTiltDeg * Math.PI / 180);
+
+        if (vDist > 8) {
+          const stepRate = moveSpd * (mapScale / 2.625) * dt;
+          vargostX += (diffX / vDist) * stepRate;
+          vargostY += (diffY / vDist) * (stepRate * 0.75);
+          locomotionState = 'FLY_VECTOR';
+        } else {
+          vargostX = targetX;
+          vargostY = targetY;
+          locomotionState = 'IDLE_FLY';
+        }
+
+        if (isPickingUpLoot) {
+          hudLocomotion.textContent = `AI: TẬN DỤNG TỐI ĐA TỐC ĐỘ ${SPEED_FAST}px/s BAY NHẶT CỔ VẬT!`;
+          hudLocomotion.className = 'badge active';
+        } else {
+          hudLocomotion.textContent = `AI: HỘ TỐNG CỔ VẬT VỀ CĂN CỨ TRÁI @ ${Math.round(SPEED_FAST * 0.9)}px/s!`;
+          hudLocomotion.className = 'badge active';
+        }
+      } else {
+        aiDecisionTimer -= dt;
+        if (aiDecisionTimer <= 0) {
+          aiDecisionTimer = 0.35; // chu kỳ ra quyết định 0.35s
 
         // 0. Xử lý Địch ở sau lưng: Thân pháp biến ảnh pixel xoay người khóa mục tiêu
         if (isEnemyBehind) {
@@ -2321,6 +2515,7 @@ function update(timestamp) {
             }
           }
         }
+      }
       }
     }
   }
@@ -3151,7 +3346,8 @@ function update(timestamp) {
           }
 
           // Cận chiến / Tầm trung: Phóng Tornado nếu trong tầm < 460px và hết cooldown
-          if (groundTarget.hDist < 460 && aodaTornadoCooldown <= 0) {
+          // Tuyệt đối không xao nhãng tấn công khi đang đi nhặt hoặc hộ tống Cổ Vật
+          if (!aodaPickingUpLoot && !aodaCarryingLoot && groundTarget.hDist < 460 && aodaTornadoCooldown <= 0) {
             triggerAodaSkill1();
           }
         } else if (!aodaIsDead) {
@@ -3179,20 +3375,45 @@ function update(timestamp) {
         const aodaPursuingCarrier = (bossLootDrop.carrierId === 'vargost');
         const aodaPickingUpLoot = (bossLootDrop.active && !bossLootDrop.carrierId && (bossLootDrop.isFreeForAll || bossLootDrop.lockedPickerId === 'aoda'));
 
-        let targetNavX = SWORD_X;
-        if (aodaCarryingLoot) targetNavX = RIGHT_EXTRACTION_X;
-        else if (aodaPickingUpLoot) targetNavX = bossLootDrop.x;
-        else if (aodaPursuingCarrier) targetNavX = vargostX;
+        let targetPlatId = 'plat_2';
+        let navGoalX = SWORD_X;
+        let navGoalDesc = 'Thánh Kiếm';
+
+        if (aodaCarryingLoot) {
+          targetPlatId = 'plat_3b';
+          navGoalX = RIGHT_EXTRACTION_X;
+          navGoalDesc = 'Căn Cứ Phải';
+        } else if (aodaPickingUpLoot) {
+          targetPlatId = 'plat_3d';
+          navGoalX = bossLootDrop.x;
+          navGoalDesc = 'Cổ Vật';
+        } else if (aodaPursuingCarrier) {
+          targetPlatId = 'plat_2';
+          navGoalX = vargostX;
+          navGoalDesc = 'Kẻ mang Cổ Vật';
+        }
 
         const isAodaInSwordZone = Math.hypot(aodaX - SWORD_X, aodaY - SWORD_Y) <= SWORD_CAPTURE_RADIUS;
-        const isAodaAtNavGoal = (aodaCarryingLoot || aodaPickingUpLoot) ? Math.abs(aodaX - targetNavX) < 40 : isAodaInSwordZone;
-        if (!isAodaAtNavGoal) {
-          aodaFacing = (targetNavX > aodaX) ? 1 : -1;
+        const atTargetPlat = (aodaPlatform && aodaPlatform.id === targetPlatId);
+        const isAodaAtNavGoal = (aodaCarryingLoot || aodaPickingUpLoot) ? (atTargetPlat && Math.abs(aodaX - navGoalX) < 30) : isAodaInSwordZone;
+
+        // Tốc độ di chuyển chuẩn hóa: 250px/s (giới hạn [100, 400]), mang Cổ Vật giảm -10% (225px/s) di chuyển nặng nề
+        const aodaMaxSpeed = 250; // px/s
+        const effectiveAodaSpeed = aodaCarryingLoot ? (aodaMaxSpeed * 0.90) : aodaMaxSpeed;
+
+        // Điều hướng bệ địa hình (Platform Graph Navigation):
+        const navPlan = getPlatformNavPlan(aodaPlatform, targetPlatId, aodaX);
+
+        if (!atTargetPlat && navPlan && !navPlan.atTargetPlatform) {
+          // Chưa ở cùng bệ đích: đi theo hướng của navPlan đến mép nhảy
+          aodaFacing = navPlan.moveDir;
+          aodaVisualFacing = aodaFacing;
+        } else if (!isAodaAtNavGoal) {
+          // Đã ở cùng bệ: đi thẳng tới navGoalX
+          aodaFacing = (navGoalX > aodaX) ? 1 : -1;
           aodaVisualFacing = aodaFacing;
         }
 
-        // Di chuyển trên bệ & Kiểm tra mép đất (Ledge Limit): Giảm 10% tốc độ khi mang Cổ Vật
-        const effectiveAodaSpeed = aodaCarryingLoot ? (aodaPatrolSpeed * 0.90) : aodaPatrolSpeed;
         const stepX = aodaFacing * effectiveAodaSpeed * dt;
         const targetEdgeX = aodaX + stepX;
 
@@ -3200,53 +3421,75 @@ function update(timestamp) {
         let maxLedge = aodaPlatform.maxX - 20;
         // Khi trên Platform 1B đi về phía phải (lên Platform 2): Nhảy sớm ngay trước bậc thềm Platform 2 để LUÔN nhảy tiến về phía trước!
         if (aodaPlatform.id === 'plat_1b' && aodaFacing > 0) {
-          maxLedge = Math.min(maxLedge, ENV_ZONES[1].surfaces[0].minX - 25 * (mapScale / 2.625));
+          const p2Surf = getSurfaceById('plat_2');
+          if (p2Surf) maxLedge = Math.min(maxLedge, p2Surf.minX - 25 * (mapScale / 2.625));
         }
 
-        const curTargetX = (!isDead) ? vargostX : SWORD_X;
-        const isSwordAhead = (aodaFacing > 0 && SWORD_X > aodaX) || (aodaFacing < 0 && SWORD_X < aodaX);
+        const isAtEdge = (aodaFacing > 0 && targetEdgeX >= maxLedge) || (aodaFacing < 0 && targetEdgeX <= minLedge);
 
-        if (targetEdgeX < minLedge || targetEdgeX > maxLedge) {
-          // Đã chạm mép bệ: Nhảy sang bệ tiếp theo để tiến vào Platform 2
-          const adj = getAdjacentPlatform(aodaPlatform, aodaFacing);
-          if ((isSwordAhead || !isAodaInSwordZone) && adj) {
+        if (isAtEdge) {
+          // Khi chạm mép bệ:
+          // Nếu chưa ở bệ đích và có navPlan -> Nhảy sang bệ tiếp theo của navPlan!
+          if (!atTargetPlat && navPlan && navPlan.nextPlatform) {
             aodaState = 'JUMP';
             aodaJumpTimer = 0;
             aodaJumpDuration = 0.48;
             aodaJumpStartX = aodaX;
             aodaJumpStartY = aodaY;
-            aodaJumpTargetPlatform = adj.platform;
-            // Đảm bảo điểm đáp LUÔN tiến về phía trước theo hướng mặt aodaFacing (tối thiểu +45px)
-            let forwardTargetX = adj.targetX;
-            const minForwardStep = 45 * (mapScale / 2.625);
-            if (aodaFacing > 0 && forwardTargetX < aodaX + minForwardStep) {
-              forwardTargetX = Math.min(adj.platform.maxX - 25, aodaX + minForwardStep);
-            } else if (aodaFacing < 0 && forwardTargetX > aodaX - minForwardStep) {
-              forwardTargetX = Math.max(adj.platform.minX + 25, aodaX - minForwardStep);
-            }
-            aodaJumpTargetX = forwardTargetX;
-            aodaJumpTargetY = adj.platform.y;
-            if (aodaFrameIndex < 65 || aodaFrameIndex > 86) {
-              aodaFrameIndex = 65;
-            }
+            aodaJumpTargetPlatform = navPlan.nextPlatform;
+            aodaJumpTargetX = navPlan.jumpTargetX;
+            aodaJumpTargetY = navPlan.jumpTargetY;
+            const jumpDirX = (aodaJumpTargetX >= aodaJumpStartX) ? 1 : -1;
+            aodaFacing = jumpDirX;
+            aodaVisualFacing = jumpDirX;
+            if (aodaFrameIndex < 65 || aodaFrameIndex > 86) aodaFrameIndex = 65;
             const isJumpUp = (aodaJumpTargetY < aodaJumpStartY);
             if (hudAodaState) {
-              hudAodaState.textContent = `Aoda: ${isJumpUp ? 'NHẢY LÊN BẬC CAO' : 'NHẢY XUỐNG BẬC THẤP'} (Tiến đánh Thánh Kiếm)`;
+              hudAodaState.textContent = `Aoda: ${isJumpUp ? 'NHẢY LÊN BẬC CAO' : 'NHẢY XUỐNG BẬC THẤP'} (Di chuyển tới ${navGoalDesc})`;
               hudAodaState.className = 'badge active';
             }
-            showToast(`🦘 Aoda: Nhảy bệ tiến đánh Thánh Kiếm!`);
+            showToast(`🦘 Aoda: Nhảy bệ di chuyển tới ${navGoalDesc}!`);
           } else {
-            aodaX = (aodaFacing > 0) ? maxLedge : minLedge;
-            aodaState = 'IDLE';
-            aodaFrameIndex = 0;
-            if (hudAodaState) {
-              hudAodaState.textContent = isAodaInSwordZone ? 'Aoda: [PHÒNG THỦ] Giữ cứ điểm Thánh Kiếm' : 'Aoda: Dừng tại mép bệ';
-              hudAodaState.className = 'badge';
+            const adj = getAdjacentPlatform(aodaPlatform, aodaFacing);
+            const isSwordAhead = (aodaFacing > 0 && SWORD_X > aodaX) || (aodaFacing < 0 && SWORD_X < aodaX);
+            if ((isSwordAhead || !isAodaInSwordZone) && adj) {
+              aodaState = 'JUMP';
+              aodaJumpTimer = 0;
+              aodaJumpDuration = 0.48;
+              aodaJumpStartX = aodaX;
+              aodaJumpStartY = aodaY;
+              aodaJumpTargetPlatform = adj.platform;
+              let forwardTargetX = adj.targetX;
+              const minForwardStep = 45 * (mapScale / 2.625);
+              if (aodaFacing > 0 && forwardTargetX < aodaX + minForwardStep) {
+                forwardTargetX = Math.min(adj.platform.maxX - 25, aodaX + minForwardStep);
+              } else if (aodaFacing < 0 && forwardTargetX > aodaX - minForwardStep) {
+                forwardTargetX = Math.max(adj.platform.minX + 25, aodaX - minForwardStep);
+              }
+              aodaJumpTargetX = forwardTargetX;
+              aodaJumpTargetY = adj.platform.y;
+              const jumpDirX = (aodaJumpTargetX >= aodaJumpStartX) ? 1 : -1;
+              aodaFacing = jumpDirX;
+              aodaVisualFacing = jumpDirX;
+              if (aodaFrameIndex < 65 || aodaFrameIndex > 86) aodaFrameIndex = 65;
+              const isJumpUp = (aodaJumpTargetY < aodaJumpStartY);
+              if (hudAodaState) {
+                hudAodaState.textContent = `Aoda: ${isJumpUp ? 'NHẢY LÊN BẬC CAO' : 'NHẢY XUỐNG BẬC THẤP'} (Tiến đánh Thánh Kiếm)`;
+                hudAodaState.className = 'badge active';
+              }
+              showToast(`🦘 Aoda: Nhảy bệ tiến đánh Thánh Kiếm!`);
+            } else {
+              aodaX = (aodaFacing > 0) ? maxLedge : minLedge;
+              aodaState = 'IDLE';
+              aodaFrameIndex = 0;
+              if (hudAodaState) {
+                hudAodaState.textContent = isAodaInSwordZone ? 'Aoda: [PHÒNG THỦ] Giữ cứ điểm Thánh Kiếm' : 'Aoda: Dừng tại mép bệ';
+                hudAodaState.className = 'badge';
+              }
             }
           }
         } else {
-          // Nếu đã vào vùng Thánh Kiếm -> Thế thủ vững vàng phòng thủ!
-          if (isAodaInSwordZone && Math.abs(aodaX - SWORD_X) < 40) {
+          if (isAodaAtNavGoal && isAodaInSwordZone && Math.abs(aodaX - SWORD_X) < 40) {
             aodaState = 'IDLE';
             aodaFrameIndex = 0;
             if (hudAodaState) {
@@ -3262,6 +3505,9 @@ function update(timestamp) {
         aodaJumpTimer += dt;
         const t = Math.min(1.0, aodaJumpTimer / aodaJumpDuration);
         aodaX = aodaJumpStartX + (aodaJumpTargetX - aodaJumpStartX) * t;
+        const jumpDirX = (aodaJumpTargetX >= aodaJumpStartX) ? 1 : -1;
+        aodaFacing = jumpDirX;
+        aodaVisualFacing = jumpDirX;
         const sc = mapScale / 2.625;
         const deltaY = aodaJumpTargetY - aodaJumpStartY;
         if (deltaY > 0) {
@@ -3307,8 +3553,16 @@ function update(timestamp) {
           }
         }
         if (aodaLandingTimer <= 0) {
+          const aodaCarryingLoot = (bossLootDrop.carrierId === 'aoda');
+          const aodaPickingUpLoot = (bossLootDrop.active && !bossLootDrop.carrierId && (bossLootDrop.isFreeForAll || bossLootDrop.lockedPickerId === 'aoda'));
           const isAodaInSwordZone = Math.hypot(aodaX - SWORD_X, aodaY - SWORD_Y) <= SWORD_CAPTURE_RADIUS;
-          if (isAodaInSwordZone) {
+
+          if (aodaCarryingLoot || aodaPickingUpLoot) {
+            aodaState = 'MOVE';
+            if (aodaFrameIndex < 65 || aodaFrameIndex > 86) {
+              aodaFrameIndex = 65;
+            }
+          } else if (isAodaInSwordZone) {
             aodaState = 'IDLE';
             aodaFrameIndex = 0;
             if (hudAodaState) {
@@ -3333,9 +3587,15 @@ function update(timestamp) {
           if (aodaFrameIndex > 24) aodaFrameIndex = 0;
         }
 
+        const aodaCarryingLoot = (bossLootDrop.carrierId === 'aoda');
+        const aodaPickingUpLoot = (bossLootDrop.active && !bossLootDrop.carrierId && (bossLootDrop.isFreeForAll || bossLootDrop.lockedPickerId === 'aoda'));
         const isAodaInSwordZone = Math.hypot(aodaX - SWORD_X, aodaY - SWORD_Y) <= SWORD_CAPTURE_RADIUS;
         const curTargetX = (aodaRetaliateBoss && !crapitIsDead) ? crapitX : ((!isDead) ? vargostX : SWORD_X);
-        if (!isAodaInSwordZone) {
+
+        if (aodaCarryingLoot || aodaPickingUpLoot) {
+          aodaState = 'MOVE';
+          aodaFrameIndex = 65;
+        } else if (!isAodaInSwordZone) {
           aodaFacing = (SWORD_X > aodaX) ? 1 : -1;
           aodaVisualFacing = aodaFacing;
           aodaState = 'MOVE';
@@ -4085,7 +4345,8 @@ function renderBleedingStatusEffect(targetCtx, charX, charY, charH, facing, time
 }
 
 // =============================================================
-// VẼ CỔ VẬT BOSS RƠI TRÊN MẶT ĐẤT (30x30px) + HIỆU ỨNG CHÓI LÓA, LÓE SÁNG
+// VẼ CỔ VẬT BOSS RƠI TRÊN MẶT ĐẤT (10x10px) + HIỆU ỨNG LẤP LÁNH TINH TẾ (SPARKLE)
+// Đã loại bỏ hoàn toàn viền hào quang tròn xanh nhạt xung quanh, chỉ giữ lại item gốc
 // =============================================================
 function renderBossLootDrop(targetCtx, dt) {
   if (!bossLootDrop.active || bossLootDrop.carrierId) return;
@@ -4093,33 +4354,12 @@ function renderBossLootDrop(targetCtx, dt) {
   bossLootDrop.shineTimer += dt;
   const t = bossLootDrop.shineTimer;
   const lx = bossLootDrop.x;
-  const ly = bossLootDrop.y - 15 * scale;
-  const size = 30 * scale;
+  const ly = bossLootDrop.y - 5 * scale;
+  const size = 10 * scale;
 
   targetCtx.save();
-  // 1. Quầng sáng hào quang tỏa tròn (Glowing Aura)
-  const pulse = 0.5 + 0.5 * Math.sin(t * 4.0);
-  const grad = targetCtx.createRadialGradient(lx, ly, 4 * scale, lx, ly, (24 + pulse * 12) * scale);
-  grad.addColorStop(0, 'rgba(0, 255, 255, 0.75)');
-  grad.addColorStop(0.5, 'rgba(64, 224, 208, 0.35)');
-  grad.addColorStop(1, 'rgba(0, 255, 255, 0)');
-  targetCtx.fillStyle = grad;
-  targetCtx.beginPath();
-  targetCtx.arc(lx, ly, (24 + pulse * 12) * scale, 0, Math.PI * 2);
-  targetCtx.fill();
 
-  // 2. Tia sáng lóe 4 cánh xoay tròn (Cross Flare / Lens Flare)
-  targetCtx.save();
-  targetCtx.translate(lx, ly);
-  targetCtx.rotate(t * 1.5);
-  const flareLen = (20 + pulse * 8) * scale;
-  const flareThick = 2.0 * scale;
-  targetCtx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-  targetCtx.fillRect(-flareLen / 2, -flareThick / 2, flareLen, flareThick);
-  targetCtx.fillRect(-flareThick / 2, -flareLen / 2, flareThick, flareLen);
-  targetCtx.restore();
-
-  // 3. Tự thân Cổ Vật (Texture 30x30)
+  // 1. Vẽ item gốc (Texture 10x10 chuẩn)
   if (assets.crapitLootOrb) {
     targetCtx.drawImage(assets.crapitLootOrb, lx - size / 2, ly - size / 2, size, size);
   } else {
@@ -4129,24 +4369,36 @@ function renderBossLootDrop(targetCtx, dt) {
     targetCtx.fill();
   }
 
-  // 4. Các hạt lấp lánh (Sparkle Stars) bay bổng
-  for (let s = 0; s < 4; s++) {
-    const sPhase = (t * 2.0 + s * 0.25) % 1.0;
-    const sAng = s * (Math.PI / 2) + t * 1.2;
-    const sDist = (10 + sPhase * 18) * scale;
-    const sx = lx + Math.cos(sAng) * sDist;
-    const sy = ly + Math.sin(sAng) * sDist;
-    const sAlpha = (1.0 - sPhase);
-    targetCtx.fillStyle = `rgba(255, 255, 255, ${sAlpha})`;
-    targetCtx.fillRect(sx - 1.5 * scale, sy - 1.5 * scale, 3 * scale, 3 * scale);
+  // 2. Hiệu ứng lấp lánh 1 cách tinh tế (Subtle Sparkle): 3 đốm sáng nhỏ li ti nhấp nháy luân phiên quanh ngọc
+  const sparkOffsets = [
+    [-3 * scale, -3 * scale],
+    [3.5 * scale, -2 * scale],
+    [-1.5 * scale, 3.5 * scale]
+  ];
+  for (let s = 0; s < 3; s++) {
+    const sPhase = (t * 2.5 + s * 0.33) % 1.0;
+    const sAlpha = Math.sin(sPhase * Math.PI); // chớp tắt êm dịu 0..1..0
+    if (sAlpha > 0.05) {
+      const [sox, soy] = sparkOffsets[s];
+      const sx = lx + sox;
+      const sy = ly + soy;
+      const sparkLen = (2.5 + sAlpha * 2.0) * scale;
+      // Tia chữ thập siêu nhỏ tinh tế
+      targetCtx.fillStyle = `rgba(255, 255, 255, ${sAlpha * 0.95})`;
+      targetCtx.fillRect(sx - sparkLen, sy - 0.5 * scale, sparkLen * 2, 1.0 * scale);
+      targetCtx.fillRect(sx - 0.5 * scale, sy - sparkLen, 1.0 * scale, sparkLen * 2);
+      // Lõi sáng vàng ánh kim nhẹ
+      targetCtx.fillStyle = `rgba(255, 240, 180, ${sAlpha * 0.8})`;
+      targetCtx.fillRect(sx - 1 * scale, sy - 1 * scale, 2 * scale, 2 * scale);
+    }
   }
 
-  // 5. Vòng chỉ thị nhặt & Tên Cổ Vật
+  // 3. Tên Cổ Vật & Chỉ thị
   targetCtx.fillStyle = '#7ee787';
   targetCtx.font = 'bold 11px monospace';
   targetCtx.textAlign = 'center';
   const labelText = bossLootDrop.isFreeForAll ? '💎 CỔ VẬT RƠI (AI CŨNG CÓ THỂ NHẶT)' : '💎 CỔ VẬT BOSS (BƯỚC VÀO ĐỂ NHẶT)';
-  targetCtx.fillText(labelText, lx, ly - 22 * scale);
+  targetCtx.fillText(labelText, lx, ly - 14 * scale);
   targetCtx.restore();
 }
 

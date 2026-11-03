@@ -1,15 +1,27 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-11-03T09:59:00Z",
+  "updated_at_utc": "2026-11-03T14:01:00Z",
   "purpose": "Bộ nhớ bàn giao ngắn gọn cho agent; đối chiếu với mã, tài liệu và git status khi bắt đầu phiên.",
   "product_goal": {
     "source": "Yêu cầu của người dùng ngày 2026-10-31, 2026-11-01, 2026-11-02 và 2026-11-03",
-    "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mục tiêu cốt lõi của trận đấu là chiếm giữ Cứ Điểm Thánh Kiếm (sword_altar) tại Bệ Giữa Platform 2 với kích thước chiều cao chuẩn hóa 90px: Đội nào đứng trong vùng tròn bán kính 140px liên tục trong 20s (không tự reset giữa trận) sẽ chiến thắng. 2 Đội xuất phát và hồi sinh sát mép map 2 bên, đứng yên 1s trước khi di chuyển; nhân vật bay trên không và bộ binh trên địa hình tiến về tranh kiếm. Boss Crapit (2150 HP) đứng sát vách đá góc vuông Platform 3D, miệng nâng cao 10px, phun đạn đồng thời cho tất cả tướng đứng trong vùng Thánh Kiếm; khi trúng đòn hiển thị icon 10x10 Cấm Hồi Máu (dấu + kèm gạch chéo) góc phải dưới thanh máu. Aoda tung Lốc Xoáy đúng mặt đất khi phản công Boss hoặc tướng địch. ĐẶC BIỆT: Mọi logic và hoạt ảnh đã duyệt trên Web Test Tool (vargost-skill-test.html) là Single Source of Truth 100% cho Godot APK; mọi sửa đổi phải thực hiện song song tức thời (Dual-Target Lockstep Sync) ở cả Web Tool lẫn Godot APK, chỉ lưu giữ Atlas PNG + JSON, nâng version và lưu bản backup APK theo từng version tại build/releases/. Chuẩn hiệu năng bắt buộc KHÓA CỨNG 60 FPS theo Hiến pháp.",
+    "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mục tiêu cốt lõi của trận đấu là chiếm giữ Cứ Điểm Thánh Kiếm (sword_altar) tại Bệ Giữa Platform 2 với kích thước chiều cao chuẩn hóa 90px: Đội nào đứng trong vùng tròn bán kính 140px liên tục trong 20s (không tự reset giữa trận) sẽ chiến thắng. 2 Đội xuất phát và hồi sinh sát mép map 2 bên, đứng yên 1s trước khi di chuyển; nhân vật bay trên không và bộ binh trên địa hình tiến về tranh kiếm. Boss Crapit (2150 HP) đứng sát vách đá góc vuông bề mặt Platform 3D tiếp đất Y=963.75, X=1280.0, miệng nâng cao 10px, phun đạn đồng thời cho tất cả tướng đứng trong vùng Thánh Kiếm; khi trúng đòn hiển thị icon 10x10 Cấm Hồi Máu (dấu + kèm gạch chéo) góc phải dưới thanh máu. Aoda tung Lốc Xoáy đúng mặt đất khi phản công Boss hoặc tướng địch. Khi Boss Crapit chết rơi Cổ Vật (10x10 có hiệu ứng lấp lánh tinh tế) tiếp đất khít bệ plat_3d không lơ lửng: Tướng ưu tiên nhặt với tốc độ 250px/s và mang về căn cứ xuất phát/hồi sinh ở tốc độ 225px/s (-10% di chuyển nặng nề) để hoàn thành nhận vật phẩm; Aoda biết di chuyển nhảy lần lượt qua các bệ liền kề gần nhất (plat_3 -> plat_2 -> plat_3d và ngược lại), luôn nhảy tới không nhảy lùi. ĐẶC BIỆT: Màn hình Web Test Tool (vargost-skill-test.html) và Mobile Godot APK đã được đồng bộ 100% kích thước pixel 1:1 (zoom=1.0, mapScale=3.75, mapX=0, mapY=-120); mọi sửa đổi phải thực hiện song song tức thời (Dual-Target Lockstep Sync) ở cả Web Tool lẫn Godot APK, chỉ lưu giữ Atlas PNG + JSON, nâng version và lưu bản backup APK theo từng version tại build/releases/. Chuẩn hiệu năng bắt buộc KHÓA CỨNG 60 FPS theo Hiến pháp.",
     "open_questions": [
       "Kỹ năng mới thay thế cho FireOrb của Aoda (người dùng đang tìm kiếm)"
     ]
   },
   "verified_context": [
+    {
+      "fact": "Đã hoàn tất nâng cấp v1.1.11 (code 22): 1) Đồng bộ 1:1 kích thước pixel giữa Web Viewer (vargost-skill-test.js) và Mobile Godot APK (battle_arena_3v3.gd): Đưa zoom lên 1.0 (mapScale=3.75, mapX=0, mapY=-120), loại bỏ hoàn toàn sự lệch thước đo giữa 2 bên, toàn bộ tọa độ trên Web Tool khớp chính xác 100% với màn hình điện thoại; 2) Đặt Boss Crapit sát mép tường không tràn địa hình tại tọa độ chuẩn hóa (X=1280.0, Y=963.75) tiếp đất khít bề mặt bệ đá Platform 3D theo yêu cầu image copy 5.png; 3) Chuẩn hóa tốc độ di chuyển: Đặt tốc độ trung bình cho cả Aoda và Vargost là 250px/s (nằm trong giới hạn [100, 400]), triệt tiêu việc chạy 400px/s liên tục; khi mang Cổ Vật bị di chuyển nặng nề giảm 10% còn đúng 225px/s; 4) Khắc phục triệt để lỗi nhảy lùi: Khi bắt đầu và trong suốt cú nhảy, hướng mặt aoda_facing và visual_facing được khóa chặt theo vector chuyển động (jump_dir_x = 1 if target_x >= start_x else -1); 5) Chuẩn hóa lộ trình nhảy qua các bệ liền kề gần nhất: Từ bệ 3 (plat_3a) xuống hang boss bắt buộc đi từ plat_3a -> nhảy xuống plat_2 (bệ kiếm) -> rồi mới nhảy xuống plat_3d (hang boss), không còn nhảy tắt 700px phi thực tế; khi mang Cổ Vật về căn cứ đi plat_3d -> plat_2 -> plat_3a -> plat_3b; đồng bộ 100% song song cả Web Tool và Godot APK, kiểm thử 25/25 unit tests PASS, xuất thành công build/GodWar-debug.apk và sao lưu build/releases/GodWar-v1.1.11-code22.apk (62M).",
+      "source": "version.json"
+    },
+    {
+      "fact": "Đã hoàn tất nâng cấp v1.1.10 (code 21): 1) Đặt Boss Crapit tại tọa độ chính xác (1164, 837) sát bề mặt bệ đá Platform 3D theo yêu cầu hình ảnh (image copy.png); 2) Sửa triệt để lỗi hoạt ảnh Aoda đứng đơ dang tay tại bệ kiếm: xóa bỏ lệnh aoda_frame_index = 0 chạy liên tục mỗi frame khi Aoda phòng thủ tại bệ kiếm trong battle_arena_3v3.gd, giúp hoạt ảnh Idle 0..24 chạy mượt mà 60 FPS; 3) Cổ vật rơi từ Boss chết tiếp đất khít bề mặt bệ plat_3d (Y=837), loại bỏ hoàn toàn hiện tượng lơ lửng trên không khiến tướng bộ binh Aoda bị kẹt vòng lặp; 4) Khắc phục lỗi Aoda nhảy tắt xuyên vách đá địa hình (image copy 3.png & 4.png): Xóa bỏ plat_3_step nằm trong đá, thiết lập đường đi hợp lệ 100% qua không gian mở (Open Sky Corridor): Aoda chạy sang mép trái Platform 3A rồi nhảy rơi tự do qua khoảng không xuống Platform 3D nhặt Cổ Vật; khi mang Cổ Vật về Căn Cứ Phải, Aoda nhảy từ plat_3d sang plat_2, rồi từ plat_2 nhảy lên plat_3a và chạy về plat_3b (100% không gian mở, tuân thủ nghiêm ngặt Hiến pháp địa hình); đồng bộ 100% song song cả Web Viewer (vargost-skill-test.js) và Godot APK (battle_arena_3v3.gd), kiểm thử 25/25 unit tests PASS, xuất thành công build/GodWar-debug.apk và sao lưu build/releases/GodWar-v1.1.10-code21.apk.",
+      "source": "version.json"
+    },
+    {
+      "fact": "Đã hoàn tất nâng cấp v1.1.9 (code 20): 1) Giảm kích thước Cổ Vật rơi (crapitLootOrb) xuống 10x10, bỏ hoàn toàn viền hào quang tròn xanh nhạt xung quanh, chỉ giữ item gốc kèm hiệu ứng 3 tia lấp lánh (cross sparkle) tinh tế; 2) Dịch Boss Crapit xuống 5px bám sát mặt đất Platform 3D (Y=757.0 trên màn hình 1920x1080); 3) Xây dựng Đồ Thị Bệ Địa Hình (Platform Graph Pathfinding) bổ sung bệ đá mỏm trung gian plat_3_step và plat_3d: Aoda di chuyển thông minh nhảy vòng qua bệ đá trung gian xuống đáy vực nhặt Cổ Vật và nhảy ngược về Căn Cứ Phải nhận vật phẩm, triệt tiêu hoàn toàn vòng lặp kẹt giật cục đi qua đi lại trên Platform 3A; 4) Tối ưu tốc độ tối đa cho tướng khi nhặt Cổ Vật: Vargost tận dụng tối đa 400px/s bay thẳng nhặt Cổ Vật, không bị phân tâm bởi kẻ địch hay cooldown, mang Cổ Vật chạy 360px/s về căn cứ; Aoda tận dụng tối đa 260px/s nhặt Cổ Vật và 234px/s mang về căn cứ; đồng bộ 100% song song cả Web Viewer (vargost-skill-test.js) và Godot APK (battle_arena_3v3.gd), kiểm thử 25/25 unit tests PASS, xuất thành công build/GodWar-debug.apk và sao lưu build/releases/GodWar-v1.1.9-code20.apk.",
+      "source": "version.json"
+    },
     {
       "fact": "Đã hoàn tất nâng cấp v1.1.8 (code 19): 1) Lốc xoáy Aoda nhắm mục tiêu chuẩn xác: khi đánh trả Boss Crapit xuất hiện ngay tại chân Boss trên Platform 3D và quét sàn, kẹp chắc chắn trên mặt bệ địa hình, không lơ lửng trên không trung; 2) Dịch chuyển Boss Crapit sang phải bám sát vách đá vuông góc Platform 3D tại tọa độ map (336, 286) thay vì lơ lửng giữa vực; 3) Vị trí xuất phát 2 phe dời sát mép map trái/phải, tướng đứng bất động 1.0s khi xuất trận hoặc hồi sinh mới di chuyển; 4) Tăng thời gian chiếm Thánh Kiếm lên 20.0s, loại bỏ hoàn toàn tự động reset trận mid-combat khi có đội thắng; 5) Boss Crapit phun đạn đồng thời cho toàn bộ tướng đứng trong vùng Thánh Kiếm, điểm phun đạn nâng cao 10px đúng vị trí miệng; 6) Thay icon Cấm Hồi Máu bằng biểu tượng 10x10 (dấu + kèm gạch chéo trắng) nằm góc phải dưới thanh máu; 7) Sửa lỗi mất hoạt ảnh khung test và khung 1:1 bằng cách khai báo crapitFacing; đồng bộ 1:1 song song cả Web Tool và Godot APK và xuất thành công build/GodWar-debug.apk cùng bản backup build/releases/GodWar-v1.1.8-code19.apk.",
       "source": "version.json"
@@ -126,29 +138,51 @@
     "Asset/Scenes/amore_scale_test/README.md"
   ],
   "current_task": {
-    "title": "Thiết Lập Hiến Pháp Quản Lý Phiên Bản (Version Bump & Release Backup), Cổng Định Tuyến Tác Vụ Bắt Buộc Đọc File (agent_guard.sh) & Tối Giản Port 4173",
+    "title": "Tinh Chỉnh Cổ Vật 10x10 Lấp Lánh, Hạ Boss Crapit 5px Sát Đất & Nâng Cấp Logic Nhặt Vật Phẩm Max Speed, Platform Graph Pathfinding Cho Aoda và Vargost (v1.1.9 code 20)",
     "status": "completed",
     "changes": [
-      "1. Dọn dẹp 21 port thừa trên GitHub Codespaces, chỉ giữ duy nhất Port 4173 (Public) cho kiểm thử hoạt ảnh & tải APK; cấu hình .vscode/settings.json chặn tự động forward port rác.",
-      "2. Cập nhật Hiến pháp AGENTS.md và 3 bộ Skill (godwar-agent-safeguard, godwar-combat-character, godwar-pr-workflow): Bổ sung quy chuẩn bắt buộc nâng cấp version khi nâng cấp và lưu trữ bản backup APK theo từng version tại build/releases/; bổ sung Bảng định tuyến tác vụ (làm việc gì bắt buộc đọc file gì).",
-      "3. Xây dựng tệp quản lý phiên bản trung tâm version.json (hiện tại v1.1.3, code 14) và script ./scripts/bump_version.sh tự động đồng bộ version giữa version.json, package.json, export_presets.cfg, project.godot và nhãn tải APK trên HTML.",
-      "4. Nâng cấp ./scripts/build_android_apk.sh tự động sao lưu bản APK theo đúng số hiệu version tại build/releases/GodWar-v<version>-code<code>.apk và mở route tải trực tiếp trên server.mjs.",
-      "5. Xây dựng script ./scripts/agent_guard.sh (npm run guard) chỉ định danh sách file bắt buộc đọc cho từng loại công việc (combat, add-char, release) và tự động kiểm định 6 điều khoản Hiến pháp (60 FPS, không file rác, bảo toàn state.json, đồng bộ version, backup APK, cú pháp JS)."
+      "1. Giảm kích thước Cổ Vật rơi crapitLootOrb xuống 10x10, bỏ hoàn toàn quầng hào quang tròn xanh nhạt và tia xoay to, bổ sung hiệu ứng 3 tia lấp lánh (cross sparkle) nhỏ li ti 1.5 - 2px chớp tắt luân phiên tinh tế (cả Web Tool renderBossLootDrop và Godot APK _draw_boss_loot_drop).",
+      "2. Dịch Boss Crapit xuống 5px bám sát mặt đất Platform 3D (Y=757.0 trên 1920x1080) trong vargost-skill-test.js và battle_arena_3v3.gd.",
+      "3. Xây dựng đồ thị bệ địa hình Platform Graph Pathfinding (getPlatformNavPlan trong JS và _get_platform_nav_plan trong GDScript), bổ sung bệ đá mỏm trung gian plat_3_step và đáy vực plat_3d: Khắc phục triệt để lỗi Aoda kẹt vòng lặp đi qua đi lại trên Platform 3A; Aoda biết chạy sang mép bệ, nhảy qua bệ đá trung gian plat_3_step xuống plat_3d nhặt Cổ Vật và nhảy ngược về Căn Cứ Phải nhận vật phẩm.",
+      "4. Tối ưu tốc độ tối đa cho nhân vật khi nhặt Cổ Vật: Vargost đạt 400px/s bay thẳng tới Cổ Vật (bỏ qua cooldown, bỏ qua quấy rối của địch), chạy 360px/s mang Cổ Vật về Căn Cứ Trái; Aoda đạt 260px/s nhặt Cổ Vật và 234px/s mang về Căn Cứ Phải.",
+      "5. Nâng version v1.1.9 (code 20), vượt qua 25/25 unit tests npm test, Godot headless check exit 0, đóng gói APK build/GodWar-debug.apk và sao lưu phát hành build/releases/GodWar-v1.1.9-code20.apk."
     ],
     "verification": [
-      "./scripts/agent_guard.sh all: PASS 100% toàn bộ 6 chốt kiểm định Hiến pháp.",
-      "./scripts/build_android_apk.sh: Xuất thành công build/GodWar-debug.apk và bản backup build/releases/GodWar-v1.1.3-code14.apk (59 MB).",
       "npm test: 25/25 unit tests PASS 100%.",
-      "curl https://refactored-xylophone-6vr77rr657w43x5vx-4173.app.github.dev/ -> HTTP 200 OK."
+      "godot --headless --editor --quit: Exit code 0 (cú pháp GDScript hợp lệ 100%).",
+      "./scripts/agent_guard.sh: PASS 100% toàn bộ tiêu chí Hiến pháp.",
+      "./scripts/build_android_apk.sh: Xuất thành công build/GodWar-debug.apk và build/releases/GodWar-v1.1.9-code20.apk (56 MB)."
     ],
     "remaining": [],
     "limitations": [],
     "next_steps": [
-      "Người dùng mở lại link trình duyệt (HTTP 200 OK) để sử dụng Bộ Công Cụ Tinh Chỉnh & Đo Pixel hoặc tải bản APK v1.1.3."
+      "Người dùng mở Web Test Tool trên cổng 4173 để kiểm thử hoạt ảnh nhặt Cổ Vật và nhảy bệ của Aoda/Vargost hoặc tải APK v1.1.9 cài đặt trên điện thoại di động."
     ]
   },
-  "working_tree_note": "Đã thiết lập hệ thống quản lý version v1.1.3 (code 14), backup APK theo version tại build/releases/, và cổng kiểm định Hiến pháp ./scripts/agent_guard.sh. Server chạy ổn định tại cổng 4173.",
+  "working_tree_note": "Đã nâng cấp phiên bản v1.1.9 (code 20), tối ưu Cổ Vật 10x10, hạ Boss 5px, mở rộng Platform Graph Pathfinding cho bộ binh Aoda và max speed cho Vargost. Đã đóng gói và sao lưu APK tại build/releases/GodWar-v1.1.9-code20.apk.",
   "history": [
+    {
+      "title": "Thiết Lập Hiến Pháp Quản Lý Phiên Bản (Version Bump & Release Backup), Cổng Định Tuyến Tác Vụ Bắt Buộc Đọc File (agent_guard.sh) & Tối Giản Port 4173",
+      "status": "completed",
+      "changes": [
+        "1. Dọn dẹp 21 port thừa trên GitHub Codespaces, chỉ giữ duy nhất Port 4173 (Public) cho kiểm thử hoạt ảnh & tải APK; cấu hình .vscode/settings.json chặn tự động forward port rác.",
+        "2. Cập nhật Hiến pháp AGENTS.md và 3 bộ Skill (godwar-agent-safeguard, godwar-combat-character, godwar-pr-workflow): Bổ sung quy chuẩn bắt buộc nâng cấp version khi nâng cấp và lưu trữ bản backup APK theo từng version tại build/releases/; bổ sung Bảng định tuyến tác vụ (làm việc gì bắt buộc đọc file gì).",
+        "3. Xây dựng tệp quản lý phiên bản trung tâm version.json (hiện tại v1.1.3, code 14) và script ./scripts/bump_version.sh tự động đồng bộ version giữa version.json, package.json, export_presets.cfg, project.godot và nhãn tải APK trên HTML.",
+        "4. Nâng cấp ./scripts/build_android_apk.sh tự động sao lưu bản APK theo đúng số hiệu version tại build/releases/GodWar-v<version>-code<code>.apk và mở route tải trực tiếp trên server.mjs.",
+        "5. Xây dựng script ./scripts/agent_guard.sh (npm run guard) chỉ định danh sách file bắt buộc đọc cho từng loại công việc (combat, add-char, release) và tự động kiểm định 6 điều khoản Hiến pháp (60 FPS, không file rác, bảo toàn state.json, đồng bộ version, backup APK, cú pháp JS)."
+      ],
+      "verification": [
+        "./scripts/agent_guard.sh all: PASS 100% toàn bộ 6 chốt kiểm định Hiến pháp.",
+        "./scripts/build_android_apk.sh: Xuất thành công build/GodWar-debug.apk và bản backup build/releases/GodWar-v1.1.3-code14.apk (59 MB).",
+        "npm test: 25/25 unit tests PASS 100%.",
+        "curl https://refactored-xylophone-6vr77rr657w43x5vx-4173.app.github.dev/ -> HTTP 200 OK."
+      ],
+      "remaining": [],
+      "limitations": [],
+      "next_steps": [
+        "Người dùng mở lại link trình duyệt (HTTP 200 OK) để sử dụng Bộ Công Cụ Tinh Chỉnh & Đo Pixel hoặc tải bản APK v1.1.3."
+      ]
+    },
     {
       "title": "Tái Cấu Trúc Bộ Công Cụ Tinh Chỉnh & Đo Pixel (Tối Giản Header 1 Hàng, Đội Hình 3v3 6 Slot 50+ Tướng, Khung Tách 1:1 & Xuất Spec JSON Bộ Phận Cho Agent)",
       "status": "completed",
