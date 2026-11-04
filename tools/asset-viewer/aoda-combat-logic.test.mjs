@@ -58,29 +58,29 @@ test('Aoda Metadata: 90px Height, Atlases & Action Frame Separation', () => {
   assert.equal(measuredCandidate.target_height_px, 90, 'measured_atlas_pilots/aoda target_height_px must be 90');
 });
 
-test('Tornado Ground-Only Aerial Immunity & Multi-target AoE', () => {
-  function checkTornadoHit(tornadoX, tornadoY, targetX, targetY, isFlying) {
-    // QUY TẮC BẮT BUỘC: Lốc xoáy chỉ xuất hiện trên mặt đất, KHÔNG THỂ đánh trúng mục tiêu đang bay (isFlying = true)
-    if (isFlying) return false;
-    return Math.abs(tornadoX - targetX) < 65 && Math.abs(tornadoY - targetY) < 85;
+test('Tornado Stuns All Enemies In Path (Except Boss) & Multi-target AoE', () => {
+  function checkTornadoStun(tornadoX, tornadoY, targetX, targetY, isBoss) {
+    // QUY TẮC HIẾN PHÁP: Lốc xoáy làm choáng toàn bộ kẻ địch khi đi qua (kể cả Vargost bay hoặc trên đất), TRỪ BOSS!
+    if (isBoss) return false;
+    return Math.abs(tornadoX - targetX) < 75 && Math.abs(tornadoY - targetY) < 130;
   }
 
   const tornado = { x: 500, y: 800 };
 
-  // 1. Vargost đang bay (isFlying = true) ngay trên đầu Tornado -> KHÔNG DÍNH ĐÒN!
-  const vargostFlying = { x: 500, y: 750, isFlying: true };
-  assert.equal(checkTornadoHit(tornado.x, tornado.y, vargostFlying.x, vargostFlying.y, vargostFlying.isFlying), false,
-    'Flying Vargost MUST be immune to Tornado ground sweep');
+  // 1. Vargost (Team 1) trong phạm vi lốc xoáy -> DÍNH CHOÁNG 2.0s!
+  const vargost = { x: 500, y: 750, isBoss: false };
+  assert.equal(checkTornadoStun(tornado.x, tornado.y, vargost.x, vargost.y, vargost.isBoss), true,
+    'Vargost must be stunned by Tornado');
 
-  // 2. Vargost hạ cánh trên mặt đất (isFlying = false) -> DÍNH ĐÒN!
-  const vargostLanded = { x: 500, y: 800, isFlying: false };
-  assert.equal(checkTornadoHit(tornado.x, tornado.y, vargostLanded.x, vargostLanded.y, vargostLanded.isFlying), true,
-    'Landed Vargost must be hit by Tornado');
+  // 2. Kẻ địch mặt đất khác (Ground Dummy) trong phạm vi -> CŨNG DÍNH CHOÁNG 2.0s!
+  const groundDummy = { x: 520, y: 800, isBoss: false };
+  assert.equal(checkTornadoStun(tornado.x, tornado.y, groundDummy.x, groundDummy.y, groundDummy.isBoss), true,
+    'All regular enemies in AoE must be stunned by Tornado');
 
-  // 3. Kẻ địch mặt đất khác (Ground Dummy) trong phạm vi -> CŨNG DÍNH ĐÒN (sát thương diện rộng)!
-  const groundDummy = { x: 520, y: 800, isFlying: false };
-  assert.equal(checkTornadoHit(tornado.x, tornado.y, groundDummy.x, groundDummy.y, groundDummy.isFlying), true,
-    'All ground enemies in AoE must be hit by Tornado');
+  // 3. Boss Crapit trong phạm vi lốc xoáy -> KHÔNG BỊ CHOÁNG (Miễn nhiễm CC)!
+  const bossCrapit = { x: 510, y: 800, isBoss: true };
+  assert.equal(checkTornadoStun(tornado.x, tornado.y, bossCrapit.x, bossCrapit.y, bossCrapit.isBoss), false,
+    'Boss Crapit must be immune to Tornado Stun');
 });
 
 test('Tornado 2.0s Duration & Forward Straight-Line Ground Sweep Lifecycle (Emerge -> Spin 2.0s -> Dissipate)', () => {

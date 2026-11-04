@@ -40,7 +40,7 @@ test('Vargost Combat Logic: Teleport Retreat, Evasive Dodge/Miss, and Enemy Coun
       if (id === 'stage' || id === 'loupe-canvas') {
         return canvasMock;
       }
-      const val = (id === 'sel-rate') ? '1' : ((id === 'rng-fly-speed') ? '400' : ((id === 'rng-tilt') ? '25' : ((id === 'rng-distance') ? '350' : '0')));
+      const val = (id === 'sel-rate') ? '1' : ((id === 'rng-fly-speed') ? '400' : ((id === 'rng-tilt') ? '20' : ((id === 'rng-distance') ? '350' : '0')));
       return {
         id,
         value: val,
@@ -252,19 +252,33 @@ test('Vargost Combat Logic: Teleport Retreat, Evasive Dodge/Miss, and Enemy Coun
       throw new Error("Aoda (Team 2 · Bộ binh) phải xuất phát trên địa hình tại Căn Cứ Phải và hướng mặt sang Trái (-1) về Thánh Kiếm");
     }
 
-    // Test 11: Vargost di chuyển cả 2 chiều (Trái -> Phải và Phải -> Trái) đều phải đổ người về trước 25°, tuyệt đối không ngửa người về sau
+    // Test 11: Vargost di chuyển cả 2 chiều (Trái -> Phải và Phải -> Trái) đều phải đổ người về trước 20°, tuyệt đối không ngửa người về sau
     locomotionState = 'FLY_VECTOR';
     vargostX = 700;
-    targetVargostX = 500; // Di chuyển từ Phải sang Trái (dirX < 0)
+    targetVargostX = 100; // Di chuyển từ Phải sang Trái (dirX < 0)
     targetVargostY = vargostY;
     for (let k = 0; k < 15; k++) {
       update(25000 + k * 30);
     }
-    if (facingDirection !== -1 || visualFacing >= 0) {
+    if (facingDirection !== -1 || targetFacingVisual !== -1) {
       throw new Error("Khi di chuyển từ Phải sang Trái, Vargost phải quay mặt sang Trái (-1)");
     }
-    if (currentTilt >= -0.1) {
-      throw new Error("Khi di chuyển từ Phải sang Trái, currentTilt phải âm (-25°) để đổ người về phía trước bên Trái!");
+    if (currentTilt < 0.30 || currentTilt > 0.36) {
+      throw new Error("Khi di chuyển tiến về trước, currentTilt phải đạt 20° (+0.349 rad) để đổ đầu về phía trước theo hướng tiến! Hiện tại: " + currentTilt);
+    }
+
+    // Test 11B: Teleport Pixel Dissolve khi Xoay Người Lật Hướng (Che giấu hoạt ảnh xoay cứng)
+    facingDirection = 1;
+    targetFacingVisual = 1;
+    visualFacing = 1;
+    isTurnFlipping = false;
+    requestFacing(-1);
+    if (!isTurnFlipping) {
+      throw new Error("requestFacing(-1) phải kích hoạt isTurnFlipping = true");
+    }
+    update(25450); // 30ms sau khi requestFacing: nửa đầu xoay mặt
+    if (currentDissolveFactor <= 0.04) {
+      throw new Error("currentDissolveFactor phải > 0.04 để che hoạt ảnh xoay cứng khi lật mặt! Hiện tại: " + currentDissolveFactor);
     }
 
     // Test 12: Boss Trung Lập Crapit (2150 HP tại (1164, 752)), Tấn công vùng Thánh Kiếm, Xuyên Zone 2, Cấm Hồi Máu & Phản Xạ Đánh Trả

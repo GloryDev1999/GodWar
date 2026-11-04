@@ -1,15 +1,31 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-11-03T14:01:00Z",
+  "updated_at_utc": "2026-11-04T01:53:00Z",
   "purpose": "Bộ nhớ bàn giao ngắn gọn cho agent; đối chiếu với mã, tài liệu và git status khi bắt đầu phiên.",
   "product_goal": {
-    "source": "Yêu cầu của người dùng ngày 2026-10-31, 2026-11-01, 2026-11-02 và 2026-11-03",
-    "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mục tiêu cốt lõi của trận đấu là chiếm giữ Cứ Điểm Thánh Kiếm (sword_altar) tại Bệ Giữa Platform 2 với kích thước chiều cao chuẩn hóa 90px: Đội nào đứng trong vùng tròn bán kính 140px liên tục trong 20s (không tự reset giữa trận) sẽ chiến thắng. 2 Đội xuất phát và hồi sinh sát mép map 2 bên, đứng yên 1s trước khi di chuyển; nhân vật bay trên không và bộ binh trên địa hình tiến về tranh kiếm. Boss Crapit (2150 HP) đứng sát vách đá góc vuông bề mặt Platform 3D tiếp đất Y=963.75, X=1280.0, miệng nâng cao 10px, phun đạn đồng thời cho tất cả tướng đứng trong vùng Thánh Kiếm; khi trúng đòn hiển thị icon 10x10 Cấm Hồi Máu (dấu + kèm gạch chéo) góc phải dưới thanh máu. Aoda tung Lốc Xoáy đúng mặt đất khi phản công Boss hoặc tướng địch. Khi Boss Crapit chết rơi Cổ Vật (10x10 có hiệu ứng lấp lánh tinh tế) tiếp đất khít bệ plat_3d không lơ lửng: Tướng ưu tiên nhặt với tốc độ 250px/s và mang về căn cứ xuất phát/hồi sinh ở tốc độ 225px/s (-10% di chuyển nặng nề) để hoàn thành nhận vật phẩm; Aoda biết di chuyển nhảy lần lượt qua các bệ liền kề gần nhất (plat_3 -> plat_2 -> plat_3d và ngược lại), luôn nhảy tới không nhảy lùi. ĐẶC BIỆT: Màn hình Web Test Tool (vargost-skill-test.html) và Mobile Godot APK đã được đồng bộ 100% kích thước pixel 1:1 (zoom=1.0, mapScale=3.75, mapX=0, mapY=-120); mọi sửa đổi phải thực hiện song song tức thời (Dual-Target Lockstep Sync) ở cả Web Tool lẫn Godot APK, chỉ lưu giữ Atlas PNG + JSON, nâng version và lưu bản backup APK theo từng version tại build/releases/. Chuẩn hiệu năng bắt buộc KHÓA CỨNG 60 FPS theo Hiến pháp.",
+    "source": "Yêu cầu của người dùng ngày 2026-10-31, 2026-11-01, 2026-11-02, 2026-11-03 và 2026-11-04",
+    "direction": "Game mobile đối kháng tự động 3vs3 (Auto-battler / Utility AI trên map ngang 1920x1080). Mục tiêu cốt lõi của trận đấu là chiếm giữ Cứ Điểm Thánh Kiếm (sword_altar) tại Bệ Giữa Platform 2 với kích thước chiều cao chuẩn hóa 90px: Đội nào đứng trong vùng tròn bán kính 140px liên tục trong 20s (không tự reset giữa trận) sẽ chiến thắng. 2 Đội xuất phát và hồi sinh sát mép map 2 bên, đứng yên 1s trước khi di chuyển; nhân vật bay trên không và bộ binh trên địa hình tiến về tranh kiếm. Boss Crapit (2150 HP) đứng sát vách đá góc vuông bề mặt Platform 3D tiếp đất Y=963.75, X=1280.0, miệng nâng cao 10px, phun đạn đồng thời cho tất cả tướng đứng trong vùng Thánh Kiếm; khi trúng đòn hiển thị icon 10x10 Cấm Hồi Máu (dấu + kèm gạch chéo) góc phải dưới thanh máu. Aoda tung Lốc Xoáy đúng mặt đất khi phản công Boss hoặc tướng địch. Khi Boss Crapit chết rơi Cổ Vật (10x10 có hiệu ứng lấp lánh tinh tế) tiếp đất khít bệ plat_3d không lơ lửng: Tướng ưu tiên nhặt với tốc độ 250px/s; cả team mang Cổ Vật giảm 10% tốc độ di chuyển còn 225px/s, đồng đội hộ tống về căn cứ xuất phát/hồi sinh để hoàn thành nhận vật phẩm. Aoda tốc độ chuẩn hóa Mức 1: 160 px/s (khi mang Cổ Vật giảm 10% còn 144 px/s), thời lượng nhảy bệ 0.75s vòng cung tự nhiên và nhịp chân 0.08s đầm chắc. Lốc xoáy Aoda làm choáng toàn bộ kẻ địch 2.0s khi đi qua (trừ Boss miễn nhiễm CC). Vargost di chuyển tiến luôn nghiêng đầu +20° về phía trước theo hướng tiến (không bị nghiêng về sau), khi lùi dùng teleport thân đứng thẳng 0°; hoạt ảnh xoay người lật mặt ver v1.1.12 chèn hiệu ứng Teleport Pixel Dissolve che giấu chuyển động lật cứng. Mọi sửa đổi đồng bộ 100% song song (Dual-Target Lockstep Sync) ở cả Web Tool lẫn Godot APK, chuẩn 60 FPS theo Hiến pháp.",
     "open_questions": [
       "Kỹ năng mới thay thế cho FireOrb của Aoda (người dùng đang tìm kiếm)"
     ]
   },
   "verified_context": [
+    {
+      "fact": "Đã hoàn tất nâng cấp v1.1.15 (code 26): 1) Chuẩn hóa tốc độ chạy của Aoda về Mức 1 (160 px/s) khi chạy bộ bình thường (khi mang Cổ Vật giảm 10% còn 144 px/s), loại bỏ cảm giác chạy quá nhanh vội vã; 2) Kéo dài thời gian nhảy vượt bệ (Ledge Jump) từ 0.48s lên 0.75s giúp quỹ đạo nhảy Parabol có độ bổng và rơi êm ái, tiếp đất đầm chắc (landing timer 0.16s); 3) Giãn nhịp guồng chân chạy bộ (frame timer) từ 0.06s lên 0.08s (~12.5 FPS) giúp các bước chân dẫm bám đất khớp với vận tốc di chuyển thật; 4) Đồng bộ 100% song song cả Web Tool (vargost-skill-test.js) và Godot APK (battle_arena_3v3.gd), kiểm thử 25/25 unit tests npm test PASS, Godot headless check exit 0, đóng gói APK build/GodWar-debug.apk và sao lưu phát hành build/releases/GodWar-v1.1.15-code26.apk (55M).",
+      "source": "version.json"
+    },
+    {
+      "fact": "Đã hoàn tất nâng cấp v1.1.14 (code 25): 1) Trả lại hoạt ảnh xoay người của version v1.1.12, loại bỏ hoàn toàn co giãn biến dạng lật ngang (bẹp dẹt kiểu trang sách lật); 2) Giữ nguyên góc nghiêng đổ người về phía trước 20° (target_tilt = deg_to_rad(20.0) / targetTiltDeg = 20) khi bay tiến; 3) Chèn hiệu ứng Teleport Pixel Dissolve (quét 50 lát cắt scanline slices + glitch flash + tàn lửa embers) trong 0.14s đúng tại thời điểm lật mặt: Nửa đầu Vargost tan rã thành các lát cắt pixel che mờ thân, đúng thời điểm giữa lật mặt sang hướng mới, nửa sau tụ lại từ hư không, che giấu hoàn toàn hoạt ảnh xoay cứng và tạo cảm giác biến ảo dịch chuyển tức thời; 4) Đồng bộ 100% song song cả Web Tool (vargost-skill-test.js) và Godot APK (battle_arena_3v3.gd), kiểm thử 25/25 unit tests npm test PASS, Godot headless check exit 0, đóng gói APK build/GodWar-debug.apk và sao lưu phát hành build/releases/GodWar-v1.1.14-code25.apk (55M).",
+      "source": "version.json"
+    },
+    {
+      "fact": "Đã hoàn tất nâng cấp v1.1.13 (code 24): 1) Giảm góc nghiêng thân Vargost khi di chuyển tiến từ 25° xuống 20° (target_tilt = deg_to_rad(20.0) / targetTiltDeg = 20) trên cả Godot và Web Tool, cập nhật vargost_actions.json và thanh trượt HTML 20°; 2) Làm mềm mượt tối đa chuyển động xoay người lật hướng (flip facing) của Vargost: Loại bỏ hoàn toàn các lệnh gán cứng snap tức thời khi bắt đầu di chuyển, chuyển sang cơ chế nội suy xoay 2.5D mềm mại trong ~0.2s (dt * 8.5), bổ sung co giãn quang học chiều dọc (turnSquashY = 1.0 + (1.0 - absf(facing)) * 0.15) và chốt ngưỡng hiển thị tối thiểu 0.08 kèm hiệu ứng bùng hạt pixel dissolve / ember burst tại điểm 0; 3) Đồng bộ 100% song song cả Web Tool (vargost-skill-test.js) và Godot APK (battle_arena_3v3.gd), kiểm thử 25/25 unit tests npm test PASS, Godot headless check exit 0, đóng gói APK build/GodWar-debug.apk và sao lưu phát hành build/releases/GodWar-v1.1.13-code24.apk (55M).",
+      "source": "version.json"
+    },
+    {
+      "fact": "Đã hoàn tất nâng cấp v1.1.12 (code 23): 1) Toàn đội giảm 10% tốc độ di chuyển khi có tướng nhặt được Cổ Vật từ Boss rơi: Cả người mang lẫn đồng đội hộ tống về căn cứ hồi sinh đều giảm 10% tốc độ (225px/s); các logic hộ tống, cướp đoạt và trả đũa giữ nguyên; 2) Chuẩn hóa tốc độ Aoda trong khoảng [100, 300] px/s (mặc định 250px/s, khi mang vác Cổ Vật là 225px/s, dummy và dash tối đa 300px/s); 3) Lốc xoáy Aoda làm CHOÁNG toàn bộ kẻ địch trong 2.0s khi đi qua (kể cả Vargost bay hay trên đất, ngắt hoàn toàn di chuyển và teleport), TRỪ BOSS CRAPIT (giữ nguyên miễn nhiễm CC); hiển thị hiệu ứng Stun Stars xoay quanh đầu; 4) Sửa triệt để lỗi Vargost nghiêng người về sau: Chuẩn hóa góc nghiêng tiến target_tilt = +25° (+0.436 rad) trong cả Godot Transform2D và Canvas 2D (scale trước rotate), đảm bảo khi bay tiến đầu luôn nghiêng về phía trước theo hướng di chuyển (sang phải khi nhìn phải, sang trái khi nhìn trái); khi lùi bắt buộc dùng TELEPORT thân đứng thẳng 0°, tuyệt đối không nghiêng khi lùi; đồng bộ 100% song song cả Web Tool (vargost-skill-test.js) và Godot APK (battle_arena_3v3.gd), kiểm thử 25/25 unit tests PASS, xuất thành công build/GodWar-debug.apk và sao lưu build/releases/GodWar-v1.1.12-code23.apk (55M).",
+      "source": "version.json"
+    },
     {
       "fact": "Đã hoàn tất nâng cấp v1.1.11 (code 22): 1) Đồng bộ 1:1 kích thước pixel giữa Web Viewer (vargost-skill-test.js) và Mobile Godot APK (battle_arena_3v3.gd): Đưa zoom lên 1.0 (mapScale=3.75, mapX=0, mapY=-120), loại bỏ hoàn toàn sự lệch thước đo giữa 2 bên, toàn bộ tọa độ trên Web Tool khớp chính xác 100% với màn hình điện thoại; 2) Đặt Boss Crapit sát mép tường không tràn địa hình tại tọa độ chuẩn hóa (X=1280.0, Y=963.75) tiếp đất khít bề mặt bệ đá Platform 3D theo yêu cầu image copy 5.png; 3) Chuẩn hóa tốc độ di chuyển: Đặt tốc độ trung bình cho cả Aoda và Vargost là 250px/s (nằm trong giới hạn [100, 400]), triệt tiêu việc chạy 400px/s liên tục; khi mang Cổ Vật bị di chuyển nặng nề giảm 10% còn đúng 225px/s; 4) Khắc phục triệt để lỗi nhảy lùi: Khi bắt đầu và trong suốt cú nhảy, hướng mặt aoda_facing và visual_facing được khóa chặt theo vector chuyển động (jump_dir_x = 1 if target_x >= start_x else -1); 5) Chuẩn hóa lộ trình nhảy qua các bệ liền kề gần nhất: Từ bệ 3 (plat_3a) xuống hang boss bắt buộc đi từ plat_3a -> nhảy xuống plat_2 (bệ kiếm) -> rồi mới nhảy xuống plat_3d (hang boss), không còn nhảy tắt 700px phi thực tế; khi mang Cổ Vật về căn cứ đi plat_3d -> plat_2 -> plat_3a -> plat_3b; đồng bộ 100% song song cả Web Tool và Godot APK, kiểm thử 25/25 unit tests PASS, xuất thành công build/GodWar-debug.apk và sao lưu build/releases/GodWar-v1.1.11-code22.apk (62M).",
       "source": "version.json"
@@ -138,28 +154,27 @@
     "Asset/Scenes/amore_scale_test/README.md"
   ],
   "current_task": {
-    "title": "Tinh Chỉnh Cổ Vật 10x10 Lấp Lánh, Hạ Boss Crapit 5px Sát Đất & Nâng Cấp Logic Nhặt Vật Phẩm Max Speed, Platform Graph Pathfinding Cho Aoda và Vargost (v1.1.9 code 20)",
+    "title": "Chuẩn Hóa Tốc Độ Aoda Về Mức 1 (160 px/s), Kéo Dài Thời Gian Nhảy 0.75s & Giãn Nhịp Chân 0.08s (v1.1.15 code 26)",
     "status": "completed",
     "changes": [
-      "1. Giảm kích thước Cổ Vật rơi crapitLootOrb xuống 10x10, bỏ hoàn toàn quầng hào quang tròn xanh nhạt và tia xoay to, bổ sung hiệu ứng 3 tia lấp lánh (cross sparkle) nhỏ li ti 1.5 - 2px chớp tắt luân phiên tinh tế (cả Web Tool renderBossLootDrop và Godot APK _draw_boss_loot_drop).",
-      "2. Dịch Boss Crapit xuống 5px bám sát mặt đất Platform 3D (Y=757.0 trên 1920x1080) trong vargost-skill-test.js và battle_arena_3v3.gd.",
-      "3. Xây dựng đồ thị bệ địa hình Platform Graph Pathfinding (getPlatformNavPlan trong JS và _get_platform_nav_plan trong GDScript), bổ sung bệ đá mỏm trung gian plat_3_step và đáy vực plat_3d: Khắc phục triệt để lỗi Aoda kẹt vòng lặp đi qua đi lại trên Platform 3A; Aoda biết chạy sang mép bệ, nhảy qua bệ đá trung gian plat_3_step xuống plat_3d nhặt Cổ Vật và nhảy ngược về Căn Cứ Phải nhận vật phẩm.",
-      "4. Tối ưu tốc độ tối đa cho nhân vật khi nhặt Cổ Vật: Vargost đạt 400px/s bay thẳng tới Cổ Vật (bỏ qua cooldown, bỏ qua quấy rối của địch), chạy 360px/s mang Cổ Vật về Căn Cứ Trái; Aoda đạt 260px/s nhặt Cổ Vật và 234px/s mang về Căn Cứ Phải.",
-      "5. Nâng version v1.1.9 (code 20), vượt qua 25/25 unit tests npm test, Godot headless check exit 0, đóng gói APK build/GodWar-debug.apk và sao lưu phát hành build/releases/GodWar-v1.1.9-code20.apk."
+      "1. Giảm tốc độ chạy bộ ngang của Aoda từ 250 px/s xuống 160 px/s (khi cả đội mang Cổ Vật giảm 10% còn 144 px/s) trên cả Web Tool và Godot APK, tạo chuyển động đầm chắc, vững chãi, chân thật.",
+      "2. Kéo dài thời gian nhảy vượt bệ (aoda_jump_duration) từ 0.48s lên 0.75s: Quỹ đạo nhảy Parabol có độ bổng và rơi mềm mại, tiếp đất dẻo (landing timer 0.16s), triệt tiêu cảm giác lao vọt 600px/s qua màn hình.",
+      "3. Giãn nhịp guồng chân chạy bộ (aoda_frame_timer / aodaAnimAccum) từ 0.06s lên 0.08s (~12.5 FPS) giúp bước chân dẫm bám đất khớp với vận tốc di chuyển thật.",
+      "4. Đồng bộ 100% song song cả Web Tool (vargost-skill-test.js) và Godot APK (battle_arena_3v3.gd), kiểm thử 25/25 unit tests npm test PASS, Godot headless check exit 0, đóng gói APK build/GodWar-debug.apk và sao lưu phát hành build/releases/GodWar-v1.1.15-code26.apk (55M)."
     ],
     "verification": [
       "npm test: 25/25 unit tests PASS 100%.",
-      "godot --headless --editor --quit: Exit code 0 (cú pháp GDScript hợp lệ 100%).",
+      "godot --headless --path . --quit-after 10: Exit code 0 (cú pháp GDScript hợp lệ 100%).",
       "./scripts/agent_guard.sh: PASS 100% toàn bộ tiêu chí Hiến pháp.",
-      "./scripts/build_android_apk.sh: Xuất thành công build/GodWar-debug.apk và build/releases/GodWar-v1.1.9-code20.apk (56 MB)."
+      "./scripts/build_android_apk.sh: Xuất thành công build/GodWar-debug.apk và build/releases/GodWar-v1.1.15-code26.apk (55 MB)."
     ],
     "remaining": [],
     "limitations": [],
     "next_steps": [
-      "Người dùng mở Web Test Tool trên cổng 4173 để kiểm thử hoạt ảnh nhặt Cổ Vật và nhảy bệ của Aoda/Vargost hoặc tải APK v1.1.9 cài đặt trên điện thoại di động."
+      "Người dùng mở Web Test Tool trên cổng 4173 (http://localhost:4173/vargost-skill-test.html) hoặc cài đặt APK v1.1.15 để kiểm tra tốc độ chạy đầm chắc 160 px/s và cú nhảy mềm mại 0.75s của Aoda."
     ]
   },
-  "working_tree_note": "Đã nâng cấp phiên bản v1.1.9 (code 20), tối ưu Cổ Vật 10x10, hạ Boss 5px, mở rộng Platform Graph Pathfinding cho bộ binh Aoda và max speed cho Vargost. Đã đóng gói và sao lưu APK tại build/releases/GodWar-v1.1.9-code20.apk.",
+  "working_tree_note": "Đã nâng cấp phiên bản v1.1.15 (code 26): chuẩn hóa tốc độ Aoda về Mức 1 (160 px/s, mang loot 144 px/s), kéo dài thời gian nhảy bệ 0.75s, giãn nhịp guồng chân 0.08s, kiểm thử 25/25 PASS và đóng gói APK tại build/releases/GodWar-v1.1.15-code26.apk.",
   "history": [
     {
       "title": "Thiết Lập Hiến Pháp Quản Lý Phiên Bản (Version Bump & Release Backup), Cổng Định Tuyến Tác Vụ Bắt Buộc Đọc File (agent_guard.sh) & Tối Giản Port 4173",

@@ -419,8 +419,8 @@ let aodaStunTimer = 0;
 let aodaHitFlash = 0;
 let aodaFrameIndex = 65; // Frame 66 bắt đầu chuỗi chạy bộ
 let aodaAnimAccum = 0;
-let aodaPatrolSpeed = 250; // px/s - Tốc độ trung bình chuẩn hóa theo yêu cầu
-let aodaChaseSpeed = 250; // px/s - Giới hạn [100, 400], không chạy 400 liên tục
+let aodaPatrolSpeed = 160; // px/s (Mức 1: đầm chắc, chân thực)
+let aodaChaseSpeed = 160; // px/s
 let aodaTornadoCooldown = 0; // Cooldown 5s cho Chiêu 1 (Tornado)
 let aodaFireOrbCooldown = 0; // Cooldown 5s cho Chiêu 2 (FireOrb)
 let aodaNovaCooldown = 0;    // Alias giữ tương thích
@@ -432,7 +432,7 @@ const aodaDamageNumbers = [];
 
 // Aoda Ledge Jumping state
 let aodaJumpTimer = 0;
-let aodaJumpDuration = 0.48;
+let aodaJumpDuration = 0.75;
 let aodaJumpStartX = 0;
 let aodaJumpStartY = 0;
 let aodaJumpTargetX = 0;
@@ -618,13 +618,46 @@ let isGlitchFlash = false;
 let teleportTargetX = vargostX;
 let teleportTargetY = vargostY;
 
+// Turn Teleport Dissolve State (Hiệu ứng Teleport Pixel Dissolve lật mặt che giấu hoạt ảnh xoay cứng)
+let isTurnFlipping = false;
+let turnFlipTimer = 0;
+let turnFlipNewFacing = 1;
+const TURN_FLIP_DURATION = 0.14; // Tổng 0.14s snappy (~8-9 frames ở 60 FPS)
+
+function requestFacing(newFacing) {
+  if (!newFacing || newFacing === facingDirection) return;
+  if (isPhaseBlinking || isDead) {
+    facingDirection = newFacing;
+    targetFacingVisual = newFacing;
+    visualFacing = newFacing;
+    return;
+  }
+  if (isTurnFlipping) {
+    turnFlipNewFacing = newFacing;
+    return;
+  }
+  isTurnFlipping = true;
+  turnFlipTimer = 0;
+  turnFlipNewFacing = newFacing;
+  emberParticles.push({
+    x: vargostX,
+    y: (vargostY + (isFlying ? Math.sin(hoverTimer * 3.2) * 8 : 0)),
+    vx: (Math.random() - 0.5) * 60,
+    vy: -Math.random() * 50 - 20,
+    size: 2.5,
+    alpha: 0.9,
+    color: '#f0883e',
+    life: 0.35
+  });
+}
+
 // Dynamic Moving Enemy Dummy State (Tốc độ dao động 300 - 1000 px/s & Phản Công)
 let enemyWorldX = null;
 let enemyMoveDir = -1; // -1: Tiến sang trái, 1: Tiến sang phải
-let enemyPatrolSpeed = 380; // px/s (dao động 300 - 550 px/s khi tuần tra)
+let enemyPatrolSpeed = 220; // px/s (giới hạn [100, 300] px/s)
 let isEnemyDashing = false;
 let enemyDashTimer = 0;
-let enemyDashSpeed = 850; // px/s (dao động 750 - 1000 px/s khi né đòn)
+let enemyDashSpeed = 300; // px/s (giới hạn [100, 300] px/s)
 let enemyStunTimer = 0; // Đứng hình 0.1s (Hit Stun) khi dính đòn
 let enemyHp = 100;
 let enemyHitFlash = 0;
@@ -828,7 +861,7 @@ btnFlyForward.addEventListener('click', () => {
   targetVargostX = Math.max(mapX + 100, Math.min(W - 400, vargostX + facingDirection * 120 * mapScale));
   targetVargostY = isFlying ? vargostY : groundY;
   locomotionState = 'FLY_VECTOR';
-  const tiltDeg = facingDirection > 0 ? '+25°' : '-25°';
+  const tiltDeg = '+20°';
   hudLocomotion.textContent = isFlying
     ? `Di chuyển: BAY TIẾN (${tiltDeg}) @ ${currentFlySpeed}px/s`
     : `Di chuyển: TIẾN TRÊN BỆ (${tiltDeg}) @ ${currentFlySpeed}px/s`;
@@ -862,12 +895,12 @@ function flyDiagonal(dxRatio, dyRatio, label, clockName) {
     hudLocomotion.className = 'badge active';
     showToast(`⚡ Vargost Teleport lùi ${clockName} (Thân đứng 0°)!`);
   } else {
-    // HƯỚNG TIẾN (2h, 4h): Giữ nguyên bay tiến nghiêng đầu +25 độ rất tự nhiên
+    // HƯỚNG TIẾN (2h, 4h): Giữ nguyên bay tiến nghiêng đầu +20 độ rất tự nhiên
     currentFlySpeed = Number(rngFlySpeed.value) || SPEED_FAST;
     targetVargostX = Math.max(mapX + 100, Math.min(W - 400, vargostX + effectiveDx * 110 * mapScale));
     targetVargostY = Math.max(skyCeilingY, Math.min(skyLowY, vargostY + dyRatio * 55 * mapScale));
     locomotionState = 'FLY_VECTOR';
-    const tiltDeg = facingDirection > 0 ? '+25°' : '-25°';
+    const tiltDeg = '+20°';
     hudLocomotion.textContent = `Di chuyển: BAY XÉO TIẾN ${clockName} (${label}, Nghiêng ${tiltDeg}) @ ${currentFlySpeed}px/s`;
     hudLocomotion.className = 'badge flying';
   }
@@ -2149,21 +2182,43 @@ function update(timestamp) {
       targetFacingVisual = phaseBlinkTargetFacing;
       visualFacing = phaseBlinkTargetFacing;
     }
+  } else if (isTurnFlipping) {
+    turnFlipTimer += dt;
+    const halfTime = TURN_FLIP_DURATION * 0.5; // 0.07s
+    if (turnFlipTimer < halfTime) {
+      // Nửa đầu: Vargost vẫn giữ facing cũ, tan rã lát cắt pixel scanlines che mờ thân
+      currentDissolveFactor = Math.min(1.0, turnFlipTimer / halfTime);
+      isGlitchFlash = (turnFlipTimer > 0.02);
+    } else if (turnFlipTimer < TURN_FLIP_DURATION) {
+      // Đúng thời điểm giữa (t = halfTime): Lật hướng mặt sang turnFlipNewFacing!
+      // Tại đúng frame này, thân thể đang bị che phủ hoàn toàn bởi pixel dissolve + glitch flash!
+      facingDirection = turnFlipNewFacing;
+      targetFacingVisual = turnFlipNewFacing;
+      visualFacing = turnFlipNewFacing;
+      // Nửa sau: Tụ lại lát cắt pixel (Re-materialize) ở hướng mặt mới
+      const p = (turnFlipTimer - halfTime) / halfTime;
+      currentDissolveFactor = Math.max(0, 1.0 - p);
+      isGlitchFlash = (p < 0.4);
+    } else {
+      // Hoàn tất xoay mặt
+      isTurnFlipping = false;
+      turnFlipTimer = 0;
+      currentDissolveFactor = 0;
+      isGlitchFlash = false;
+      facingDirection = turnFlipNewFacing;
+      targetFacingVisual = turnFlipNewFacing;
+      visualFacing = turnFlipNewFacing;
+    }
+    turnSquashY = 1.0;
   } else {
     currentDissolveFactor = 0;
     isGlitchFlash = false;
-    // Không trong Phase Blink: Smooth visual turn nếu có lệnh lật khác
-    if (Math.abs(visualFacing - targetFacingVisual) > 0.02) {
-      visualFacing += (targetFacingVisual - visualFacing) * Math.min(dt * 14.0, 1.0);
-      turnSquashY = 1.0 + (1.0 - Math.abs(visualFacing)) * 0.12;
-    } else {
-      visualFacing = targetFacingVisual;
-      turnSquashY = 1.0;
-    }
+    visualFacing = targetFacingVisual;
+    turnSquashY = 1.0;
   }
 
   const flySpeed = (currentFlySpeed || SPEED_FAST) * (mapScale / 2.625);
-  const targetTiltDeg = Number(rngTilt.value) || 25; // Chốt 25 độ chuẩn
+  const targetTiltDeg = Number(rngTilt.value) || 20; // Chốt 20 độ chuẩn
 
   // -------------------------------------------------------------
   // DYNAMIC TARGET (Hỗ trợ Mục Tiêu Di Động & Tuần Tra Qua Lại)
@@ -2180,20 +2235,20 @@ function update(timestamp) {
     enemyStunTimer -= dt;
     // Bị khựng đứng yên hoàn toàn do trúng đòn! Không di chuyển patrol, không dash!
   } else if (chkMovingTarget && chkMovingTarget.checked) {
-    // Tốc độ tuần tra biến thiên linh hoạt từ 300px/s đến 550px/s
-    enemyPatrolSpeed = 340 + Math.sin(hoverTimer * 2.8) * 160;
+    // Tốc độ tuần tra biến thiên linh hoạt trong khoảng [100, 300] px/s
+    enemyPatrolSpeed = Math.max(100, Math.min(300, 200 + Math.sin(hoverTimer * 2.8) * 80));
 
     // Phản xạ né đòn: Khi Vargost chuẩn bị tung skill (Frame >= 63) hoặc đạn đang bay
     if (enemyDodgeCooldown > 0) enemyDodgeCooldown -= dt;
     if (((aiState === 'HALO_WINDUP' && currentFrameIndex >= 63) || activeProjectile) && enemyDodgeCooldown <= 0 && enemyStunTimer <= 0 && !isEnemyDashing) {
       if (Math.random() < 0.55) {
-        // Kích hoạt né đòn thần tốc 750 - 1000 px/s!
+        // Kích hoạt né đòn tối đa 300 px/s!
         isEnemyDashing = true;
         enemyDashTimer = 0.45;
-        enemyDashSpeed = 750 + Math.random() * 250; // 750 - 1000 px/s
+        enemyDashSpeed = 300; // Giới hạn 300 px/s
         enemyMoveDir = (vargostX < enemyWorldX) ? 1 : -1;
         enemyDodgeCooldown = 3.5;
-        showToast(`⚡ Kẻ địch phản xạ né đòn thần tốc @ ${Math.round(enemyDashSpeed)}px/s!`);
+        showToast(`⚡ Kẻ địch phản xạ né đòn @ ${Math.round(enemyDashSpeed)}px/s!`);
       } else {
         enemyDodgeCooldown = 2.2;
       }
@@ -2273,8 +2328,11 @@ function update(timestamp) {
   const targetX = primaryTargetX;
   const targetY = primaryTargetY;
 
-  if (isCarryingLoot) {
-    currentFlySpeed = SPEED_NORMAL * 0.90; // Giảm 10% tốc độ khi đang mang Cổ Vật (225px/s nặng nề)
+  const isTeam1Carrying = (bossLootDrop.carrierId === 'vargost');
+  const isTeam2Carrying = (bossLootDrop.carrierId === 'aoda');
+
+  if (isTeam1Carrying) {
+    currentFlySpeed = SPEED_NORMAL * 0.90; // Cả Team 1 giảm 10% tốc độ di chuyển khi có người mang Cổ Vật
   }
 
   const diffX = targetX - vargostX;
@@ -2303,6 +2361,19 @@ function update(timestamp) {
     vargostSpawnFreezeTimer -= dt;
     locomotionState = isFlying ? 'IDLE_FLY' : 'IDLE_GROUND';
     aiState = 'IDLE';
+  } else if (vargostStunTimer > 0) {
+    // ĐANG BỊ CHOÁNG BỞI LỐC XOÁY: Bất động hoàn toàn, không di chuyển, không tung chiêu, không teleport!
+    locomotionState = isFlying ? 'IDLE_FLY' : 'IDLE_GROUND';
+    aiState = 'STUNNED';
+    currentTilt += (0 - currentTilt) * Math.min(dt * 10, 1);
+    if (hudState) {
+      hudState.textContent = `Vargost: BỊ CHOÁNG BỞI LỐC XOÁY (${vargostStunTimer.toFixed(1)}s)!`;
+      hudState.className = 'badge warning';
+    }
+    if (hudLocomotion) {
+      hudLocomotion.textContent = `Khống chế: CHOÁNG ${vargostStunTimer.toFixed(1)}s (Đứng yên 0°)`;
+      hudLocomotion.className = 'badge warning';
+    }
   } else if (chkAuto.checked && !isDead) {
     if (autoCooldown > 0) autoCooldown -= dt;
     if (altitudeCooldown > 0) altitudeCooldown -= dt;
@@ -2328,10 +2399,8 @@ function update(timestamp) {
 
         const vDist = Math.hypot(diffX, diffY);
         const moveFacing = (diffX >= 0) ? 1 : -1;
-        facingDirection = moveFacing;
-        targetFacingVisual = moveFacing;
-        visualFacing = moveFacing;
-        currentTilt = moveFacing * (targetTiltDeg * Math.PI / 180);
+        requestFacing(moveFacing);
+        currentTilt = (targetTiltDeg * Math.PI / 180); // Luôn nghiêng đầu 20° về phía trước theo hướng tiến
 
         if (vDist > 8) {
           const stepRate = moveSpd * (mapScale / 2.625) * dt;
@@ -2378,11 +2447,11 @@ function update(timestamp) {
               ? Math.max(skyCeilingY, vargostY - 35 * mapScale)
               : Math.min(skyLowY, vargostY + 35 * mapScale);
             const clockStr = preferUp ? 'Tiến-Lên' : 'Tiến-Bổ Nhào';
-            const tiltLabel = facingDirection > 0 ? '+25°' : '-25°';
+            const tiltLabel = '+20°';
             hudLocomotion.textContent = `AI: TĂNG TỐC BAY XÉO ÁP SÁT @ 400px/s (${clockStr}, Nghiêng ${tiltLabel})`;
           } else {
             targetVargostY = groundY;
-            const tiltLabel = facingDirection > 0 ? '+25°' : '-25°';
+            const tiltLabel = '+20°';
             hudLocomotion.textContent = `AI: TIẾN ÁP SÁT TRÊN BỆ ĐÁ (400px/s, Nghiêng ${tiltLabel})`;
           }
           locomotionState = 'FLY_VECTOR';
@@ -2498,16 +2567,13 @@ function update(timestamp) {
               const driftDirX = (vargostX < mapX + 180 * mapScale) ? 1 : ((vargostX > mapX + 320 * mapScale) ? -1 : (Math.random() > 0.5 ? 1 : -1));
               const driftDirY = (vargostY < skyCeilingY + 25) ? 1 : ((vargostY > skyLowY - 25) ? -1 : (Math.random() > 0.5 ? 1 : -1));
 
-              // Luôn xoay mặt theo đúng xu hướng di chuyển tiến về trước (Trái hay Phải đều đổ người về trước 25°)
-              facingDirection = driftDirX;
-              targetFacingVisual = driftDirX;
-              visualFacing = driftDirX;
-              turnSquashY = 1.0;
+              // Luôn xoay mặt theo đúng xu hướng di chuyển tiến về trước (Trái hay Phải đều đổ người về trước 20°)
+              requestFacing(driftDirX);
 
               targetVargostX = vargostX + driftDirX * 55 * (mapScale / 2.625);
               targetVargostY = Math.max(skyCeilingY, Math.min(skyLowY, vargostY + driftDirY * 28 * (mapScale / 2.625)));
 
-              const tiltLabel = driftDirX > 0 ? '+25°' : '-25°';
+              const tiltLabel = '+20°';
               let clockStr = (driftDirX > 0) ? (driftDirY < 0 ? '2h (Tiến-Lên)' : '4h (Tiến-Xuống)') : (driftDirY < 0 ? '10h (Tiến Trái-Lên)' : '8h (Tiến Trái-Xuống)');
               locomotionState = 'FLY_VECTOR';
               hudLocomotion.textContent = `AI: TUẦN TRA CHẬM KHOẢNG NGHỈ ${clockStr} (${SPEED_SLOW}px/s · Đổ trước ${tiltLabel})`;
@@ -2642,10 +2708,7 @@ function update(timestamp) {
       if (Math.abs(dirX) > 0.05) {
         const moveSignX = Math.sign(dirX);
         if (facingDirection !== moveSignX) {
-          facingDirection = moveSignX;
-          targetFacingVisual = moveSignX;
-          visualFacing = moveSignX;
-          turnSquashY = 1.0;
+          requestFacing(moveSignX);
         }
       }
 
@@ -2670,17 +2733,15 @@ function update(timestamp) {
       }
 
       // Góc nghiêng thân tự động theo xu hướng di chuyển tiến về trước (không phân biệt Trái hay Phải):
-      // - Khi di chuyển từ Trái -> Phải (dirX > 0, mặt nhìn Phải +1): đổ người về trước +25°
-      // - Khi di chuyển từ Phải -> Trái (dirX < 0, mặt nhìn Trái -1): đổ người về trước -25° (chúi đầu về bên Trái 25°, tuyệt đối không ngửa người về sau!)
+      // - ĐẦU LUÔN NGHIÊNG 20° VỀ PHÍA TRƯỚC THEO HƯỚNG TIẾN
       let targetTilt = 0;
       if (Math.abs(dirX) > 0.05) {
-        const moveSignX = Math.sign(dirX);
-        const tiltDeg = Number(rngTilt ? rngTilt.value : 25) || 25;
-        targetTilt = moveSignX * (tiltDeg * Math.PI / 180);
+        const tiltDeg = Number(rngTilt ? rngTilt.value : 20) || 20;
+        targetTilt = tiltDeg * Math.PI / 180; // Luôn nghiêng đầu 20° về phía trước theo hướng tiến
       } else {
         targetTilt = 0;
       }
-      currentTilt += (targetTilt - currentTilt) * Math.min(dt * 12, 1);
+      currentTilt += (targetTilt - currentTilt) * Math.min(dt * 10, 1);
 
       // Co giãn quán tính (Squash & Stretch theo vector)
       if (dirY < -0.2) {
@@ -3364,8 +3425,8 @@ function update(timestamp) {
 
       if (aodaState === 'MOVE') {
         aodaAnimAccum += dt;
-        if (aodaAnimAccum >= 0.06) {
-          aodaAnimAccum -= 0.06;
+        if (aodaAnimAccum >= 0.08) {
+          aodaAnimAccum -= 0.08;
           aodaFrameIndex++;
           if (aodaFrameIndex > 86) aodaFrameIndex = 65;
         }
@@ -3397,9 +3458,10 @@ function update(timestamp) {
         const atTargetPlat = (aodaPlatform && aodaPlatform.id === targetPlatId);
         const isAodaAtNavGoal = (aodaCarryingLoot || aodaPickingUpLoot) ? (atTargetPlat && Math.abs(aodaX - navGoalX) < 30) : isAodaInSwordZone;
 
-        // Tốc độ di chuyển chuẩn hóa: 250px/s (giới hạn [100, 400]), mang Cổ Vật giảm -10% (225px/s) di chuyển nặng nề
-        const aodaMaxSpeed = 250; // px/s
-        const effectiveAodaSpeed = aodaCarryingLoot ? (aodaMaxSpeed * 0.90) : aodaMaxSpeed;
+        // Tốc độ di chuyển chuẩn hóa Mức 1: 160 px/s (khi mang Cổ Vật giảm 10% còn 144 px/s)
+        const aodaMaxSpeed = Math.max(100, Math.min(300, aodaPatrolSpeed || 160)); // 160 px/s
+        const isTeam2Carrying = (bossLootDrop.carrierId === 'aoda');
+        const effectiveAodaSpeed = isTeam2Carrying ? (aodaMaxSpeed * 0.90) : aodaMaxSpeed;
 
         // Điều hướng bệ địa hình (Platform Graph Navigation):
         const navPlan = getPlatformNavPlan(aodaPlatform, targetPlatId, aodaX);
@@ -3433,7 +3495,7 @@ function update(timestamp) {
           if (!atTargetPlat && navPlan && navPlan.nextPlatform) {
             aodaState = 'JUMP';
             aodaJumpTimer = 0;
-            aodaJumpDuration = 0.48;
+            aodaJumpDuration = 0.75;
             aodaJumpStartX = aodaX;
             aodaJumpStartY = aodaY;
             aodaJumpTargetPlatform = navPlan.nextPlatform;
@@ -3455,7 +3517,7 @@ function update(timestamp) {
             if ((isSwordAhead || !isAodaInSwordZone) && adj) {
               aodaState = 'JUMP';
               aodaJumpTimer = 0;
-              aodaJumpDuration = 0.48;
+              aodaJumpDuration = 0.75;
               aodaJumpStartX = aodaX;
               aodaJumpStartY = aodaY;
               aodaJumpTargetPlatform = adj.platform;
@@ -3524,8 +3586,8 @@ function update(timestamp) {
 
         // Hoạt ảnh KHÔNG BỊ ĐƠ: Trong suốt quỹ đạo nhảy, hoạt ảnh liên tục chạy mượt mà
         aodaAnimAccum += dt;
-        if (aodaAnimAccum >= 0.05) {
-          aodaAnimAccum -= 0.05;
+        if (aodaAnimAccum >= 0.07) {
+          aodaAnimAccum -= 0.07;
           aodaFrameIndex++;
           if (aodaFrameIndex > 86 || aodaFrameIndex < 65) {
             aodaFrameIndex = 65;
@@ -3538,7 +3600,7 @@ function update(timestamp) {
           aodaX = aodaJumpTargetX;
           aodaY = aodaJumpTargetY;
           aodaState = 'LANDING';
-          aodaLandingTimer = 0.12;
+          aodaLandingTimer = 0.16;
         }
       }
       else if (aodaState === 'LANDING') {
@@ -3666,6 +3728,11 @@ function update(timestamp) {
             vargostStunTimer = Math.max(vargostStunTimer, 2.0);
             vargostSilenceTimer = Math.max(vargostSilenceTimer, 2.0);
             vargostHitFlash = 0.35;
+            isPhaseBlinking = false;
+            phaseBlinkStep = 0;
+            locomotionState = isFlying ? 'IDLE_FLY' : 'IDLE_GROUND';
+            aiState = 'STUNNED';
+            currentTilt = 0;
             if (canTickDamage) {
               const prevHp = vargostHp;
               vargostHp = Math.max(10, vargostHp - 25);
@@ -3674,10 +3741,10 @@ function update(timestamp) {
                 timer: 0, flashDuration: 0.12, dissolveDuration: 0.42, totalDuration: 0.54, seed: Math.random()
               });
               enemyDamageNumbers.push({
-                text: '🌪️ TORNADO: ROOT & SILENCE 2s!',
+                text: '🌪️ CHOÁNG & CÂM LẶNG 2s!',
                 x: vargostX,
                 y: vargostY - 45,
-                color: '#ff7b72',
+                color: '#f0883e',
                 alpha: 1.0,
                 vy: -45
               });
@@ -4666,8 +4733,8 @@ function drawScene(targetX, targetY, dt) {
     ctx.save();
     ctx.globalAlpha = ghost.alpha;
     ctx.translate(ghost.x, ghost.y + hoverOffset);
-    ctx.rotate(ghost.tilt || 0);
     ctx.scale(currentScaleX * (ghost.facing || visualFacing), currentScaleY);
+    ctx.rotate(ghost.tilt || 0);
     ctx.drawImage(
       assets.vargost,
       sx, sy, 200, 200,
@@ -4680,8 +4747,9 @@ function drawScene(targetX, targetY, dt) {
   // 4. Draw Vargost Body (Khung 200x200 với Pixel Dissolve / Dither Disintegration khi Lật Mặt)
   ctx.save();
   ctx.translate(vargostX, vargostY + hoverOffset);
+  const renderFacing = visualFacing;
+  ctx.scale(currentScaleX * renderFacing, currentScaleY);
   ctx.rotate(currentTilt);
-  ctx.scale(currentScaleX * visualFacing, currentScaleY * turnSquashY);
 
   if (assets.vargost) {
     if (isDead) {

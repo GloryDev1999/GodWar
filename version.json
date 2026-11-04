@@ -1,10 +1,38 @@
 {
   "schema_version": 1,
-  "current_version": "1.1.11",
-  "version_code": 22,
-  "updated_at_utc": "2026-11-03T13:59:49Z",
+  "current_version": "1.1.15",
+  "version_code": 26,
+  "updated_at_utc": "2026-11-04T01:52:06Z",
   "policy": "Luôn tăng version (patch/minor/major) và version_code (+1) khi nâng cấp tính năng, hoạt ảnh, UI hoặc đóng gói APK mới; lưu bản backup APK theo từng version tại build/releases/ để đánh giá và đối chiếu.",
   "releases": [
+    {
+      "version": "1.1.15",
+      "version_code": 26,
+      "date_utc": "2026-11-04T01:52:06Z",
+      "apk_backup": "build/releases/GodWar-v1.1.15-code26.apk",
+      "summary": "Giam toc do Aoda xuong 160px/s, keo dai thoi gian nhay 0.75s va gian nhip chan 0.08s"
+    },
+    {
+      "version": "1.1.14",
+      "version_code": 25,
+      "date_utc": "2026-11-04T01:42:33Z",
+      "apk_backup": "build/releases/GodWar-v1.1.14-code25.apk",
+      "summary": "Tra lai hoat anh xoay nguoi ver cu giu 20 do chen teleport pixel dissolve che giat"
+    },
+    {
+      "version": "1.1.13",
+      "version_code": 24,
+      "date_utc": "2026-11-04T01:28:43Z",
+      "apk_backup": "build/releases/GodWar-v1.1.13-code24.apk",
+      "summary": "Giam do nghieng Vargost ve 20 do va lam muot chuyen dong xoay nguoi 2.5D"
+    },
+    {
+      "version": "1.1.12",
+      "version_code": 23,
+      "date_utc": "2026-11-04T00:58:45Z",
+      "apk_backup": "build/releases/GodWar-v1.1.12-code23.apk",
+      "summary": "Whole team carry loot -10% speed penalty, aoda speed 100-300px/s, tornado stuns all enemies 2s except boss, vargost forward tilt +25 deg and teleport retreat"
+    },
     {
       "version": "1.1.11",
       "version_code": 22,

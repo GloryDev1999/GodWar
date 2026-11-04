@@ -157,6 +157,7 @@ var vargost_state: String = "IDLE" # IDLE, HALO_WINDUP, HALO_RECOVERY
 var vargost_frame_index: int = 0
 var vargost_frame_timer: float = 0.0
 var vargost_auto_cooldown: float = 1.5
+var vargost_stun_timer: float = 0.0
 var vargost_target_air_x: float = 400.0
 var vargost_target_air_y: float = 330.0
 var vargost_ai_timer: float = 0.0
@@ -179,12 +180,12 @@ var aoda_frame_timer: float = 0.0
 var aoda_is_dead: bool = false
 var aoda_death_timer: float = 0.0
 var aoda_scale: float = 0.333333
-var aoda_patrol_speed: float = 250.0 # px/s (tốc độ trung bình chuẩn hóa)
+var aoda_patrol_speed: float = 160.0 # px/s (Mức 1: đầm chắc, chân thực)
 var aoda_tornado_cooldown: float = 0.0
 
 # Aoda Jump State (Parabolic Arc qua các bệ)
 var aoda_jump_timer: float = 0.0
-var aoda_jump_duration: float = 0.48
+var aoda_jump_duration: float = 0.75
 var aoda_jump_start_x: float = 0.0
 var aoda_jump_start_y: float = 0.0
 var aoda_jump_target_x: float = 0.0
@@ -216,6 +217,28 @@ var vargost_dissolve_factor: float = 0.0
 var vargost_is_glitch_flash: bool = false
 var vargost_alpha: float = 1.0
 var ember_particles: Array[Dictionary] = []
+
+# Turn Teleport Dissolve (Hiệu ứng Teleport Pixel Dissolve lật mặt che giấu hoạt ảnh xoay cứng)
+var is_vargost_turn_flipping: bool = false
+var vargost_turn_flip_timer: float = 0.0
+var vargost_turn_flip_new_facing: float = 1.0
+const VARGOST_TURN_FLIP_DURATION: float = 0.14 # 0.14s: cực kỳ snappy (~8-9 frames ở 60 FPS)
+
+func _request_vargost_facing(new_facing: float) -> void:
+	if new_facing == 0.0 or new_facing == vargost_facing:
+		return
+	if is_vargost_teleporting or vargost_state == "DEAD":
+		vargost_facing = new_facing
+		vargost_visual_facing = new_facing
+		return
+	if is_vargost_turn_flipping:
+		vargost_turn_flip_new_facing = new_facing
+		return
+	is_vargost_turn_flipping = true
+	vargost_turn_flip_timer = 0.0
+	vargost_turn_flip_new_facing = new_facing
+	var h_off := sin(vargost_hover_timer * 3.2) * 8.0
+	_spawn_ember_burst(Vector2(vargost_x, vargost_y + h_off), 6)
 
 # Character Views & Shader Materials for 100% Crisp Hit Flash (Single Source of Truth)
 class CharacterView extends Node2D:
@@ -738,14 +761,35 @@ func _update_vargost(dt: float) -> void:
 			var retreat_y := randf_range(240.0, 360.0)
 			_trigger_vargost_teleport(retreat_x, retreat_y)
 
-	# Xoay mặt 2.5D siêu tốc đánh lừa thị giác (x3+ speed) kèm hiệu ứng Pixel Dissolve
-	if absf(vargost_visual_facing - vargost_facing) > 0.02:
-		var prev_vf := vargost_visual_facing
-		vargost_visual_facing = move_toward(vargost_visual_facing, vargost_facing, dt * 50.0)
-		if signf(prev_vf) != signf(vargost_visual_facing) and prev_vf != 0.0:
-			var h_off := sin(vargost_hover_timer * 3.2) * 8.0
-			_spawn_ember_burst(Vector2(vargost_x, vargost_y + h_off), 8)
-	else:
+	# Xử lý Teleport Pixel Dissolve khi Xoay Người Lật Hướng (Che giấu hoàn toàn hoạt ảnh xoay cứng)
+	if is_vargost_turn_flipping and not is_vargost_teleporting:
+		vargost_turn_flip_timer += dt
+		var t := vargost_turn_flip_timer
+		var half_time := VARGOST_TURN_FLIP_DURATION * 0.5 # 0.07s
+		if t < half_time:
+			# Nửa đầu: Vargost vẫn giữ facing cũ, tan rã lát cắt pixel scanlines che mờ thân
+			vargost_dissolve_factor = clampf(t / half_time, 0.0, 1.0)
+			vargost_is_glitch_flash = (t > 0.02)
+		elif t < VARGOST_TURN_FLIP_DURATION:
+			# Đúng thời điểm giữa (t = half_time): Lật hướng mặt sang new_facing!
+			# Tại đúng frame này, thân thể đang bị che phủ hoàn toàn bởi pixel dissolve + glitch flash!
+			vargost_facing = vargost_turn_flip_new_facing
+			vargost_visual_facing = vargost_turn_flip_new_facing
+			# Nửa sau: Tụ lại lát cắt pixel (Re-materialize) ở hướng mặt mới
+			var p := (t - half_time) / half_time
+			vargost_dissolve_factor = maxf(0.0, 1.0 - p)
+			vargost_is_glitch_flash = (p < 0.4)
+		else:
+			# Hoàn tất xoay mặt
+			is_vargost_turn_flipping = false
+			vargost_turn_flip_timer = 0.0
+			vargost_dissolve_factor = 0.0
+			vargost_is_glitch_flash = false
+			vargost_facing = vargost_turn_flip_new_facing
+			vargost_visual_facing = vargost_turn_flip_new_facing
+	elif not is_vargost_teleporting:
+		vargost_dissolve_factor = 0.0
+		vargost_is_glitch_flash = false
 		vargost_visual_facing = vargost_facing
 
 	# 0. Xử lý Thân pháp biến ảnh Teleport (3 pha chuẩn 0.38s Single Source of Truth Web Tool)
@@ -792,6 +836,19 @@ func _update_vargost(dt: float) -> void:
 	# Đứng yên bất động 1s khi mới xuất phát / hồi sinh
 	if vargost_spawn_freeze_timer > 0.0:
 		vargost_spawn_freeze_timer -= dt
+		vargost_state = "IDLE"
+		vargost_frame_timer += dt
+		if vargost_frame_timer >= 0.06:
+			vargost_frame_timer -= 0.06
+			vargost_frame_index = (vargost_frame_index + 1) % 22
+		return
+
+	# Bị khống chế Choáng (Stun) do Lốc Xoáy của Aoda (2.0s): Đứng yên bất động, không di chuyển, không tung chiêu, không teleport!
+	if vargost_stun_timer > 0.0:
+		vargost_stun_timer -= dt
+		vargost_teleport_escape_timer = 0.0 # Bị choáng không thể kích hoạt teleport thoát hiểm!
+		is_vargost_teleporting = false
+		vargost_tilt = lerp_angle(vargost_tilt, 0.0, dt * 10.0) # Thân đứng thẳng 0 độ
 		vargost_state = "IDLE"
 		vargost_frame_timer += dt
 		if vargost_frame_timer >= 0.06:
@@ -878,26 +935,26 @@ func _update_vargost(dt: float) -> void:
 	# - Khi Vargost đang di chuyển (move_vec.length() > 6.0): Mặt Vargost LUÔN hướng theo chiều di chuyển ngang (signf(dir.x))
 	#   và thân Vargost LUÔN đổ về phía trước 25 độ (+25° khi bay Trái -> Phải, -25° khi bay Phải -> Trái), tuyệt đối không bao giờ ngửa người về sau!
 	# - Khi Vargost đứng yên / dừng lại: Mặt quay về phía mục tiêu (Boss Crapit nếu đang đánh trả, hoặc Aoda, hoặc Thánh Kiếm) và thân đứng thẳng 0°.
-	if move_vec.length() > 6.0 and vargost_state == "IDLE" and not is_vargost_teleporting:
+	if move_vec.length() > 6.0 and vargost_state == "IDLE" and not is_vargost_teleporting and vargost_stun_timer <= 0.0:
 		var dir := move_vec.normalized()
 		var is_cooling_down: bool = (vargost_auto_cooldown > 0.0 and not aoda_is_dead)
-		# Tốc độ di chuyển: Tốc độ trung bình 250px/s (giới hạn [100, 400]), mang Cổ Vật giảm 10% (225px/s nặng nề)
+		var is_team1_carrying: bool = (str(boss_loot_drop["carrier_id"]) == "vargost")
+		# Tốc độ di chuyển: Tốc độ trung bình 250px/s (giới hạn [100, 400]), cả Team 1 mang Cổ Vật giảm 10% (225px/s nặng nề)
 		var fly_speed: float = SPEED_SLOW if is_cooling_down else SPEED_NORMAL
-		if v_is_carrier_live:
-			fly_speed = SPEED_NORMAL * 0.90 # Giảm 10% tốc độ khi đang mang Cổ Vật (225px/s)
+		if is_team1_carrying:
+			fly_speed = fly_speed * 0.90 # Cả Team 1 giảm 10% tốc độ khi mang Cổ Vật
 		vargost_x += dir.x * fly_speed * dt
 		vargost_y += dir.y * (fly_speed * 0.6) * dt
 
 		if absf(dir.x) > 0.05:
 			var move_sign_x: float = signf(dir.x)
 			if vargost_facing != move_sign_x:
-				vargost_facing = move_sign_x
-				vargost_visual_facing = move_sign_x
-				var h_off := sin(vargost_hover_timer * 3.2) * 8.0
-				_spawn_ember_burst(Vector2(vargost_x, vargost_y + h_off), 6)
-			# Đổ người về phía trước 25 độ theo đúng hướng tiến (không phân biệt Trái hay Phải)
-			var target_tilt: float = move_sign_x * deg_to_rad(25.0)
-			vargost_tilt = lerp_angle(vargost_tilt, target_tilt, dt * 12.0)
+				_request_vargost_facing(move_sign_x)
+			# ĐẦU LUÔN NGHIÊNG 20 ĐỘ VỀ PHÍA TRƯỚC THEO HƯỚNG TIẾN:
+			# Trong Godot Transform2D: scaled(render_facing, 1), góc xoay target_tilt = +20°
+			# làm đầu luôn nghiêng về phía trước theo hướng tiến (sang phải khi facing 1, sang trái khi facing -1)!
+			var target_tilt: float = deg_to_rad(20.0)
+			vargost_tilt = lerp_angle(vargost_tilt, target_tilt, dt * 10.0)
 		else:
 			vargost_tilt = lerp_angle(vargost_tilt, 0.0, dt * 10.0)
 
@@ -918,7 +975,8 @@ func _update_vargost(dt: float) -> void:
 	else:
 		var target_facing_x := crapit_x if (vargost_retaliate_boss and not crapit_is_dead) else (aoda_x if not aoda_is_dead else SWORD_X)
 		if absf(target_facing_x - vargost_x) > 20.0:
-			vargost_facing = 1.0 if target_facing_x > vargost_x else -1.0
+			var idle_facing: float = 1.0 if target_facing_x > vargost_x else -1.0
+			_request_vargost_facing(idle_facing)
 		vargost_tilt = lerp_angle(vargost_tilt, 0.0, dt * 10.0)
 
 	# 2. Hoạt ảnh Vargost (Unified 83 frames: 0..21 Idle, 44..82 Halo)
@@ -965,6 +1023,7 @@ func _trigger_vargost_teleport(target_x: float, target_y: float) -> void:
 	if is_vargost_teleporting:
 		return
 	is_vargost_teleporting = true
+	is_vargost_turn_flipping = false
 	teleport_timer = 0.0
 	teleport_target_x = target_x
 	teleport_target_y = target_y
@@ -1153,8 +1212,8 @@ func _update_aoda(dt: float) -> void:
 	# 4. Trạng thái Di Chuyển (MOVE) & Tuần Tra Nhảy Bệ (Ledge Jump)
 	if aoda_state == "MOVE":
 		aoda_frame_timer += dt
-		if aoda_frame_timer >= 0.06:
-			aoda_frame_timer -= 0.06
+		if aoda_frame_timer >= 0.08:
+			aoda_frame_timer -= 0.08
 			aoda_frame_index += 1
 			if aoda_frame_index > 86:
 				aoda_frame_index = 65
@@ -1178,9 +1237,10 @@ func _update_aoda(dt: float) -> void:
 		var at_target_plat := (aoda_cur_platform_id == target_plat_id)
 		var is_at_nav_goal := (at_target_plat and absf(aoda_x - target_nav_x) < 30.0) if (aoda_carrying_loot or aoda_picking_loot) else is_in_sword_zone
 
-		# Tốc độ di chuyển chuẩn hóa: 250px/s (giới hạn [100, 400]), mang Cổ Vật giảm -10% (225px/s) di chuyển nặng nề
-		var aoda_max_spd := SPEED_NORMAL
-		var eff_aoda_speed := (aoda_max_spd * 0.90 if aoda_carrying_loot else aoda_max_spd)
+		# Tốc độ di chuyển Aoda chuẩn hóa trong khoảng [100, 300] px/s (mặc định 250px/s), cả Team 2 giảm 10% khi mang Cổ Vật
+		var is_team2_carrying: bool = (str(boss_loot_drop["carrier_id"]) == "aoda")
+		var aoda_base_spd: float = clampf(aoda_patrol_speed, 100.0, 300.0) # 250px/s
+		var eff_aoda_speed: float = (aoda_base_spd * 0.90 if is_team2_carrying else aoda_base_spd)
 
 		# Điều hướng bệ địa hình (Platform Graph Navigation):
 		var nav_plan: Dictionary = _get_platform_nav_plan(aoda_cur_platform_id, target_plat_id, aoda_x)
@@ -1208,7 +1268,7 @@ func _update_aoda(dt: float) -> void:
 			if not at_target_plat and nav_plan.has("next_platform_id") and str(nav_plan["next_platform_id"]) != "":
 				aoda_state = "JUMP"
 				aoda_jump_timer = 0.0
-				aoda_jump_duration = 0.48
+				aoda_jump_duration = 0.75
 				aoda_jump_start_x = aoda_x
 				aoda_jump_start_y = aoda_y
 				aoda_jump_target_platform_id = str(nav_plan["next_platform_id"])
@@ -1226,7 +1286,7 @@ func _update_aoda(dt: float) -> void:
 				if adj != null and (!is_in_sword_zone or is_sword_ahead):
 					aoda_state = "JUMP"
 					aoda_jump_timer = 0.0
-					aoda_jump_duration = 0.48
+					aoda_jump_duration = 0.75
 					aoda_jump_start_x = aoda_x
 					aoda_jump_start_y = aoda_y
 					aoda_jump_target_platform_id = adj["platform_id"]
@@ -1280,8 +1340,8 @@ func _update_aoda(dt: float) -> void:
 
 		# Hoạt ảnh KHÔNG BỊ ĐƠ HÌNH: Tiếp tục chạy chuỗi 65..86 liên tục suốt cú nhảy!
 		aoda_frame_timer += dt
-		if aoda_frame_timer >= 0.05:
-			aoda_frame_timer -= 0.05
+		if aoda_frame_timer >= 0.07:
+			aoda_frame_timer -= 0.07
 			aoda_frame_index += 1
 			if aoda_frame_index > 86 or aoda_frame_index < 65:
 				aoda_frame_index = 65
@@ -1291,7 +1351,7 @@ func _update_aoda(dt: float) -> void:
 			aoda_x = aoda_jump_target_x
 			aoda_y = aoda_jump_target_y
 			aoda_state = "LANDING"
-			aoda_landing_timer = 0.12
+			aoda_landing_timer = 0.16
 
 	# 6. Trạng thái Tiếp Đất (LANDING)
 	elif aoda_state == "LANDING":
@@ -1574,8 +1634,12 @@ func _update_tornadoes(dt: float) -> void:
 					t["hit_cooldown"] = 0.6
 					_spawn_hit_impact(v_pos.x, v_pos.y - 25.0, -vargost_facing)
 					_damage_vargost(25.0)
-					# Cho Vargost trúng đòn hiển thị lóa sáng và giật lùi nhẹ 0.22s trước khi kích hoạt Teleport thoát hiểm!
-					vargost_teleport_escape_timer = 0.22
+					# Lốc xoáy làm CHOÁNG toàn bộ kẻ địch 2.0s (trừ Boss), ngắt hoàn toàn mọi hành động di chuyển và teleport!
+					vargost_stun_timer = 2.0
+					vargost_teleport_escape_timer = 0.0
+					is_vargost_teleporting = false
+					_spawn_damage_text("🌪️ CHOÁNG 2.0s!", Vector2(vargost_x, (vargost_y + v_hover) - 65.0), Color("#f0883e"))
+					show_toast("🌪️ Lốc xoáy Aoda làm CHOÁNG Vargost 2.0s!")
 
 				# Kiểm tra lốc xoáy đánh trúng Boss Crapit khi Aoda đang phản công Boss (aoda_retaliate_boss == true)
 				if aoda_retaliate_boss and not crapit_is_dead:
@@ -2079,6 +2143,9 @@ func _reset_match() -> void:
 	match_winner = 0
 	vargost_spawn_freeze_timer = 1.0
 	aoda_spawn_freeze_timer = 1.0
+	is_vargost_turn_flipping = false
+	vargost_turn_flip_timer = 0.0
+	is_vargost_teleporting = false
 
 	active_projectiles.clear()
 	active_tornadoes.clear()
@@ -2297,10 +2364,7 @@ func _draw_vargost(canvas: CanvasItem) -> void:
 
 	var draw_pos := Vector2(vargost_x, vargost_y + hover_offset)
 	var render_facing: float = vargost_visual_facing
-	if absf(render_facing) < 0.35:
-		render_facing = 0.35 * signf(render_facing if render_facing != 0.0 else vargost_facing)
-	var turn_squash_y := 1.0 + (1.0 - absf(vargost_visual_facing)) * 0.10
-	canvas.draw_set_transform(draw_pos, vargost_tilt, Vector2(render_facing * vargost_scale, turn_squash_y * vargost_scale))
+	canvas.draw_set_transform(draw_pos, vargost_tilt, Vector2(render_facing * vargost_scale, vargost_scale))
 
 	var mod_color := Color(1.0, 1.0, 1.0, vargost_alpha)
 
@@ -2325,6 +2389,29 @@ func _draw_vargost(canvas: CanvasItem) -> void:
 		canvas.draw_texture_rect_region(vargost_atlas_tex, Rect2(anchor_offset.x, anchor_offset.y, 200, 200), src_rect, mod_color)
 
 	canvas.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+	# Hiệu ứng Stun VFX quanh đầu khi Vargost bị Choáng (3 ngôi sao vàng óng ánh xoay quanh đầu)
+	if vargost_stun_timer > 0.0:
+		_draw_stun_stars(canvas, Vector2(vargost_x, (vargost_y + hover_offset) - 62.0 * vargost_scale))
+
+func _draw_stun_stars(canvas: CanvasItem, head_pos: Vector2) -> void:
+	var t := Time.get_ticks_msec() * 0.007
+	var num_stars := 3
+	var rx := 24.0 * (MAP_SCALE / 2.625)
+	var ry := 8.0 * (MAP_SCALE / 2.625)
+	var star_col := Color("#ffd166")
+	for k in range(num_stars):
+		var angle := t + (float(k) * (TAU / float(num_stars)))
+		var sx := head_pos.x + cos(angle) * rx
+		var sy := head_pos.y + sin(angle) * ry
+		var sz := (3.5 + 1.2 * sin(angle)) * (MAP_SCALE / 2.625)
+		var pts := PackedVector2Array([
+			Vector2(sx, sy - sz),
+			Vector2(sx + sz * 0.7, sy),
+			Vector2(sx, sy + sz),
+			Vector2(sx - sz * 0.7, sy)
+		])
+		canvas.draw_colored_polygon(pts, star_col)
 
 func _draw_aoda(canvas: CanvasItem) -> void:
 	if aoda_atlases.is_empty():
@@ -2517,7 +2604,7 @@ func _draw_gothic_health_bars(canvas: CanvasItem) -> void:
 	var v_top_y := v_head_top_y - v_bar_h - 10.0 * v_scale
 	if vargost_alpha > 0.1:
 		var v_label := "Vargost (T1) · %d/%d HP" % [int(vargost_hp), int(VARGOST_MAX_HP)]
-		var v_sub := "(Bay @ 380px/s (Nghiêng 25°))"
+		var v_sub := "(Bay @ 250px/s (Nghiêng 20°))"
 		if vargost_state == "HALO_WINDUP":
 			v_sub = "(🔥 Vận Blazing Halo)"
 		elif vargost_hit_flash > 0.0:

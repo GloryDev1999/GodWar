@@ -10,8 +10,8 @@
     "projectile_speed_px_per_sec": 1100,
     "behavior": "hover_high_cast_downwards",
     "locomotion": {
-      "fly_forward_tilt_deg": 25,
-      "fly_backward_tilt_deg": -25,
+      "fly_forward_tilt_deg": 20,
+      "fly_backward_tilt_deg": -20,
       "ground_y_px": 194.0,
       "sky_y_px": 65.0,
       "fly_slow_speed_px_per_sec": 100,
